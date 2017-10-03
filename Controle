@@ -1,0 +1,19 @@
+#Leitor Exibidor do arquivo .class
+
+O programa efetua:
+	1- a verificação da validade do arquivo .class (verifica assinatura cafebabe -> magic)
+	2- lê os as entradas da tabela do pool de constante;
+	3- verifica se todos os conteudos do mesmo foi lido ou não;
+	4- exibe as constantes na tabela do pool de constante (falta mostrar informações de cada constante);
+	5- mostrar strings utf8 para 1, 2 e 3 bytes;
+	
+	
+Fazer:
+	- Ler fields;
+	- Ler atributos;
+	- Tratar flags;
+	- Mostrar atributos;
+	- Mostrar fields;
+	- Mostrar flags;
+	- Mostrar flags de fields;
+	- etc...
