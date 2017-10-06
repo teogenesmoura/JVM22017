@@ -18,8 +18,24 @@
 #include <stdbool.h>
 #include <string.h>
 
+/*struct de uniao para armazenar todos os tamanhos de variavel que
+**serao lidos*/
+typedef union {
+	unsigned char *array;	/*Ponteiro para uma strig*/
+	unsigned char u1; 		/*para armazenar leitura de um byte*/
+	unsigned short u2;		/*para armazenar leitura de dois byte*/
+	unsigned int u4;		/*para armazenar leitura de quatro byte*/
+}classLoadrType;
 
-/*DEFINIÇÃO DOS TIPOS POSSIVEIS DO POOL DE CONSTANTES*/
+/*uma struct para armazenar informações da cp_info*/
+typedef struct {
+	unsigned char tag;
+	classLoadrType *info;	
+}cp_info;
+
+
+
+/*DEFINIÇÃO DOS TIPOS POSSIVEIS DE TAGS NO POOL DE CONSTANTES*/
 
 #define UTF8 1
 #define INTEGER 3
@@ -43,23 +59,9 @@
 
 /*CONSTANTES PARA FORMATAÇÃO DOS DADOS*/
 
-const char *type_Names [12] = {"UFT8_info", "-", "Integer", "Float", "Long", "Double", "Class_info", "String_info", "Fieldref_info", "Methodref_info", "Interface", "Name and Type"};
+const char *type_Names [12] = {"UFT8_info", "-", "Integer_info", "Float_info", "Long_info", "Double_info", "Class_info", "String_info", "Fieldref_info", "Methodref_info", "Interface_info", "Name and Type"};
 const char *flag_name [5] = {"ACC_PUBLIC", "ACC_FINAL", "ACC_SUPER", "ACC_INTERFACE", "ACC_ABSTRACT"};
 
-/*struct de uniao para armazenar todos os tamanhos de variavel que
-**serao lidos*/
-typedef union {
-	unsigned char *array; /*Ponteiro para uma strig*/
-	unsigned char u1; /**/
-	unsigned short u2;
-	unsigned int u4;
-}classLoadrType;
-
-/*uma struct para armazenar*/
-typedef struct {
-	unsigned char tag;
-	classLoadrType *info;
-}cp_info;
 
 
 /*Função lerU4: a partir do arquivo recebido, lê 4 bytes e inverte-os*/
@@ -67,10 +69,10 @@ unsigned int lerU4(FILE *fp){
 	unsigned char aux;
 	unsigned int ret = 0;
 
-	for(int i = 0; i <= 3; i++){ /*lê os 4 primeiros bytes do .class*/
-		fread(&aux, 1, 1, fp); 
-		ret = ret << 8;
-		ret = ret | aux;
+	for(int i = 0; i <= 3; i++){ /*for para ler os 4 bytes do .class*/
+		fread(&aux, 1, 1, fp); 	/*lê um byte*/
+		ret = ret << 8;			/*Deslocamento de 8 bits a esquerda*/
+		ret = ret | aux;		/*Faz um or bit a bit*/
 	}
 	/*printf("%08x\n", ret);*/
 
@@ -82,7 +84,7 @@ unsigned short lerU2 (FILE *fp){
 	unsigned char aux;
 	unsigned short ret = 0;
 
-	fread(&aux, 1, 1, fp);
+	fread(&ret, 1, 1, fp);
 	fread(&aux, 1, 1, fp);
 
 	ret <<= 8;
@@ -100,8 +102,11 @@ unsigned char lerU1 (FILE *fp){
 	return ret;
 }
 
-/*função para ler os bytes da string UTF8*/
-unsigned char * lerU2UTF8 (int size, FILE *fp){
+/* função para ler os bytes da string UTF8.
+** aloca a memória para a quantidade de byte no array de byte.
+** faz um loop com a qtd de byte no array lendo byte a byte e armazenando 
+** na memoria alocada.*/
+unsigned char * ler_UTF8 (int size, FILE *fp){
 	unsigned char *ret = (unsigned char *) malloc(sizeof(unsigned char) * size);
 
 	for(int i = 0; i < size; i++)
@@ -126,11 +131,11 @@ int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 
 		/*checagem do campo info e leitura dos parametros de acordo com o tipo da tag lida*/
 		switch (constPool[i].tag){
-			printf("constPool[i].tag = %c\n", constPool[i].tag);
+
 			case UTF8:/*contem um campo u2 e um array de bayte u1 como info*/
 				constPool[i].info = (classLoadrType *) malloc(sizeof(classLoadrType) * 2);
-				constPool[i].info[0].u2 = lerU2(fp); /*número de bytes no array de bytes*/
-				constPool[i].info[1].array = lerU2UTF8(constPool[i].info[0].u2, fp); /*bytes da string*/
+				constPool[i].info[0].u2 = lerU2(fp); /*lê o número de bytes que o array de bytes contem*/
+				constPool[i].info[1].array = ler_UTF8(constPool[i].info[0].u2, fp); /*bytes da string*/
 				break;
 
 			case INTEGER: /*possui apenas um campo u4 em info*/
@@ -173,7 +178,7 @@ void show_UTF8 (int size, unsigned char * str){
 
 	while(i < size){ /*enquanto tiver byte no array de bytes*/
 		if(!(str[i] & 0x80)){ /*1 byte para utf-8: Se inverso é true, então caracter é representado por 0*/
-			printf("%c\n", str[i]);
+			printf("%c", str[i]);
 		}else{	/*Caso não esteja na faixa dos caracteres "usuais"*/
 			unsigned short aux;
 			if(!(str[i+1] & 0x20)){	/*para utf8 de 2 byte*/
@@ -183,18 +188,55 @@ void show_UTF8 (int size, unsigned char * str){
 				i++;
 			}
 			i++;
-			printf("%d\n", aux);
+			printf("%d", aux);
 		}
+		i++;
 	}
 }
 
+/*função recursiva para desreferenciar indices das constantes
+** que contem strings nas suas informações.
+** Recebe o indice (posição) de uma constante na tabela
+** e o penteiro para a tabela e recursivamente acessa os
+** indices na tabela até chegar no indice referenciando
+** estrutura UTF8 que contem a string da constante inicialmente
+** passado.*/
+void dereference_index_UTF8 (int index, cp_info *cp){ 
+	switch(cp[index].tag){
+		case UTF8: /*Neste caso, estamos no caso trivial, onde a estrutura contem a string desejada.*/
+			show_UTF8(cp[index].info[0].u2, cp[index].info[1].array); /*eh passado qtd de byte no array de byte e array contendo bytes*/
+			break;
 
+		case CLASS:
+		case STRING:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			break;
+
+		case INTERFACE_REF:
+		case METHOD_REF:
+		case FIELD_REF:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			printf("|");
+			dereference_index_UTF8(cp[index].info[1].u2, cp);
+			break;
+
+		case NAME_AND_TYPE:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			printf(":");
+			dereference_index_UTF8(cp[index].info[1].u2, cp);
+			break;
+	}
+}
+
+/*A recebe a qtd de constantes presentes na tabela do CP
+** e ponteiro para a tabela dos constantes.
+** Percorre a tabela e exibe toda a informação contida nela.*/
 void showConstPool(int const_pool_cont, cp_info *constPool){
 
 	printf("Pool de Constantes:\n");
 
 	for(int i = 1; i < const_pool_cont; i++){
-		printf("\t[%d] = %s\n", i, type_Names[constPool[i].tag-1]);
+		printf("\t[%d] = %s", i, type_Names[constPool[i].tag-1]);
 
 		switch(constPool[i].tag-1){
 			case INTEGER: /*tem um campo u4 em info*/
@@ -202,6 +244,7 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 				break;
 
 			case UTF8: /*tem um campo u2 e um array u1 como info*/
+				printf("\t");
 				show_UTF8(constPool[i].info[0].u2, constPool[i].info[1].array);
 				break;
 
@@ -215,23 +258,25 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 				break;
 
 			case CLASS:
-				break;
-
 			case STRING:
+				printf(" #%d\t\t", constPool[i].info[0].u2);
+				dereference_index_UTF8 (i, constPool);
 				break;
 
 			case INTERFACE_REF:
-				
-			case METHOD_REF:
-			
 			case FIELD_REF:
+			case METHOD_REF:
+				printf("  %d|%d\t", constPool[i].info[0].u2, constPool[i].info[1].u2);
+				dereference_index_UTF8(i, constPool);
 				break;
 
 			case NAME_AND_TYPE:
+				printf("  %d:%d\t",  constPool[i].info[0].u2, constPool[i].info[1].u2);
+				dereference_index_UTF8(i, constPool);
 				break;
 		}
+		printf("\n");
 	}
-	printf("\n");
 }
 
 
@@ -274,11 +319,10 @@ int main (int argc, char *argv[]){
 	/*Ponteiro do tipo cp_info*/
 	cp_info *constPool;
 
-	/*aloca a memoria (tabela) do tamanho da quantidade de entrada no CP*/
+	/*aloca a memoria (tabela) do tamanho da quantidade de const na entrada no CP*/
 	constPool = (cp_info *) malloc(sizeof(cp_info) * const_pool_cont);
 	int checkCP = loadInfConstPool(constPool, const_pool_cont, fp);
 
-	
 	/*Verifica se todos os elementos da entrada do CP foram lidos*/
 	if(const_pool_cont != checkCP){
 		printf("ERRO: Tipo desconhecido para pool de constante.\n");
@@ -287,8 +331,8 @@ int main (int argc, char *argv[]){
 
 		return UNKNOWN_TYPE;
 	}
-	
-	/*Exibe algumas coisas da CP*/
+
+	/*Chamada para mostrar CP*/
 	showConstPool(const_pool_cont, constPool);
 
 	return 0;
