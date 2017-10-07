@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "leitor.h"
+#include <stdint.h>
 
 /*Função lerU4: a partir do arquivo recebido, lê 4 bytes e inverte-os*/
 unsigned int lerU4(FILE *fp){
@@ -271,11 +272,30 @@ int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 	return i;
 }
 
+/*Verifica flags ativas e mostra.*/
+void show_flags(bool *flags){
+	bool first = true; /*Apenas para exibir a mensagem "Flags" uma vez na tela.*/
+
+	for (int i = 0; i < 5; ++i){
+		if(flags[i]){
+			if(first){
+				printf(" Flags presente: ");
+			}else{
+				printf(", ");
+			}
+			first = false;
+			printf("%s", flag_name[i]);
+		}
+	}
+	printf(".\n");
+}
 void loadInterfaces(){}
 void loadFields(){}
 void loadMethods(){}
+
+
 int main (int argc, char *argv[]){
-	uint32_t magicnumber;
+	/*uint32_t magicnumber;*/
 	uint16_t minVersion, majVersion, const_pool_cont;
 	cp_info *constPool;	/*Ponteiro do tipo cp_info*/
 
@@ -286,7 +306,6 @@ int main (int argc, char *argv[]){
 	int checkCP;
 
 	/*Verifica se o arquivo foi passado*/
-	/*
 	if(argc != 2){
 		printf("ERRO: deve ser passado um argumento!\n");
 		printf("Execute com:[program_name] [arquivo.class]\n");
@@ -294,25 +313,23 @@ int main (int argc, char *argv[]){
 	}
 
 	FILE *fp = fopen(argv[1], "rb");
-	*/
+
 	/*Verifica se o arquivo recebido foi aberto com sucesso*/
-	/*
 	if(fp == NULL){
 		printf("ERRO: não foi possivel abrir o arquivo %s\n", argv[1]);
 		return CANT_OPEN;
 	}
-	*/
+	
 	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
-	/*
 	if(lerU4(fp) != 0xcafebabe){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
-	*/
 
-	FILE *fp = fopen("hello.class", "rb");
 
-	magicnumber = lerU4(fp);
+	/*FILE *fp = fopen("hello.class", "rb");*/
+
+	/*magicnumber = lerU4(fp);*/
 	/*lê a minor version*/
 	minVersion = lerU2(fp);
 	printf("\nminVersion = 0x%x\n", minVersion);
@@ -340,16 +357,64 @@ int main (int argc, char *argv[]){
 
 	/*Chamada para mostrar CP*/
 	showConstPool(const_pool_cont, constPool);
+
 	/* Partindo agora para a leitura do restante dos elementos do .class */
 	/* access_flags, this_class, super_class, interfaces_count */
 	access_flags = lerU2(fp);
+
+	bool splitFlags[5];
+	/*Assumindo que todas as flags são false (ou seja, não estão presentes)*/
+	for(int i = 0; i < 5; i++){
+		splitFlags[i] = false;
+	}
+
+	/*Testa uma a uma setando como true as que estão presente*/
+	if (access_flags & 0x01){
+		splitFlags[0] = true;
+	}
+	if (access_flags & 0x010){
+		splitFlags[1] = true;
+	}
+	if (access_flags & 0x020){
+		splitFlags[2] = true;
+	}
+	if (access_flags & 0x0200){
+		splitFlags[3] = true;
+	}
+	if (access_flags & 0x0400){
+		splitFlags[4] = true;
+	}
+
+	printf("\n");
+	/*chama a função para mostrar as flags ativas*/
+	show_flags(splitFlags);
+
 	this_class = lerU2(fp);
+	printf(" this_class_info: ");
+	/*Exibe a informação (string) da classe*/
+	dereference_index_UTF8(this_class, constPool);
+	printf("\n");
+
 	super_class = lerU2(fp);
+
+	printf(" super_class_info: ");
+	/*Exibe a informação (string) da super_classe*/
+	dereference_index_UTF8(super_class, constPool);
+	printf("\n");
+
 	interfaces_count = lerU2(fp);
-	printf (" access_flags: 0x%04x \n this_class: 0x%04x \n super_class: 0x%04x \n", access_flags, this_class, super_class, interfaces_count);
+	printf (" access_flags: 0x%04x \n this_class: 0x%04x \n super_class: 0x%04x \n", access_flags, this_class, super_class);
 
 	interfaces = (uint16_t*) (malloc (sizeof(uint16_t)*interfaces_count));
-	loadInterfaces();	/* Funcao vazia por enquanto. */
+	/*Carregando e mostrando todas as interfaces que estão presentes*/
+	for (int i = 0; i < interfaces_count; ++i){
+		interfaces[i] = lerU2(fp);
+		printf("\tInterface %d:", i);
+		dereference_index_UTF8(interfaces[i], constPool);
+		printf("\n");
+	}
+
+	/*loadInterfaces();	 Funcao vazia por enquanto. */
 
 	fields_count = lerU2(fp);
 	loadFields();		/* Funcao vazia por enquanto. */

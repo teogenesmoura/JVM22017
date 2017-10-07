@@ -8,6 +8,8 @@ O programa efetua:
 	5- mostrar strings utf8 para 1, 2 e 3 bytes;
 	6- "desreferênciação" dos indices na entrada da tabela de CP para exibição das strings, nomes da classe, nome dos metodos, indices referenciando outras constantes; 
 	7- converte para float, double e long;
+	8- .h foi incrementado com outras struct e funções;
+	
 	
 Fazer:
 	- Ler fields;

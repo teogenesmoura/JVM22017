@@ -33,11 +33,6 @@
 		attribute_info *attributes;
 	}method_info;
 
-	typedef struct {
-		unsigned char *info;
-		unsigned char name_index;
-		unsigned int legth;
-	}attribute_info;
 
 	typedef struct {
 		unsigned char accessFlags;
@@ -83,4 +78,5 @@
 	EXT_LEITOR float convert_u4_toFloat(classLoadrType ent);
 	EXT_LEITOR long convert_u4_toLong (classLoadrType entLow, classLoadrType entHigh);
 	EXT_LEITOR double convert_u4_toDouble(classLoadrType entLow, classLoadrType entHigh);
+	EXT_LEITOR void show_flags(bool *flags);
 #endif
