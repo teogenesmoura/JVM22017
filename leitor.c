@@ -2,7 +2,7 @@
 /****************************************************************************
 ** MEMBROS:                                                                **
 **		Aluno 1: Jean Pierre Sissé                                         **
-**		Aluno 2:                                                           **
+**		Aluno 2: Samuel Sousa Almeida                                      **
 **		Aluno 3:                                                           **
 **		Aluno 4:                                                           **
 **		Aluno 5:                                                           **
@@ -18,7 +18,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include "leitor.h"
-
 
 /*Função lerU4: a partir do arquivo recebido, lê 4 bytes e inverte-os*/
 unsigned int lerU4(FILE *fp){
@@ -89,11 +88,10 @@ long convert_u4_toLong (classLoadrType entLow, classLoadrType entHigh){
 	long out;
 
 	return	out = (((long)entHigh.u4) << 32) | entLow.u4;
-
 }
 
 /*Converte o valor em u4 para double.*/
-double convet_u4_toDouble(classLoadrType entLow, classLoadrType entHigh){
+double convert_u4_toDouble(classLoadrType entLow, classLoadrType entHigh){
 	double out;
 
 	int s = ((convert_u4_toLong(entLow, entHigh) >> 63) == 0) ? 1 : -1;
@@ -108,12 +106,12 @@ void show_UTF8 (int size, unsigned char * str){
 	int i = 0;
 
 	/*printf("   ");*/
-	while(i < size){ /*enquanto tiver byte no array de bytes*/
-		if(!(str[i] & 0x80)){ /*1 byte para utf-8: Se inverso é true, então caracter é representado por 0, ou seja, o bit 7 é 0*/
+	while(i < size){ 	/*enquanto tiver byte no array de bytes*/
+		if(!(str[i] & 0x80)){ 	/*1 byte para utf-8: Se inverso é true, então caracter é representado por 0, ou seja, o bit 7 é 0*/
 			printf("%c", str[i]);
 		}else{	/*Caso não esteja na faixa dos caracteres "usuais"*/
 			unsigned short aux;
-			if(!(str[i+1] & 0x20)){	/*para utf8 de 2 byte*/
+			if(!(str[i+1] & 0x20)){	/* para utf8 de 2 bytes */
 				aux = ((str[i] & 0xf) << 6) + ((str[i+1] & 0x3f));
 			}else{	/*para utf8 de 3 byte*/
 				aux = ((str[i] & 0xf) << 12) + ((str[i+1] & 0x3f) << 6) + (str[i + 2] & 0x3f);
@@ -127,7 +125,7 @@ void show_UTF8 (int size, unsigned char * str){
 }
 
 
-/*função recursiva para desreferenciar indices das constantes
+/* função recursiva para desreferenciar indices das constantes
 ** que contem strings nas suas informações.
 ** Recebe o indice (posição) de uma constante na tabela
 ** e o penteiro para a tabela e recursivamente acessa os
@@ -192,7 +190,7 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 				break;
 			
 			case DOUBLE:
-				printf("%lf", convet_u4_toDouble(constPool[i].info[0], constPool[i].info[1]));
+				printf("%lf", convert_u4_toDouble(constPool[i].info[0], constPool[i].info[1]));
 				break;
 			case CLASS:
 			case STRING:
@@ -273,9 +271,22 @@ int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 	return i;
 }
 
+void loadInterfaces(){}
+void loadFields(){}
+void loadMethods(){}
 int main (int argc, char *argv[]){
+	uint32_t magicnumber;
+	uint16_t minVersion, majVersion, const_pool_cont;
+	cp_info *constPool;	/*Ponteiro do tipo cp_info*/
+
+	uint16_t access_flags, this_class, super_class;
+	uint16_t interfaces_count, fields_count, methods_count, attributes_count;
+	uint16_t *interfaces;
+	/* Fields, Methods and Attributes precisam dos proprios tipos de dados para o array */
+	int checkCP;
 
 	/*Verifica se o arquivo foi passado*/
+	/*
 	if(argc != 2){
 		printf("ERRO: deve ser passado um argumento!\n");
 		printf("Execute com:[program_name] [arquivo.class]\n");
@@ -283,50 +294,70 @@ int main (int argc, char *argv[]){
 	}
 
 	FILE *fp = fopen(argv[1], "rb");
-
+	*/
 	/*Verifica se o arquivo recebido foi aberto com sucesso*/
+	/*
 	if(fp == NULL){
 		printf("ERRO: não foi possivel abrir o arquivo %s\n", argv[1]);
 		return CANT_OPEN;
 	}
-
+	*/
 	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
+	/*
 	if(lerU4(fp) != 0xcafebabe){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
+	*/
 
+	FILE *fp = fopen("hello.class", "rb");
 
+	magicnumber = lerU4(fp);
 	/*lê a minor version*/
-	int minVersion = lerU2(fp);
-	printf("\nminVersion = %d\n", minVersion);
+	minVersion = lerU2(fp);
+	printf("\nminVersion = 0x%x\n", minVersion);
 
 	/*lê a major version*/
-	int majVersion = lerU2(fp);
-	printf("majVersion = %d\n", majVersion);
+	majVersion = lerU2(fp);
+	printf("majVersion = 0x%x\n", majVersion);
 
 	/*lê quantidade de constates no pool de constate*/
-	int const_pool_cont = lerU2(fp);
+	const_pool_cont = lerU2(fp);
 	printf("Constant pool count: %d\n\n", const_pool_cont);
 
-	/*Ponteiro do tipo cp_info*/
-	cp_info *constPool;
 
 	/*aloca a memoria (tabela) do tamanho da quantidade de const na entrada no CP*/
 	constPool = (cp_info *) malloc(sizeof(cp_info) * const_pool_cont);
-	int checkCP = loadInfConstPool(constPool, const_pool_cont, fp);
+	checkCP = loadInfConstPool(constPool, const_pool_cont, fp);
 
 	/*Verifica se todos os elementos da entrada do CP foram lidos*/
 	if(const_pool_cont != checkCP){
 		printf("ERRO: Tipo desconhecido para pool de constante.\n");
 		printf("Nao foi possivel carregar todas as entradas do CP.\n");
 		printf("Elementos #%d\n", checkCP+1);
-
 		return UNKNOWN_TYPE;
 	}
 
 	/*Chamada para mostrar CP*/
 	showConstPool(const_pool_cont, constPool);
+	/* Partindo agora para a leitura do restante dos elementos do .class */
+	/* access_flags, this_class, super_class, interfaces_count */
+	access_flags = lerU2(fp);
+	this_class = lerU2(fp);
+	super_class = lerU2(fp);
+	interfaces_count = lerU2(fp);
+	printf (" access_flags: 0x%04x \n this_class: 0x%04x \n super_class: 0x%04x \n", access_flags, this_class, super_class, interfaces_count);
+
+	interfaces = (uint16_t*) (malloc (sizeof(uint16_t)*interfaces_count));
+	loadInterfaces();	/* Funcao vazia por enquanto. */
+
+	fields_count = lerU2(fp);
+	loadFields();		/* Funcao vazia por enquanto. */
+
+	methods_count = lerU2(fp);
+	loadMethods(fp, methods_count);		/* Funcao em implementacao. */
+
+	printf (" interfaces_count: 0x%04x \n fields_count: 0x%04x \n methods_count: 0x%04x \n", interfaces_count, fields_count, methods_count);
 
 	return 0;
 }
