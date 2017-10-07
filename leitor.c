@@ -8,7 +8,7 @@
 **		Aluno 5:                                                           **
 **                                                                         **
 ** Descrição: Lietor de arquivo .class                                     **
-**compile com: gcc -ansi -Wall -std=c99 -o [prog_name] [prog_name.c]       **
+**compile com: gcc -ansi -Wall -std=c99 -o [prog_name] [prog_name.c] -lm   **
 *****************************************************************************/
 
 
@@ -17,51 +17,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
-
-/*struct de uniao para armazenar todos os tamanhos de variavel que
-**serao lidos*/
-typedef union {
-	unsigned char *array;	/*Ponteiro para uma strig*/
-	unsigned char u1; 		/*para armazenar leitura de um byte*/
-	unsigned short u2;		/*para armazenar leitura de dois byte*/
-	unsigned int u4;		/*para armazenar leitura de quatro byte*/
-}classLoadrType;
-
-/*uma struct para armazenar informações da cp_info*/
-typedef struct {
-	unsigned char tag;
-	classLoadrType *info;	
-}cp_info;
-
-
-
-/*DEFINIÇÃO DOS TIPOS POSSIVEIS DE TAGS NO POOL DE CONSTANTES*/
-
-#define UTF8 1
-#define INTEGER 3
-#define FLOAT 4
-#define LONG 5
-#define DOUBLE 6
-#define CLASS 7
-#define STRING 8
-#define FIELD_REF 9
-#define METHOD_REF 10
-#define INTERFACE_REF 11
-#define NAME_AND_TYPE 12
-
-
-/*DEFINIÇÃO PARA TRATAMENTO DE POSSIVEIS ERROS*/
-
-#define MISSING_ARGUMENT 1
-#define CANT_OPEN 2
-#define INVALID_FILE 3
-#define UNKNOWN_TYPE 4
-
-/*CONSTANTES PARA FORMATAÇÃO DOS DADOS*/
-
-const char *type_Names [12] = {"UFT8_info", "-", "Integer_info", "Float_info", "Long_info", "Double_info", "Class_info", "String_info", "Fieldref_info", "Methodref_info", "Interface_info", "Name and Type"};
-const char *flag_name [5] = {"ACC_PUBLIC", "ACC_FINAL", "ACC_SUPER", "ACC_INTERFACE", "ACC_ABSTRACT"};
-
+#include "leitor.h"
 
 
 /*Função lerU4: a partir do arquivo recebido, lê 4 bytes e inverte-os*/
@@ -114,6 +70,152 @@ unsigned char * ler_UTF8 (int size, FILE *fp){
 	
 	return ret;
 }
+
+/*Retirado do slide do prof, efetua conversão do valor para float.*/
+float convert_u4_toFloat(classLoadrType ent){
+	float out;
+
+	int s = ((ent.u4 >> 31) == 0) ? 1 : -1;
+	int e = ((ent.u4 >> 23) & 0xff);
+	int m = (e == 0) ? (ent.u4 & 0x7fffff) << 1 : (ent.u4 & 0x7fffff) | 0x800000;
+
+	out = s * m * (pow(2,(e-150)));
+
+	return out;
+}
+
+/*Converte o valor em u4 para long.*/
+long convert_u4_toLong (classLoadrType entLow, classLoadrType entHigh){
+	long out;
+
+	return	out = (((long)entHigh.u4) << 32) | entLow.u4;
+
+}
+
+/*Converte o valor em u4 para double.*/
+double convet_u4_toDouble(classLoadrType entLow, classLoadrType entHigh){
+	double out;
+
+	int s = ((convert_u4_toLong(entLow, entHigh) >> 63) == 0) ? 1 : -1;
+	int e = ((convert_u4_toLong(entLow, entHigh) >> 52) & 0x7ffL);
+	long m = (e == 0) ? (convert_u4_toLong(entLow, entHigh) & 0xfffffffffffffL) << 1 : (convert_u4_toLong(entLow, entHigh) & 0xfffffffffffffL) | 0x10000000000000L;
+
+	return out = s * m * (pow(2,(e-1075)));
+}
+
+/*show_UTF8: monta e mostra a string UTF8*/
+void show_UTF8 (int size, unsigned char * str){
+	int i = 0;
+
+	/*printf("   ");*/
+	while(i < size){ /*enquanto tiver byte no array de bytes*/
+		if(!(str[i] & 0x80)){ /*1 byte para utf-8: Se inverso é true, então caracter é representado por 0, ou seja, o bit 7 é 0*/
+			printf("%c", str[i]);
+		}else{	/*Caso não esteja na faixa dos caracteres "usuais"*/
+			unsigned short aux;
+			if(!(str[i+1] & 0x20)){	/*para utf8 de 2 byte*/
+				aux = ((str[i] & 0xf) << 6) + ((str[i+1] & 0x3f));
+			}else{	/*para utf8 de 3 byte*/
+				aux = ((str[i] & 0xf) << 12) + ((str[i+1] & 0x3f) << 6) + (str[i + 2] & 0x3f);
+				i++;
+			}
+			i++;
+			printf("%d", aux);
+		}
+		i++;
+	}
+}
+
+
+/*função recursiva para desreferenciar indices das constantes
+** que contem strings nas suas informações.
+** Recebe o indice (posição) de uma constante na tabela
+** e o penteiro para a tabela e recursivamente acessa os
+** indices na tabela até chegar no indice referenciando
+** estrutura UTF8 que contem a string da constante inicialmente
+** passado.*/
+void dereference_index_UTF8 (int index, cp_info *cp){ 
+	switch(cp[index].tag){
+		case UTF8: /*Neste caso, estamos no caso trivial, onde a estrutura contem a string desejada.*/
+			show_UTF8(cp[index].info[0].u2, cp[index].info[1].array); /*eh passado qtd de byte no array de byte e array contendo bytes*/
+			break;
+
+		case CLASS:
+		case STRING:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			break;
+
+		case INTERFACE_REF:
+		case METHOD_REF:
+		case FIELD_REF:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			printf("|");
+			dereference_index_UTF8(cp[index].info[1].u2, cp);
+			break;
+
+		case NAME_AND_TYPE:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			printf(":");
+			dereference_index_UTF8(cp[index].info[1].u2, cp);
+			break;
+	}
+}
+
+/*A recebe a qtd de constantes presentes na tabela do CP
+** e ponteiro para a tabela dos constantes.
+** Percorre a tabela e exibe toda a informação contida nela.
+** %d|%d mostra os indices na estrutura seguido das informações
+** relacionadas aos strings nas outras estruturas.*/
+void showConstPool(int const_pool_cont, cp_info *constPool){
+
+	printf("Pool de Constantes:\n");
+
+	for(int i = 1; i < const_pool_cont; i++){
+		printf("\t[%d] = %s", i, type_Names[constPool[i].tag-1]);
+
+		switch(constPool[i].tag){
+			case UTF8: /*tem um campo u2 e um array u1 como info*/
+				printf("\t\t");
+				show_UTF8(constPool[i].info[0].u2, constPool[i].info[1].array);
+				break;
+			
+			case FLOAT:
+				printf("%f", convert_u4_toFloat(constPool[i].info[0]));
+				break;
+
+			case INTEGER:
+				printf("%d", constPool[i].info[0].u4);
+				break;
+
+			case LONG:
+				printf("%ld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
+				break;
+			
+			case DOUBLE:
+				printf("%lf", convet_u4_toDouble(constPool[i].info[0], constPool[i].info[1]));
+				break;
+			case CLASS:
+			case STRING:
+				printf("   #%d\t\t", constPool[i].info[0].u2);
+				dereference_index_UTF8 (i, constPool);
+				break;
+
+			case INTERFACE_REF:
+			case FIELD_REF:
+			case METHOD_REF:
+				printf("  %d|%d\t", constPool[i].info[0].u2, constPool[i].info[1].u2);
+				dereference_index_UTF8(i, constPool);
+				break;
+
+			case NAME_AND_TYPE:
+				printf("  %d|%d\t",  constPool[i].info[0].u2, constPool[i].info[1].u2);
+				dereference_index_UTF8(i, constPool);
+				break;
+		}
+		printf("\n");
+	}
+}
+
 
 /*loadInfConstPoos: carrega as informacoes de pool de constate para memoria*/
 int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
@@ -170,115 +272,6 @@ int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 	/*retorna o numero de elementos lidos*/
 	return i;
 }
-
-
-/*show_UTF8: monta e mostra a string UTF8*/
-void show_UTF8 (int size, unsigned char * str){
-	int i = 0;
-
-	while(i < size){ /*enquanto tiver byte no array de bytes*/
-		if(!(str[i] & 0x80)){ /*1 byte para utf-8: Se inverso é true, então caracter é representado por 0*/
-			printf("%c", str[i]);
-		}else{	/*Caso não esteja na faixa dos caracteres "usuais"*/
-			unsigned short aux;
-			if(!(str[i+1] & 0x20)){	/*para utf8 de 2 byte*/
-				aux = ((str[i] & 0xf) << 6) + ((str[i+1] & 0x3f));
-			}else{	/*para utf8 de 3 byte*/
-				aux = ((str[i] & 0xf) << 12) + ((str[i+1] & 0x3f) << 6) + (str[i + 2] & 0x3f);
-				i++;
-			}
-			i++;
-			printf("%d", aux);
-		}
-		i++;
-	}
-}
-
-/*função recursiva para desreferenciar indices das constantes
-** que contem strings nas suas informações.
-** Recebe o indice (posição) de uma constante na tabela
-** e o penteiro para a tabela e recursivamente acessa os
-** indices na tabela até chegar no indice referenciando
-** estrutura UTF8 que contem a string da constante inicialmente
-** passado.*/
-void dereference_index_UTF8 (int index, cp_info *cp){ 
-	switch(cp[index].tag){
-		case UTF8: /*Neste caso, estamos no caso trivial, onde a estrutura contem a string desejada.*/
-			show_UTF8(cp[index].info[0].u2, cp[index].info[1].array); /*eh passado qtd de byte no array de byte e array contendo bytes*/
-			break;
-
-		case CLASS:
-		case STRING:
-			dereference_index_UTF8(cp[index].info[0].u2, cp);
-			break;
-
-		case INTERFACE_REF:
-		case METHOD_REF:
-		case FIELD_REF:
-			dereference_index_UTF8(cp[index].info[0].u2, cp);
-			printf("|");
-			dereference_index_UTF8(cp[index].info[1].u2, cp);
-			break;
-
-		case NAME_AND_TYPE:
-			dereference_index_UTF8(cp[index].info[0].u2, cp);
-			printf(":");
-			dereference_index_UTF8(cp[index].info[1].u2, cp);
-			break;
-	}
-}
-
-/*A recebe a qtd de constantes presentes na tabela do CP
-** e ponteiro para a tabela dos constantes.
-** Percorre a tabela e exibe toda a informação contida nela.*/
-void showConstPool(int const_pool_cont, cp_info *constPool){
-
-	printf("Pool de Constantes:\n");
-
-	for(int i = 1; i < const_pool_cont; i++){
-		printf("\t[%d] = %s", i, type_Names[constPool[i].tag-1]);
-
-		switch(constPool[i].tag-1){
-			case INTEGER: /*tem um campo u4 em info*/
-				printf("%c", constPool[i].info[0].u4);
-				break;
-
-			case UTF8: /*tem um campo u2 e um array u1 como info*/
-				printf("\t");
-				show_UTF8(constPool[i].info[0].u2, constPool[i].info[1].array);
-				break;
-
-			case FLOAT:
-				break;
-
-			case LONG:
-				break;
-
-			case DOUBLE:
-				break;
-
-			case CLASS:
-			case STRING:
-				printf(" #%d\t\t", constPool[i].info[0].u2);
-				dereference_index_UTF8 (i, constPool);
-				break;
-
-			case INTERFACE_REF:
-			case FIELD_REF:
-			case METHOD_REF:
-				printf("  %d|%d\t", constPool[i].info[0].u2, constPool[i].info[1].u2);
-				dereference_index_UTF8(i, constPool);
-				break;
-
-			case NAME_AND_TYPE:
-				printf("  %d:%d\t",  constPool[i].info[0].u2, constPool[i].info[1].u2);
-				dereference_index_UTF8(i, constPool);
-				break;
-		}
-		printf("\n");
-	}
-}
-
 
 int main (int argc, char *argv[]){
 

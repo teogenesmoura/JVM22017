@@ -4,10 +4,10 @@ O programa efetua:
 	1- a verificação da validade do arquivo .class (verifica assinatura cafebabe -> magic)
 	2- lê os as entradas da tabela do pool de constante;
 	3- verifica se todos os conteudos do mesmo foi lido ou não;
-	4- exibe as constantes na tabela do pool de constante (falta mostrar informações de cada constante);
+	4- exibe as constantes na tabela do pool de constante;
 	5- mostrar strings utf8 para 1, 2 e 3 bytes;
 	6- "desreferênciação" dos indices na entrada da tabela de CP para exibição das strings, nomes da classe, nome dos metodos, indices referenciando outras constantes; 
-	
+	7- converte para float, double e long;
 	
 Fazer:
 	- Ler fields;
