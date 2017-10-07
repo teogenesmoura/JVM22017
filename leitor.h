@@ -10,7 +10,7 @@
 	/*struct de uniao para armazenar todos os tamanhos de variavel que
 	**serao lidos*/
 	typedef union {
-	unsigned char *array;	/*Ponteiro para uma strig*/
+		unsigned char *array;	/*Ponteiro para uma string*/
 		unsigned char u1; 		/*para armazenar leitura de um byte*/
 		unsigned short u2;		/*para armazenar leitura de dois byte*/
 		unsigned int u4;		/*para armazenar leitura de quatro byte*/
@@ -22,6 +22,16 @@
 		classLoadrType *info;
 	}cp_info;
 
+	typedef struct {
+		unsigned short attribute_name_index;
+		unsigned int attribute_length;
+		unsigned char *info;
+	}attribute_info;
+	
+	typedef struct {
+		unsigned short access_flags, name_index, descriptor_index, attributes_count;
+		attribute_info *attributes;
+	}method_info;
 
 
 	/*DEFINIÇÃO DOS TIPOS POSSIVEIS DE TAGS NO POOL DE CONSTANTES*/
