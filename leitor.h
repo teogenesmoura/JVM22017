@@ -23,6 +23,18 @@
 	}cp_info;
 
 
+	typedef struct {
+		unsigned char *info;
+		unsigned char name_index;
+		unsigned int legth;
+	}attribute_info;
+
+	typedef struct {
+		unsigned char accessFlags;
+		unsigned char name_index;
+		unsigned char attribute_count;
+		attribute_info *attributes;
+	} field_info;
 
 	/*DEFINIÇÃO DOS TIPOS POSSIVEIS DE TAGS NO POOL DE CONSTANTES*/
 
