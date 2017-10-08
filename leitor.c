@@ -20,8 +20,8 @@
 #include "leitor.h"
 #include <stdint.h>
 
-/*Função lerU4: a partir do arquivo recebido, lê 4 bytes e inverte-os*/
-unsigned int lerU4(FILE *fp){
+/*Função ler_u4: a partir do arquivo recebido, lê 4 bytes e inverte-os*/
+unsigned int ler_u4(FILE *fp){
 	unsigned char aux;
 	unsigned int ret = 0;
 
@@ -35,8 +35,8 @@ unsigned int lerU4(FILE *fp){
 	return ret;
 }
 
-/*lerU2: a partir do arquivo recebido, lê 2 bytes e inverte-os*/
-unsigned short lerU2 (FILE *fp){
+/*ler_u2: a partir do arquivo recebido, lê 2 bytes e inverte-os*/
+unsigned short ler_u2 (FILE *fp){
 	unsigned char aux;
 	unsigned short ret = 0;
 
@@ -49,8 +49,8 @@ unsigned short lerU2 (FILE *fp){
 	return ret;
 }
 
-/*lerU1: a partir do arquivo recebido, lê 1 byte do mesmo.*/
-unsigned char lerU1 (FILE *fp){
+/*ler_u1: a partir do arquivo recebido, lê 1 byte do mesmo.*/
+unsigned char ler_u1 (FILE *fp){
 	unsigned char ret;
 
 	fread(&ret, 1, 1, fp);
@@ -66,7 +66,7 @@ unsigned char * ler_UTF8 (int size, FILE *fp){
 	unsigned char *ret = (unsigned char *) malloc(sizeof(unsigned char) * size);
 
 	for(int i = 0; i < size; i++)
-		ret[i] = lerU1(fp);
+		ret[i] = ler_u1(fp);
 	
 	return ret;
 }
@@ -224,7 +224,7 @@ int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 	**de acordo.*/
 	for(i = 1; i < const_pool_cont; i++){
 		/*Carrega a tag que define o tipo da informação em cp_info*/
-		constPool[i].tag = lerU1(fp);
+		constPool[i].tag = ler_u1(fp);
 
 		/*verifica s o tipo lido é conhecido de acordo com a tabela no slide*/
 		if((constPool[i].tag <= 0) && (constPool[i].tag >= 12) && (constPool[i].tag == 2))
@@ -235,27 +235,27 @@ int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 
 			case UTF8:/*contem um campo u2 e um array de bayte u1 como info*/
 				constPool[i].info = (classLoadrType *) malloc(sizeof(classLoadrType) * 2);
-				constPool[i].info[0].u2 = lerU2(fp); /*lê o número de bytes que o array de bytes contem*/
+				constPool[i].info[0].u2 = ler_u2(fp); /*lê o número de bytes que o array de bytes contem*/
 				constPool[i].info[1].array = ler_UTF8(constPool[i].info[0].u2, fp); /*bytes da string*/
 				break;
 
 			case INTEGER: /*possui apenas um campo u4 em info*/
 			case FLOAT:
 				constPool[i].info = (classLoadrType *) malloc(sizeof(classLoadrType));
-				constPool[i].info[0].u4 = lerU4(fp);
+				constPool[i].info[0].u4 = ler_u4(fp);
 				break;
 
 			case LONG: /*possui dois campos u4 em info*/
 			case DOUBLE:
 				constPool[i].info = (classLoadrType *) malloc(sizeof(classLoadrType) * 2);
-				constPool[i].info[0].u4 = lerU4(fp);
-				constPool[i].info[1].u4 = lerU4(fp);
+				constPool[i].info[0].u4 = ler_u4(fp);
+				constPool[i].info[1].u4 = ler_u4(fp);
 				break;
 
 			case CLASS: /*contem um campo u2 em info*/
 			case STRING:
 				constPool[i].info = (classLoadrType *) malloc(sizeof(classLoadrType));
-				constPool[i].info[0].u2 = lerU2(fp);
+				constPool[i].info[0].u2 = ler_u2(fp);
 				break;
 
 			case FIELD_REF: /*contem dois campos u2 em info*/
@@ -263,8 +263,8 @@ int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 			case INTERFACE_REF:
 			case NAME_AND_TYPE:
 				constPool[i].info = (classLoadrType *) malloc(sizeof(classLoadrType) * 2);
-				constPool[i].info[0].u2 = lerU2(fp);
-				constPool[i].info[1].u2 = lerU2(fp);
+				constPool[i].info[0].u2 = ler_u2(fp);
+				constPool[i].info[1].u2 = ler_u2(fp);
 				break;
 		}
 	}
@@ -289,7 +289,173 @@ void show_flags(bool *flags){
 	}
 	printf(".\n");
 }
-void loadInterfaces(){}
+
+/*lê um atributo*/
+attribute_info ler_attribute(FILE *fp){
+	attribute_info out;
+
+	out.attribute_name_index = ler_u2(fp);
+	out.attribute_length = ler_u4(fp);
+	out.info = (unsigned char *) malloc(sizeof(unsigned char) * out.attribute_length);
+	for (int i = 0; i < out.attribute_length; ++i)
+		out.info[i] = ler_u1(fp);
+	
+	return out;
+}
+
+/*Lê os fields*/
+field_info ler_fields (FILE *fp){
+	field_info out;
+
+	out.access_flags = ler_u2(fp) & 0x0df;
+	out.name_index = ler_u2(fp);
+	out.descriptor_index = ler_u2(fp);
+	out.attribute_count = ler_u2(fp);
+	out.attributes = (attribute_info *) malloc(sizeof(attribute_info) * out.attribute_count);
+	for(int i = 0; i < out.attribute_count; i++)
+		out.attributes[i] = ler_attribute(fp);
+
+	return out;
+}
+
+/*mostra as flags do campo verificando todas as flags presente no field*/
+void show_field_flags(unsigned short flags){
+	bool first = true;
+
+	if(flags & 0x01){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_PUBLIC");
+	}
+
+	if(flags & 0x02){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_PPRIVATE");
+	}
+
+	if(flags & 0x04){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_PROTECTED");
+	}
+
+	if(flags & 0x08){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_STATIC");
+	}
+
+	if(flags & 0x010){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_FINAL");
+	}
+
+	if(flags & 0x0040){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_VOLATILE");
+	}
+
+	if(flags & 0x0080){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_TRANSIENT");
+	}
+
+	if(flags & 0x1000){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_SYNTHETIC");
+	}
+
+	if(flags & 0x4000){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_ENUM");
+	}
+
+	printf("\n");
+}
+
+/*carrega e mostra todas interfaces que estão presentes.*/
+void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPool, FILE *fp){
+
+	for (int i = 0; i < interfaces_count; ++i){
+		interfaces[i] = ler_u2(fp);
+		printf("\tInterface %d:", i);
+		dereference_index_UTF8(interfaces[i], constPool);
+		printf("\n");
+	}
+}
+
+
+void show_field_attribute(cp_info *cp, attribute_info attribute){
+	printf(" Nome do atributo: ");
+	dereference_index_UTF8(attribute.attribute_name_index, cp);
+	printf("\n");
+	printf(" Tamando: %d\n", attribute.attribute_length);
+
+	/*Completar a função para diferente tipos de atributo*/
+}
+
+/*Mostra um field*/
+void show_fields (cp_info *cp, field_info fields){
+	/*mostra flags*/
+	show_field_flags(fields.access_flags);
+
+	printf(" Nome do campo: ");
+	dereference_index_UTF8(fields.name_index, cp);
+	printf("\n");
+
+	printf(" Descriptor do campo: ");
+	dereference_index_UTF8(fields.descriptor_index, cp);
+	printf("\n");
+
+	printf(" Numero de atributos: %d\n", fields.attribute_count);
+	for (int i = 0; i < fields.attribute_count; ++i){
+		printf(" Atributo[%d]: ", i);
+		show_field_attribute(cp, fields.attributes[i]);
+	}
+}
+
 void loadFields(){}
 void loadMethods(){}
 
@@ -298,7 +464,7 @@ int main (int argc, char *argv[]){
 	/*uint32_t magicnumber;*/
 	uint16_t minVersion, majVersion, const_pool_cont;
 	cp_info *constPool;	/*Ponteiro do tipo cp_info*/
-
+	field_info *fields;
 	uint16_t access_flags, this_class, super_class;
 	uint16_t interfaces_count, fields_count, methods_count, attributes_count;
 	uint16_t *interfaces;
@@ -321,7 +487,7 @@ int main (int argc, char *argv[]){
 	}
 	
 	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
-	if(lerU4(fp) != 0xcafebabe){
+	if(ler_u4(fp) != 0xcafebabe){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
@@ -329,17 +495,17 @@ int main (int argc, char *argv[]){
 
 	/*FILE *fp = fopen("hello.class", "rb");*/
 
-	/*magicnumber = lerU4(fp);*/
+	/*magicnumber = ler_u4(fp);*/
 	/*lê a minor version*/
-	minVersion = lerU2(fp);
+	minVersion = ler_u2(fp);
 	printf("\nminVersion = 0x%x\n", minVersion);
 
 	/*lê a major version*/
-	majVersion = lerU2(fp);
+	majVersion = ler_u2(fp);
 	printf("majVersion = 0x%x\n", majVersion);
 
 	/*lê quantidade de constates no pool de constate*/
-	const_pool_cont = lerU2(fp);
+	const_pool_cont = ler_u2(fp);
 	printf("Constant pool count: %d\n\n", const_pool_cont);
 
 
@@ -360,9 +526,11 @@ int main (int argc, char *argv[]){
 
 	/* Partindo agora para a leitura do restante dos elementos do .class */
 	/* access_flags, this_class, super_class, interfaces_count */
-	access_flags = lerU2(fp);
+	access_flags = ler_u2(fp);
 
+	/*vetor booleano para controle de flags presentes.*/
 	bool splitFlags[5];
+
 	/*Assumindo que todas as flags são false (ou seja, não estão presentes)*/
 	for(int i = 0; i < 5; i++){
 		splitFlags[i] = false;
@@ -389,40 +557,41 @@ int main (int argc, char *argv[]){
 	/*chama a função para mostrar as flags ativas*/
 	show_flags(splitFlags);
 
-	this_class = lerU2(fp);
+	this_class = ler_u2(fp);
 	printf(" this_class_info: ");
 	/*Exibe a informação (string) da classe*/
 	dereference_index_UTF8(this_class, constPool);
 	printf("\n");
 
-	super_class = lerU2(fp);
-
+	super_class = ler_u2(fp);
 	printf(" super_class_info: ");
 	/*Exibe a informação (string) da super_classe*/
 	dereference_index_UTF8(super_class, constPool);
 	printf("\n");
 
-	interfaces_count = lerU2(fp);
+	interfaces_count = ler_u2(fp);
 	printf (" access_flags: 0x%04x \n this_class: 0x%04x \n super_class: 0x%04x \n", access_flags, this_class, super_class);
 
 	interfaces = (uint16_t*) (malloc (sizeof(uint16_t)*interfaces_count));
+
 	/*Carregando e mostrando todas as interfaces que estão presentes*/
-	for (int i = 0; i < interfaces_count; ++i){
-		interfaces[i] = lerU2(fp);
-		printf("\tInterface %d:", i);
-		dereference_index_UTF8(interfaces[i], constPool);
-		printf("\n");
+	loadInterfaces(interfaces, interfaces_count, constPool, fp);
+
+	fields_count = ler_u2(fp);
+	fields = (field_info *) malloc(sizeof(field_info) * fields_count);
+	
+	/*Carrega e mostra os field existente*/
+	for (int i = 0; i < fields_count; ++i){
+		fields[i] = ler_fields(fp);
+		show_fields(constPool, fields[i]);
 	}
 
-	/*loadInterfaces();	 Funcao vazia por enquanto. */
-
-	fields_count = lerU2(fp);
-	loadFields();		/* Funcao vazia por enquanto. */
-
-	methods_count = lerU2(fp);
+	methods_count = ler_u2(fp);
 	loadMethods(fp, methods_count);		/* Funcao em implementacao. */
 
 	printf (" interfaces_count: 0x%04x \n fields_count: 0x%04x \n methods_count: 0x%04x \n", interfaces_count, fields_count, methods_count);
 
+	
+	fclose(fp);
 	return 0;
 }

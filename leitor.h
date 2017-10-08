@@ -1,3 +1,4 @@
+#include <stdint.h>
 #ifndef LEITOR
 	#define LEITOR
 
@@ -23,20 +24,24 @@
 	}cp_info;
 
 	typedef struct {
-		unsigned short attribute_name_index;
-		unsigned int attribute_length;
+		unsigned short attribute_name_index; /*indice para tabela de CP*/
+		unsigned int attribute_length; /*tamanho em byte do restante do atributo*/
 		unsigned char *info;
 	}attribute_info;
 	
 	typedef struct {
-		unsigned short access_flags, name_index, descriptor_index, attributes_count;
+		unsigned short access_flags;
+		unsigned short name_index;
+		unsigned short descriptor_index;
+		unsigned short attributes_count;
 		attribute_info *attributes;
 	}method_info;
 
 
 	typedef struct {
-		unsigned char accessFlags;
+		unsigned char access_flags;
 		unsigned char name_index;
+		unsigned char descriptor_index;
 		unsigned char attribute_count;
 		attribute_info *attributes;
 	} field_info;
@@ -68,8 +73,9 @@
 	const char *type_Names [12] = {"UFT8_info", "-", "Integer_info", "Float_info", "Long_info", "Double_info", "Class_info", "String_info", "Fieldref_info", "Methodref_info", "Interface_info", "Name and Type"};
 	const char *flag_name [5] = {"ACC_PUBLIC", "ACC_FINAL", "ACC_SUPER", "ACC_INTERFACE", "ACC_ABSTRACT"};
 
-	EXT_LEITOR unsigned short lerU2 (FILE *fp);
-	EXT_LEITOR unsigned char lerU1 (FILE *fp);
+	EXT_LEITOR unsigned int ler_u4(FILE *fp);
+	EXT_LEITOR unsigned short ler_u2 (FILE *fp);
+	EXT_LEITOR unsigned char ler_u1 (FILE *fp);
 	EXT_LEITOR unsigned char * ler_UTF8 (int size, FILE *fp);
 	EXT_LEITOR int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp);
 	EXT_LEITOR void show_UTF8 (int size, unsigned char * str);	
@@ -79,4 +85,8 @@
 	EXT_LEITOR long convert_u4_toLong (classLoadrType entLow, classLoadrType entHigh);
 	EXT_LEITOR double convert_u4_toDouble(classLoadrType entLow, classLoadrType entHigh);
 	EXT_LEITOR void show_flags(bool *flags);
+	EXT_LEITOR void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPool, FILE *fp);
+	EXT_LEITOR attribute_info ler_attribute(FILE *fp);
+	EXT_LEITOR field_info ler_fields (FILE *fp);
+	EXT_LEITOR void show_fields (cp_info *constPool, field_info fields);
 #endif
