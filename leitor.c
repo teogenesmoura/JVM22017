@@ -430,8 +430,9 @@ void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPo
 void show_field_attribute(cp_info *cp, attribute_info attribute){
 	printf(" Nome do atributo: ");
 	dereference_index_UTF8(attribute.attribute_name_index, cp);
-	printf("\n");
-	printf(" Tamanho: %d\n", attribute.attribute_length);
+
+	printf("\t");
+	printf(" Tamanho: %d", attribute.attribute_length);
 
 	/*Completar a função para diferente tipos de atributo*/
 }
@@ -468,123 +469,64 @@ method_info ler_methods(FILE *fp){
 	return out;
 }
 
-void show_method_flag(unsigned short flags){
+void show_method_flags(unsigned short flags){
 	bool first = true;
 
 	if(flags & 0x0001){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_PUBLIC");
+		printf("ACC_PUBLIC \t");
 	}
 	if(flags & 0x0002){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_PRIVATE");
+		printf("ACC_PRIVATE\t");
 	}
 	if(flags & 0x0004){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_PROTECTED");
+		printf("ACC_PROTECTED\t");
 	}
 	if(flags & 0x0008){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_STATIC");
+		printf("ACC_STATIC \t");
 	}
 	if(flags & 0x0010){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_FINAL");
+		printf("ACC_FINAL \t");
 	}
 	if(flags & 0x0020){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_SYNCHRONIZED");
+		printf("ACC_SYNCHRONIZED \t");
 	}
 	if(flags & 0x0040){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_BRIDGE");
+		printf("ACC_BRIDGE \t");
 	}
 	if(flags & 0x0080){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_VARARGS");
+		printf("ACC_VARARGS \t");
 	}
 	if(flags & 0x0100){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_NATIVE");
+		printf("ACC_NATIVE \t");
 	}
 	if(flags & 0x0400){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_ABSTRACT");
+		printf("ACC_ABSTRACT \t");
 	}
 	if(flags & 0x0800){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_STRICT");
+		printf("ACC_STRICT \t");
 	}
 	if(flags & 0x1000){
-		if(first){
-			printf(" Flags: ");
-			first = false;
-		}else{
-			printf(", ");
-		}
-		printf("ACC_SYNTHETIC");
+		printf("ACC_SYNTHETIC \t");
 	}
-	printf("\n");
 }
 
 void show_methods(cp_info *cp, method_info method){
-	printf ("\n Method access_flags: ");
-	show_method_flag(method.access_flags);
+	printf ("access_flags: ");
+	show_method_flags(method.access_flags);
+	printf ("\n");
+	printf ("Name_index: ");
+	dereference_index_UTF8(method.name_index, cp);
+	printf ("\n");
+	printf ("Descriptor_index: ");
+	dereference_index_UTF8(method.descriptor_index, cp);
+	printf ("\n");
+	printf ("attribute_count: %d", method.attributes_count);
+	printf ("\n");
+	for (int i = 0; i < method.attributes_count; ++i){
+		printf("\tAtributo [%d]: ", i);
+		show_field_attribute(cp, method.attributes[i]);
+		printf("\n");
+	}
 }
 
 
@@ -722,6 +664,7 @@ int main (int argc, char *argv[]){
 	methods = (method_info*) malloc (sizeof(method_info)*methods_count);
 
 	for (int i=0;i<methods_count;i++){
+		printf ("\nMethod [%d]\n", i);
 		methods[i]=ler_methods(fp);
 		show_methods(constPool, methods[i]);
 	}
