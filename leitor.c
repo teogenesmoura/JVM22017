@@ -160,7 +160,7 @@ void dereference_index_UTF8 (int index, cp_info *cp){
 	}
 }
 
-/*A recebe a qtd de constantes presentes na tabela do CP
+/* A recebe a qtd de constantes presentes na tabela do CP
 ** e ponteiro para a tabela dos constantes.
 ** Percorre a tabela e exibe toda a informação contida nela.
 ** %d|%d mostra os indices na estrutura seguido das informações
@@ -279,7 +279,7 @@ void show_flags(bool *flags){
 	for (int i = 0; i < 5; ++i){
 		if(flags[i]){
 			if(first){
-				printf(" Flags presente: ");
+				printf(" Flags presentes: ");
 			}else{
 				printf(", ");
 			}
@@ -318,7 +318,7 @@ field_info ler_fields (FILE *fp){
 	return out;
 }
 
-/*mostra as flags do campo verificando todas as flags presente no field*/
+/*mostra as flags do campo verificando todas as flags presentes no field*/
 void show_field_flags(unsigned short flags){
 	bool first = true;
 
@@ -339,7 +339,7 @@ void show_field_flags(unsigned short flags){
 		}else{
 			printf(", ");
 		}
-		printf("ACC_PPRIVATE");
+		printf("ACC_PRIVATE");
 	}
 
 	if(flags & 0x04){
@@ -431,11 +431,10 @@ void show_field_attribute(cp_info *cp, attribute_info attribute){
 	printf(" Nome do atributo: ");
 	dereference_index_UTF8(attribute.attribute_name_index, cp);
 	printf("\n");
-	printf(" Tamando: %d\n", attribute.attribute_length);
+	printf(" Tamanho: %d\n", attribute.attribute_length);
 
 	/*Completar a função para diferente tipos de atributo*/
 }
-
 /*Mostra um field*/
 void show_fields (cp_info *cp, field_info fields){
 	/*mostra flags*/
@@ -456,22 +455,158 @@ void show_fields (cp_info *cp, field_info fields){
 	}
 }
 
-void loadFields(){}
-void loadMethods(){}
+/* Funcoes de methods */
+method_info ler_methods(FILE *fp){
+	method_info out;
+	out.access_flags = ler_u2(fp);
+	out.name_index = ler_u2(fp);
+	out.descriptor_index = ler_u2(fp);
+	out.attributes_count = ler_u2(fp);
+	out.attributes = (attribute_info *) malloc(sizeof(attribute_info) * out.attributes_count);
+	for (int i=0;i<out.attributes_count;i++)
+		out.attributes[i] = ler_attribute(fp);
+	return out;
+}
+
+void show_method_flag(unsigned short flags){
+	bool first = true;
+
+	if(flags & 0x0001){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_PUBLIC");
+	}
+	if(flags & 0x0002){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_PRIVATE");
+	}
+	if(flags & 0x0004){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_PROTECTED");
+	}
+	if(flags & 0x0008){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_STATIC");
+	}
+	if(flags & 0x0010){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_FINAL");
+	}
+	if(flags & 0x0020){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_SYNCHRONIZED");
+	}
+	if(flags & 0x0040){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_BRIDGE");
+	}
+	if(flags & 0x0080){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_VARARGS");
+	}
+	if(flags & 0x0100){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_NATIVE");
+	}
+	if(flags & 0x0400){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_ABSTRACT");
+	}
+	if(flags & 0x0800){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_STRICT");
+	}
+	if(flags & 0x1000){
+		if(first){
+			printf(" Flags: ");
+			first = false;
+		}else{
+			printf(", ");
+		}
+		printf("ACC_SYNTHETIC");
+	}
+	printf("\n");
+}
+
+void show_methods(cp_info *cp, method_info method){
+	printf ("\n Method access_flags: ");
+	show_method_flag(method.access_flags);
+}
 
 
 int main (int argc, char *argv[]){
-	/*uint32_t magicnumber;*/
+	uint32_t magicnumber;
 	uint16_t minVersion, majVersion, const_pool_cont;
 	cp_info *constPool;	/*Ponteiro do tipo cp_info*/
-	field_info *fields;
+
 	uint16_t access_flags, this_class, super_class;
 	uint16_t interfaces_count, fields_count, methods_count, attributes_count;
 	uint16_t *interfaces;
-	/* Fields, Methods and Attributes precisam dos proprios tipos de dados para o array */
+	/* Fields, Methods and Attributes precisam dos proprios tipos de dados para o array */	
+	field_info *fields;
+	method_info *methods;
+
 	int checkCP;
 
+	/*vetor booleano para controle de flags presentes.*/
+	bool splitFlags[5];
+
 	/*Verifica se o arquivo foi passado*/
+	/*
 	if(argc != 2){
 		printf("ERRO: deve ser passado um argumento!\n");
 		printf("Execute com:[program_name] [arquivo.class]\n");
@@ -479,34 +614,37 @@ int main (int argc, char *argv[]){
 	}
 
 	FILE *fp = fopen(argv[1], "rb");
-
+	*/
 	/*Verifica se o arquivo recebido foi aberto com sucesso*/
+	/*
 	if(fp == NULL){
 		printf("ERRO: não foi possivel abrir o arquivo %s\n", argv[1]);
 		return CANT_OPEN;
 	}
-	
+	*/
 	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
+	/*
 	if(ler_u4(fp) != 0xcafebabe){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
+	*/
 
+	FILE *fp = fopen("hello.class", "rb");
 
-	/*FILE *fp = fopen("hello.class", "rb");*/
-
-	/*magicnumber = ler_u4(fp);*/
+	magicnumber = ler_u4(fp);
+	printf ("Magic number: 0x%x", magicnumber);
 	/*lê a minor version*/
 	minVersion = ler_u2(fp);
 	printf("\nminVersion = 0x%x\n", minVersion);
 
 	/*lê a major version*/
 	majVersion = ler_u2(fp);
-	printf("majVersion = 0x%x\n", majVersion);
+	printf("majVersion = 0x%x\n\n", majVersion);
 
 	/*lê quantidade de constates no pool de constate*/
 	const_pool_cont = ler_u2(fp);
-	printf("Constant pool count: %d\n\n", const_pool_cont);
+	printf("Constant pool count: %d\n", const_pool_cont);
 
 
 	/*aloca a memoria (tabela) do tamanho da quantidade de const na entrada no CP*/
@@ -527,16 +665,13 @@ int main (int argc, char *argv[]){
 	/* Partindo agora para a leitura do restante dos elementos do .class */
 	/* access_flags, this_class, super_class, interfaces_count */
 	access_flags = ler_u2(fp);
-
-	/*vetor booleano para controle de flags presentes.*/
-	bool splitFlags[5];
-
+	
 	/*Assumindo que todas as flags são false (ou seja, não estão presentes)*/
 	for(int i = 0; i < 5; i++){
 		splitFlags[i] = false;
 	}
 
-	/*Testa uma a uma setando como true as que estão presente*/
+	/*Testa uma a uma setando como true as que estão presentes*/
 	if (access_flags & 0x01){
 		splitFlags[0] = true;
 	}
@@ -570,28 +705,32 @@ int main (int argc, char *argv[]){
 	printf("\n");
 
 	interfaces_count = ler_u2(fp);
-	printf (" access_flags: 0x%04x \n this_class: 0x%04x \n super_class: 0x%04x \n", access_flags, this_class, super_class);
 
 	interfaces = (uint16_t*) (malloc (sizeof(uint16_t)*interfaces_count));
-
 	/*Carregando e mostrando todas as interfaces que estão presentes*/
 	loadInterfaces(interfaces, interfaces_count, constPool, fp);
 
 	fields_count = ler_u2(fp);
 	fields = (field_info *) malloc(sizeof(field_info) * fields_count);
-	
-	/*Carrega e mostra os field existente*/
+	/*Carrega e mostra os fields existentes */
 	for (int i = 0; i < fields_count; ++i){
 		fields[i] = ler_fields(fp);
 		show_fields(constPool, fields[i]);
 	}
 
 	methods_count = ler_u2(fp);
-	loadMethods(fp, methods_count);		/* Funcao em implementacao. */
+	methods = (method_info*) malloc (sizeof(method_info)*methods_count);
 
-	printf (" interfaces_count: 0x%04x \n fields_count: 0x%04x \n methods_count: 0x%04x \n", interfaces_count, fields_count, methods_count);
+	for (int i=0;i<methods_count;i++){
+		methods[i]=ler_methods(fp);
+		show_methods(constPool, methods[i]);
+	}
 
-	
 	fclose(fp);
 	return 0;
 }
+
+
+
+
+
