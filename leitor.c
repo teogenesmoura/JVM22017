@@ -202,12 +202,12 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 			case INTERFACE_REF:
 			case FIELD_REF:
 			case METHOD_REF:
-				printf("  %d|%d\t", constPool[i].info[0].u2, constPool[i].info[1].u2);
+				printf("  #%d|#%d\t", constPool[i].info[0].u2, constPool[i].info[1].u2);
 				dereference_index_UTF8(i, constPool);
 				break;
 
 			case NAME_AND_TYPE:
-				printf("  %d|%d\t",  constPool[i].info[0].u2, constPool[i].info[1].u2);
+				printf("  #%d|#%d\t",  constPool[i].info[0].u2, constPool[i].info[1].u2);
 				dereference_index_UTF8(i, constPool);
 				break;
 		}
@@ -461,13 +461,14 @@ void loadMethods(){}
 
 
 int main (int argc, char *argv[]){
-	/*uint32_t magicnumber;*/
+	uint32_t magicnumber;
 	uint16_t minVersion, majVersion, const_pool_cont;
 	cp_info *constPool;	/*Ponteiro do tipo cp_info*/
 	field_info *fields;
 	uint16_t access_flags, this_class, super_class;
 	uint16_t interfaces_count, fields_count, methods_count, attributes_count;
 	uint16_t *interfaces;
+
 	/* Fields, Methods and Attributes precisam dos proprios tipos de dados para o array */
 	int checkCP;
 
@@ -487,7 +488,7 @@ int main (int argc, char *argv[]){
 	}
 	
 	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
-	if(ler_u4(fp) != 0xcafebabe){
+	if((magicnumber = ler_u4(fp)) != 0xcafebabe){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
@@ -497,12 +498,15 @@ int main (int argc, char *argv[]){
 
 	/*magicnumber = ler_u4(fp);*/
 	/*lê a minor version*/
+	
+	printf("Informações gerais:\n");
+	printf("magicnumber: %0x\n", magicnumber);
 	minVersion = ler_u2(fp);
-	printf("\nminVersion = 0x%x\n", minVersion);
+	printf("minVersion = 0x%x\n", minVersion);
 
 	/*lê a major version*/
 	majVersion = ler_u2(fp);
-	printf("majVersion = 0x%x\n", majVersion);
+	printf("majVersion = 0x%x\n\n", majVersion);
 
 	/*lê quantidade de constates no pool de constate*/
 	const_pool_cont = ler_u2(fp);
@@ -523,6 +527,7 @@ int main (int argc, char *argv[]){
 
 	/*Chamada para mostrar CP*/
 	showConstPool(const_pool_cont, constPool);
+	printf("\n");
 
 	/* Partindo agora para a leitura do restante dos elementos do .class */
 	/* access_flags, this_class, super_class, interfaces_count */
@@ -591,7 +596,7 @@ int main (int argc, char *argv[]){
 
 	printf (" interfaces_count: 0x%04x \n fields_count: 0x%04x \n methods_count: 0x%04x \n", interfaces_count, fields_count, methods_count);
 
-	
+
 	fclose(fp);
 	return 0;
 }

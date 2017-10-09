@@ -39,10 +39,10 @@
 
 
 	typedef struct {
-		unsigned char access_flags;
-		unsigned char name_index;
-		unsigned char descriptor_index;
-		unsigned char attribute_count;
+		unsigned short access_flags;
+		unsigned short name_index;
+		unsigned short descriptor_index;
+		unsigned short attribute_count;
 		attribute_info *attributes;
 	} field_info;
 
