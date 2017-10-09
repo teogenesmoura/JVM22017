@@ -3,9 +3,9 @@
 ** MEMBROS:                                                                **
 **		Aluno 1: Jean Pierre Sissé                                         **
 **		Aluno 2: Samuel Sousa Almeida                                      **
-**		Aluno 3:                                                           **
-**		Aluno 4:                                                           **
-**		Aluno 5:                                                           **
+**		Aluno 3: Rafael Tavares                                            **
+**		Aluno 4: Teogenes Moura                                            **
+**		Aluno 5: Michael Melo                                              **
 **                                                                         **
 ** Descrição: Lietor de arquivo .class                                     **
 **compile com: gcc -ansi -Wall -std=c99 -o [prog_name] [prog_name.c] -lm   **
