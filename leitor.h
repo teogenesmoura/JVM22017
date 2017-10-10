@@ -97,8 +97,8 @@
 	EXT_LEITOR void showConstPool(int const_pool_cont, cp_info *constPool);
 	EXT_LEITOR void show_flags(uint16_t access_flags, bool *flags);
 	EXT_LEITOR float convert_u4_toFloat(classLoadrType ent);
-	EXT_LEITOR long convert_u4_toLong (classLoadrType entLow, classLoadrType entHigh);
-	EXT_LEITOR double convert_u4_toDouble(classLoadrType entLow, classLoadrType entHigh);
+	EXT_LEITOR long convert_u4_toLong (classLoadrType entHigh, classLoadrType entLow);
+	EXT_LEITOR double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow);
 	EXT_LEITOR void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPool, FILE *fp);
 	EXT_LEITOR method_info ler_methods(FILE *fp);
 	EXT_LEITOR void show_methods(cp_info *cp, method_info method);

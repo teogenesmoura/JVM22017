@@ -85,21 +85,35 @@ float convert_u4_toFloat(classLoadrType ent){
 }
 
 /*Converte o valor em u4 para long.*/
-long convert_u4_toLong (classLoadrType entLow, classLoadrType entHigh){
+long convert_u4_toLong (classLoadrType entHigh, classLoadrType entLow){
 	long out;
 
-	return	out = (((long)entHigh.u4) << 32) | entLow.u4;
+	out = (((long) entHigh.u4) << 32) | entLow.u4;
+	return out;
 }
 
 /*Converte o valor em u4 para double.*/
-double convert_u4_toDouble(classLoadrType entLow, classLoadrType entHigh){
+double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow){
 	double out;
 
-	int s = ((convert_u4_toLong(entLow, entHigh) >> 63) == 0) ? 1 : -1;
-	int e = ((convert_u4_toLong(entLow, entHigh) >> 52) & 0x7ffL);
-	long m = (e == 0) ? (convert_u4_toLong(entLow, entHigh) & 0xfffffffffffffL) << 1 : (convert_u4_toLong(entLow, entHigh) & 0xfffffffffffffL) | 0x10000000000000L;
+	long check_boundaries = convert_u4_toLong(entHigh, entLow);
 
-	return out = s * m * (pow(2,(e-1075)));
+	if(check_boundaries == 0x7ff0000000000000L){
+		/*verifica se retorna +infinito*/
+	}else if(check_boundaries == 0xfff0000000000000L){
+		/*verifica se retorna -infinito*/
+	}else if((check_boundaries >= 0x7ff0000000000001L) && (check_boundaries <= 0x7ffffffffffffL)){
+		/*verifica se retorna NaN*/
+	}else if((check_boundaries >= 0xfff0000000000001L) && (check_boundaries <= 0xffffffffffffffffL)){
+		/*verifica se retorna NaN*/
+	}else{
+		int s = ((check_boundaries >> 63) == 0) ? 1 : -1;
+		int e = ((check_boundaries >> 52) & 0x7ffL);
+		long m = (e == 0) ? (check_boundaries & 0xfffffffffffffL) << 1 : (check_boundaries & 0xfffffffffffffL) | 0x10000000000000L;
+		out = s * m * (pow(2,(e-1075)));
+	}
+
+	return out;
 }
 
 /*show_UTF8: monta e mostra a string UTF8*/
@@ -179,19 +193,19 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 				break;
 			
 			case FLOAT:
-				printf("%f", convert_u4_toFloat(constPool[i].info[0]));
+				printf("\t%f", convert_u4_toFloat(constPool[i].info[0]));
 				break;
 
 			case INTEGER:
-				printf("%d", constPool[i].info[0].u4);
+				printf("\t%d", constPool[i].info[0].u4);
 				break;
 
 			case LONG:
-				printf("%ld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
+				printf("\t%ld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
 				break;
 			
 			case DOUBLE:
-				printf("%lf", convert_u4_toDouble(constPool[i].info[0], constPool[i].info[1]));
+				printf("\t%lf", convert_u4_toDouble(constPool[i].info[0], constPool[i].info[1]));
 				break;
 			case CLASS:
 			case STRING:
