@@ -21,9 +21,9 @@
 #include <stdint.h>
 
 /*Função ler_u4: a partir do arquivo recebido, lê 4 bytes e inverte-os*/
-unsigned int ler_u4(FILE *fp){
-	unsigned char aux;
-	unsigned int ret = 0;
+uint32_t ler_u4(FILE *fp){
+	uint8_t aux;
+	uint32_t ret = 0;
 
 	for(int i = 0; i <= 3; i++){ /*for para ler os 4 bytes do .class*/
 		fread(&aux, 1, 1, fp); 	/*lê um byte*/
@@ -36,9 +36,9 @@ unsigned int ler_u4(FILE *fp){
 }
 
 /*ler_u2: a partir do arquivo recebido, lê 2 bytes e inverte-os*/
-unsigned short ler_u2 (FILE *fp){
-	unsigned char aux;
-	unsigned short ret = 0;
+uint16_t ler_u2 (FILE *fp){
+	uint8_t aux;
+	uint16_t ret = 0;
 
 	fread(&ret, 1, 1, fp);
 	fread(&aux, 1, 1, fp);
@@ -50,8 +50,8 @@ unsigned short ler_u2 (FILE *fp){
 }
 
 /*ler_u1: a partir do arquivo recebido, lê 1 byte do mesmo.*/
-unsigned char ler_u1 (FILE *fp){
-	unsigned char ret;
+uint8_t ler_u1 (FILE *fp){
+	uint8_t ret;
 
 	fread(&ret, 1, 1, fp);
 	/*printf("%02x\n", ret);*/
@@ -125,7 +125,7 @@ void show_UTF8 (int size, unsigned char * str){
 		if(!(str[i] & 0x80)){ 	/*1 byte para utf-8: Se inverso é true, então caracter é representado por 0, ou seja, o bit 7 é 0*/
 			printf("%c", str[i]);
 		}else{	/*Caso não esteja na faixa dos caracteres "usuais"*/
-			unsigned short aux;
+			uint16_t aux;
 			if(!(str[i+1] & 0x20)){	/* para utf8 de 2 bytes */
 				aux = ((str[i] & 0xf) << 6) + ((str[i+1] & 0x3f));
 			}else{	/*para utf8 de 3 byte*/
@@ -310,7 +310,7 @@ attribute_info ler_attribute(FILE *fp){
 
 	out.attribute_name_index = ler_u2(fp);
 	out.attribute_length = ler_u4(fp);
-	out.info = (unsigned char *) malloc(sizeof(unsigned char) * out.attribute_length);
+	out.info = (uint8_t *) malloc(sizeof(uint8_t) * out.attribute_length);
 	for (int i = 0; i < out.attribute_length; ++i)
 		out.info[i] = ler_u1(fp);
 	
@@ -333,7 +333,7 @@ field_info ler_fields (FILE *fp){
 }
 
 /*mostra as flags do campo verificando todas as flags presentes no field*/
-void show_field_flags(unsigned short flags){
+void show_field_flags(uint16_t flags){
 	bool first = true;
 
 	if(flags & 0x01){
@@ -485,7 +485,7 @@ method_info ler_methods(FILE *fp){
 	return out;
 }
 
-void show_method_flags(unsigned short flags){
+void show_method_flags(uint16_t flags){
 	/*bool first = true;*/
 
 	if(flags & 0x0001){
@@ -548,11 +548,7 @@ void show_methods(cp_info *cp, method_info method){
 
 int main (int argc, char *argv[]){
 	cFile classFile;
-	uint16_t access_flags, this_class, super_class;
-	uint16_t interfaces_count, fields_count, methods_count;
-	uint16_t *interfaces;
-
-	field_info *fields;
+	
 	method_info *methods;
 
 	int checkCP;
@@ -617,7 +613,7 @@ int main (int argc, char *argv[]){
 	
 	/* Partindo agora para a leitura do restante dos elementos do .class */
 	/* access_flags, this_class, super_class, interfaces_count */
-	access_flags = ler_u2(fp);
+	classFile.access_flags = ler_u2(fp);
 	
 	/*Assumindo que todas as flags são false (ou seja, não estão presentes)*/
 	for(int i = 0; i < 5; i++){
@@ -625,67 +621,67 @@ int main (int argc, char *argv[]){
 	}
 
 	/*Testa uma a uma setando como true as que estão presentes*/
-	if (access_flags & 0x01){
+	if (classFile.access_flags & 0x01){
 		splitFlags[0] = true;
 	}
-	if (access_flags & 0x010){
+	if (classFile.access_flags & 0x010){
 		splitFlags[1] = true;
 	}
-	if (access_flags & 0x020){
+	if (classFile.access_flags & 0x020){
 		splitFlags[2] = true;
 	}
-	if (access_flags & 0x0200){
+	if (classFile.access_flags & 0x0200){
 		splitFlags[3] = true;
 	}
-	if (access_flags & 0x0400){
+	if (classFile.access_flags & 0x0400){
 		splitFlags[4] = true;
 	}
 
 	/*chama a função para mostrar as flags ativas*/
-	show_flags(access_flags, splitFlags);
+	show_flags(classFile.access_flags, splitFlags);
 
-	this_class = ler_u2(fp);
+	classFile.this_class = ler_u2(fp);
 	printf("	this_class_info: ");
 	/*Exibe a informação (string) da classe*/
-	dereference_index_UTF8(this_class, classFile.constant_pool);
+	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
 	printf("\n");
 
-	super_class = ler_u2(fp);
+	classFile.super_class = ler_u2(fp);
 	printf("	super_class_info: ");
 	/*Exibe a informação (string) da super_classe*/
-	dereference_index_UTF8(super_class, classFile.constant_pool);
+	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
 	printf("\n");
 
-	interfaces_count = ler_u2(fp);
+	classFile.interfaces_count = ler_u2(fp);
 
-	interfaces = (uint16_t*) (malloc (sizeof(uint16_t)*interfaces_count));
+	classFile.interfaces = (uint16_t*) (malloc (sizeof(uint16_t)*classFile.interfaces_count));
 	/*Carregando e mostrando todas as interfaces que estão presentes*/
-	loadInterfaces(interfaces, interfaces_count, classFile.constant_pool, fp);
+	loadInterfaces(classFile.interfaces, classFile.interfaces_count, classFile.constant_pool, fp);
 
-	fields_count = ler_u2(fp);
-	printf("	Field count: %d\n", fields_count);
+	classFile.fields_count = ler_u2(fp);
+	printf("	Field count: %d\n", classFile.fields_count);
 
-	fields = (field_info *) malloc(sizeof(field_info) * fields_count);
+	classFile.fields = (field_info *) malloc(sizeof(field_info) * classFile.fields_count);
 	/*Carrega e mostra os fields existentes */
-	for (int i = 0; i < fields_count; ++i){
-		fields[i] = ler_fields(fp);
-		show_fields(classFile.constant_pool, fields[i]);
+	for (int i = 0; i < classFile.fields_count; ++i){
+		classFile.fields[i] = ler_fields(fp);
+		show_fields(classFile.constant_pool, classFile.fields[i]);
 	}
 
-	methods_count = ler_u2(fp);
-	printf("	Method count: %d\n\n", methods_count);
+	classFile.methods_count = ler_u2(fp);
+	printf("	Method count: %d\n\n", classFile.methods_count);
 
 	/*################################################################*/
 	/*Chamada para mostrar CP*/
 	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
 	/*################################################################*/
 
-	methods = (method_info*) malloc (sizeof(method_info)*methods_count);
+	classFile.methods = (method_info*) malloc (sizeof(method_info)*classFile.methods_count);
 
-	for (int i=0;i<methods_count;i++){
+	for (int i=0;i<classFile.methods_count;i++){
 		printf ("\n	Method [%d]\n", i);
-		methods[i] = ler_methods(fp);
-		show_methods(classFile.constant_pool, methods[i]);
+		classFile.methods[i] = ler_methods(fp);
+		show_methods(classFile.constant_pool, classFile.methods[i]);
 	}
 
 	fclose(fp);
