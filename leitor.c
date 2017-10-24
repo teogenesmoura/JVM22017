@@ -432,7 +432,7 @@ void show_field_flags(uint16_t flags){
 /*carrega e mostra todas interfaces que estão presentes.*/
 void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPool, FILE *fp){
 
-	printf("	Interface count: %d\n", interfaces_count);
+	/*printf("	Interface count: %d\n", interfaces_count);*/
 	for (int i = 0; i < interfaces_count; ++i){
 		interfaces[i] = ler_u2(fp);
 		printf("\tInterface %d:", i);
@@ -548,9 +548,6 @@ void show_methods(cp_info *cp, method_info method){
 
 int main (int argc, char *argv[]){
 	cFile classFile;
-	
-	method_info *methods;
-
 	int checkCP;
 
 	/*vetor booleano para controle de flags presentes.*/
@@ -572,34 +569,15 @@ int main (int argc, char *argv[]){
 	}
 
 	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
-
 	if((classFile.magic = ler_u4(fp)) != 0xcafebabe){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
 
-	/*FILE *fp = fopen("hello.class", "rb");*/
-
-	printf("Informações gerais:\n\n");
-
-	printf ("	Magic number: 0x%x\n", classFile.magic);
-
-	/*lê a minor version*/
-	classFile.minor_version = ler_u2(fp);
-	printf("	MinVersion = %d\n", classFile.minor_version);
-
-	/*lê a major version*/
-	classFile.major_version = ler_u2(fp);
-	printf("	MajVersion = %d\n", classFile.major_version);
-
-	/*lê quantidade de constates no pool de constate*/
-
-	classFile.constant_pool_count = ler_u2(fp);
-	printf("	Constant pool count: %d\n", classFile.constant_pool_count);
-
-
-	/*aloca a memoria (tabela) do tamanho da quantidade de const na entrada no CP*/
-
+	classFile.minor_version = ler_u2(fp);		/* lê a minor version */
+	classFile.major_version = ler_u2(fp);		/* lê a major version */
+	classFile.constant_pool_count = ler_u2(fp);	/* lê quantidade de constates no pool de constantes */
+	/* aloca a memoria (tabela) do tamanho da quantidade de const na entrada no CP */
 	classFile.constant_pool = (cp_info *) malloc(sizeof(cp_info) * classFile.constant_pool_count);
 	checkCP = loadInfConstPool(classFile.constant_pool, classFile.constant_pool_count, fp);
 
@@ -637,53 +615,49 @@ int main (int argc, char *argv[]){
 		splitFlags[4] = true;
 	}
 
-	/*chama a função para mostrar as flags ativas*/
-	show_flags(classFile.access_flags, splitFlags);
-
 	classFile.this_class = ler_u2(fp);
-	printf("	this_class_info: ");
-	/*Exibe a informação (string) da classe*/
-	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
-	printf("\n");
-
 	classFile.super_class = ler_u2(fp);
-	printf("	super_class_info: ");
-	/*Exibe a informação (string) da super_classe*/
-	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
-	printf("\n");
-
 	classFile.interfaces_count = ler_u2(fp);
-
 	classFile.interfaces = (uint16_t*) (malloc (sizeof(uint16_t)*classFile.interfaces_count));
 	/*Carregando e mostrando todas as interfaces que estão presentes*/
 	loadInterfaces(classFile.interfaces, classFile.interfaces_count, classFile.constant_pool, fp);
 
 	classFile.fields_count = ler_u2(fp);
-	printf("	Field count: %d\n", classFile.fields_count);
-
 	classFile.fields = (field_info *) malloc(sizeof(field_info) * classFile.fields_count);
 	/*Carrega e mostra os fields existentes */
 	for (int i = 0; i < classFile.fields_count; ++i){
 		classFile.fields[i] = ler_fields(fp);
-		show_fields(classFile.constant_pool, classFile.fields[i]);
+		/*show_fields(classFile.constant_pool, classFile.fields[i]);*/
 	}
-
 	classFile.methods_count = ler_u2(fp);
-	printf("	Method count: %d\n\n", classFile.methods_count);
-
-	/*################################################################*/
-	/*Chamada para mostrar CP*/
-	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
-	/*################################################################*/
-
 	classFile.methods = (method_info*) malloc (sizeof(method_info)*classFile.methods_count);
 
 	for (int i=0;i<classFile.methods_count;i++){
-		printf ("\n	Method [%d]\n", i);
+		/* printf ("\n	Method [%d]\n", i); */
 		classFile.methods[i] = ler_methods(fp);
-		show_methods(classFile.constant_pool, classFile.methods[i]);
+		/* show_methods(classFile.constant_pool, classFile.methods[i]);*/
 	}
 
+	printf("Informações gerais:\n\n");
+	printf ("\tMagic number: 0x%x\n", classFile.magic);
+	printf("\tMinVersion = %d\n", classFile.minor_version);
+	printf("\t = %d\n", classFile.major_version);
+	printf("\tConstant pool count: %d\n", classFile.constant_pool_count);
+	printf("\tthis_class_info: ");
+	printf("\n");
+	printf("\tsuper_class_info: ");
+	printf("\n");
+	printf("\tField count: %d\n", classFile.fields_count);
+	printf("\tMethod count: %d\n\n", classFile.methods_count);
+
+
+	/*chama a função para mostrar as flags ativas*/
+	show_flags(classFile.access_flags, splitFlags);
+	/*Exibe a informação (string) da classe*/
+	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
+	/*Exibe a informação (string) da super_classe*/
+	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
+	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
 	fclose(fp);
 	printf("\n\n");
 	return 0;
