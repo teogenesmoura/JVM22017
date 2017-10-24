@@ -3,7 +3,7 @@
 ** MEMBROS:                                                                **
 **		Aluno 1: Jean Pierre Sissé                                         **
 **		Aluno 2: Samuel Sousa Almeida                                      **
-**		Aluno 3: Rafael Tavares                                            **
+**		Aluno 3: Rafael Rodrigues                                          **
 **		Aluno 4: Teogenes Moura                                            **
 **		Aluno 5: Michael Melo                                              **
 **                                                                         **
@@ -209,19 +209,19 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 				break;
 			case CLASS:
 			case STRING:
-				printf("   #%d\t\t", constPool[i].info[0].u2);
+				printf("   \t\t#%d\t\t", constPool[i].info[0].u2);
 				dereference_index_UTF8 (i, constPool);
 				break;
 
 			case INTERFACE_REF:
 			case FIELD_REF:
 			case METHOD_REF:
-				printf("  #%d|#%d\t", constPool[i].info[0].u2, constPool[i].info[1].u2);
+				printf("  \t\t#%d|#%d\t", constPool[i].info[0].u2, constPool[i].info[1].u2);
 				dereference_index_UTF8(i, constPool);
 				break;
 
 			case NAME_AND_TYPE:
-				printf("  #%d|#%d\t",  constPool[i].info[0].u2, constPool[i].info[1].u2);
+				printf("  \t\t#%d|#%d\t",  constPool[i].info[0].u2, constPool[i].info[1].u2);
 				dereference_index_UTF8(i, constPool);
 				break;
 		}
@@ -311,7 +311,7 @@ attribute_info ler_attribute(FILE *fp){
 	out.attribute_name_index = ler_u2(fp);
 	out.attribute_length = ler_u4(fp);
 	out.info = (unsigned char *) malloc(sizeof(unsigned char) * out.attribute_length);
-	for (int i = 0; i < out.attribute_length; ++i)
+	for (int i = 0; i < out.attribute_length; i++)
 		out.info[i] = ler_u1(fp);
 	
 	return out;
@@ -338,7 +338,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x01){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -348,7 +348,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x02){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -358,7 +358,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x04){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -368,7 +368,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x08){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -378,7 +378,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x010){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -388,7 +388,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x0040){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -398,7 +398,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x0080){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -408,7 +408,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x1000){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -418,7 +418,7 @@ void show_field_flags(unsigned short flags){
 
 	if(flags & 0x4000){
 		if(first){
-			printf(" Flags: ");
+			printf(" \tFlags: ");
 			first = false;
 		}else{
 			printf(", ");
@@ -443,11 +443,11 @@ void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPo
 
 
 void show_field_attribute(cp_info *cp, attribute_info attribute){
-	printf(" Nome do atributo: ");
+	printf(" \n\tNome do atributo: ");
 	dereference_index_UTF8(attribute.attribute_name_index, cp);
 
-	printf("\t");
-	printf(" Tamanho: %d", attribute.attribute_length);
+	printf("\n");
+	printf(" \tTamanho: %d", attribute.attribute_length);
 
 	/*Completar a função para diferente tipos de atributo*/
 }
@@ -456,15 +456,15 @@ void show_fields (cp_info *cp, field_info fields){
 	/*mostra flags*/
 	show_field_flags(fields.access_flags);
 
-	printf(" Nome do campo: ");
+	printf(" \tNome do campo: ");
 	dereference_index_UTF8(fields.name_index, cp);
 	printf("\n");
 
-	printf(" Descriptor do campo: ");
+	printf(" \tDescriptor do campo: ");
 	dereference_index_UTF8(fields.descriptor_index, cp);
 	printf("\n");
 
-	printf(" Numero de atributos: %d\n", fields.attribute_count);
+	printf(" \tNumero de atributos: %d\n", fields.attribute_count);
 	for (int i = 0; i < fields.attribute_count; ++i){
 		printf(" Atributo[%d]: ", i);
 		show_field_attribute(cp, fields.attributes[i]);
@@ -488,40 +488,40 @@ void show_method_flags(unsigned short flags){
 	/*bool first = true;*/
 
 	if(flags & 0x0001){
-		printf("[ACC_PUBLIC] \t");
+		printf("[ACC_PUBLIC] ");
 	}
 	if(flags & 0x0002){
-		printf("[ACC_PRIVATE]\t");
+		printf("[ACC_PRIVATE] ");
 	}
 	if(flags & 0x0004){
-		printf("[ACC_PROTECTED]\t");
+		printf("[ACC_PROTECTED] ");
 	}
 	if(flags & 0x0008){
-		printf("[ACC_STATIC] \t");
+		printf("[ACC_STATIC] ");
 	}
 	if(flags & 0x0010){
-		printf("[ACC_FINAL] \t");
+		printf("[ACC_FINAL] ");
 	}
 	if(flags & 0x0020){
-		printf("[ACC_SYNCHRONIZED] \t");
+		printf("[ACC_SYNCHRONIZED] ");
 	}
 	if(flags & 0x0040){
-		printf("[ACC_BRIDGE] \t");
+		printf("[ACC_BRIDGE] ");
 	}
 	if(flags & 0x0080){
-		printf("[ACC_VARARGS] \t");
+		printf("[ACC_VARARGS] ");
 	}
 	if(flags & 0x0100){
-		printf("[ACC_NATIVE] \t");
+		printf("[ACC_NATIVE] ");
 	}
 	if(flags & 0x0400){
-		printf("[ACC_ABSTRACT] \t");
+		printf("[ACC_ABSTRACT] ");
 	}
 	if(flags & 0x0800){
-		printf("[ACC_STRICT] \t");
+		printf("[ACC_STRICT] ");
 	}
 	if(flags & 0x1000){
-		printf("[ACC_SYNTHETIC] \t");
+		printf("[ACC_SYNTHETIC] ");
 	}
 }
 
@@ -539,7 +539,7 @@ void show_methods(cp_info *cp, method_info method){
 	printf ("	attribute_count: %d", method.attributes_count);
 	printf ("\n");
 	for (int i = 0; i < method.attributes_count; ++i){
-		printf("\tAtributo [%d]: ", i);
+		printf("\tAtributo [%d]: ", i+1);
 		show_field_attribute(cp, method.attributes[i]);
 		printf("\n");
 	}
@@ -557,6 +557,7 @@ int main (int argc, char *argv[]){
 
 	field_info *fields;
 	method_info *methods;
+	attribute_info *attributes;
 
 	int checkCP;
 
@@ -668,7 +669,7 @@ int main (int argc, char *argv[]){
 
 	fields = (field_info *) malloc(sizeof(field_info) * fields_count);
 	/*Carrega e mostra os fields existentes */
-	for (int i = 0; i < fields_count; ++i){
+	for (int i = 0; i < fields_count; i++){
 		fields[i] = ler_fields(fp);
 		show_fields(constPool, fields[i]);
 	}
@@ -683,10 +684,18 @@ int main (int argc, char *argv[]){
 
 	methods = (method_info*) malloc (sizeof(method_info)*methods_count);
 
-	for (int i=0;i<methods_count;i++){
+	for (int i=0;i<methods_count; i++){
 		printf ("\n	Method [%d]\n", i);
 		methods[i] = ler_methods(fp);
 		show_methods(constPool, methods[i]);
+	}
+
+	int attributes_count = ler_u2(fp);
+	printf("attribute_count = %d\n", attributes_count);
+	attributes = (attribute_info *) malloc (sizeof(attribute_info) * attributes_count);
+	for (int i = 0; i < attributes_count; i++){
+		attributes[i] = ler_attribute(fp);
+		/*printf("%x\n", attributes[i]);*/
 	}
 
 	fclose(fp);

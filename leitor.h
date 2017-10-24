@@ -47,9 +47,27 @@
 
 	typedef struct{
 		unsigned short constantvalue_index;
+		unsigned short attribute_name_index;
+		unsigned int attribute_length;
 	}AT_ConstantValue;
 	
-	typedef struct{}AT_Code;
+	typedef struct{
+		unsigned short attribute_name_index;
+		unsigned int attribute_length;
+		unsigned short max_stack;
+		unsigned short max_locals;
+		unsigned int conde_length;
+		unsigned char *conde;
+		unsigned short exception_table_length;
+		struct{
+			unsigned short start_pc;
+			unsigned short end_pc;
+			unsigned short handler_pc;
+			unsigned short catch_type;
+		} *exception_table;
+		unsigned short attribute_count;
+		attribute_info *attributes;
+	}AT_Code;
 
 	typedef struct{
 		unsigned short attribute_name_index;
