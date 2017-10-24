@@ -3,9 +3,9 @@
 ** MEMBROS:                                                                **
 **		Aluno 1: Jean Pierre Sissé                                         **
 **		Aluno 2: Samuel Sousa Almeida                                      **
-**		Aluno 3: Rafael Tavares                                            **
+**		Aluno 3: Raphael Rodrigues                                         **
 **		Aluno 4: Teogenes Moura                                            **
-**		Aluno 5: Michael Melo                                              **
+**		Aluno 5: Michel Melo                                               **
 **                                                                         **
 ** Descrição: Lietor de arquivo .class                                     **
 **compile com: gcc -ansi -Wall -std=c99 -o [prog_name] [prog_name.c] -lm   **
@@ -451,6 +451,7 @@ void show_field_attribute(cp_info *cp, attribute_info attribute){
 
 	/*Completar a função para diferente tipos de atributo*/
 }
+
 /*Mostra um field*/
 void show_fields (cp_info *cp, field_info fields){
 	/*mostra flags*/
@@ -545,12 +546,8 @@ void show_methods(cp_info *cp, method_info method){
 	}
 }
 
-
 int main (int argc, char *argv[]){
-	uint32_t magicnumber;
-	uint16_t minVersion, majVersion, const_pool_cont;
-	cp_info *constPool;	/*Ponteiro do tipo cp_info*/
-
+	cFile classFile;
 	uint16_t access_flags, this_class, super_class;
 	uint16_t interfaces_count, fields_count, methods_count;
 	uint16_t *interfaces;
@@ -580,7 +577,7 @@ int main (int argc, char *argv[]){
 
 	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
 
-	if((magicnumber = ler_u4(fp)) != 0xcafebabe){
+	if((classFile.magic = ler_u4(fp)) != 0xcafebabe){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
@@ -589,27 +586,29 @@ int main (int argc, char *argv[]){
 
 	printf("Informações gerais:\n\n");
 
-	printf ("	Magic number: 0x%x\n", magicnumber);
+	printf ("	Magic number: 0x%x\n", classFile.magic);
 
 	/*lê a minor version*/
-	minVersion = ler_u2(fp);
-	printf("	MinVersion = %d\n", minVersion);
+	classFile.minor_version = ler_u2(fp);
+	printf("	MinVersion = %d\n", classFile.minor_version);
 
 	/*lê a major version*/
-	majVersion = ler_u2(fp);
-	printf("	MajVersion = %d\n", majVersion);
+	classFile.major_version = ler_u2(fp);
+	printf("	MajVersion = %d\n", classFile.major_version);
 
 	/*lê quantidade de constates no pool de constate*/
-	const_pool_cont = ler_u2(fp);
-	printf("	Constant pool count: %d\n", const_pool_cont);
+
+	classFile.constant_pool_count = ler_u2(fp);
+	printf("	Constant pool count: %d\n", classFile.constant_pool_count);
 
 
 	/*aloca a memoria (tabela) do tamanho da quantidade de const na entrada no CP*/
-	constPool = (cp_info *) malloc(sizeof(cp_info) * const_pool_cont);
-	checkCP = loadInfConstPool(constPool, const_pool_cont, fp);
+
+	classFile.constant_pool = (cp_info *) malloc(sizeof(cp_info) * classFile.constant_pool_count);
+	checkCP = loadInfConstPool(classFile.constant_pool, classFile.constant_pool_count, fp);
 
 	/*Verifica se todos os elementos da entrada do CP foram lidos*/
-	if(const_pool_cont != checkCP){
+	if(classFile.constant_pool_count != checkCP){
 		printf("ERRO: Tipo desconhecido para pool de constante.\n");
 		printf("Nao foi possivel carregar todas as entradas do CP.\n");
 		printf("Elementos #%d\n", checkCP+1);
@@ -648,20 +647,20 @@ int main (int argc, char *argv[]){
 	this_class = ler_u2(fp);
 	printf("	this_class_info: ");
 	/*Exibe a informação (string) da classe*/
-	dereference_index_UTF8(this_class, constPool);
+	dereference_index_UTF8(this_class, classFile.constant_pool);
 	printf("\n");
 
 	super_class = ler_u2(fp);
 	printf("	super_class_info: ");
 	/*Exibe a informação (string) da super_classe*/
-	dereference_index_UTF8(super_class, constPool);
+	dereference_index_UTF8(super_class, classFile.constant_pool);
 	printf("\n");
 
 	interfaces_count = ler_u2(fp);
 
 	interfaces = (uint16_t*) (malloc (sizeof(uint16_t)*interfaces_count));
 	/*Carregando e mostrando todas as interfaces que estão presentes*/
-	loadInterfaces(interfaces, interfaces_count, constPool, fp);
+	loadInterfaces(interfaces, interfaces_count, classFile.constant_pool, fp);
 
 	fields_count = ler_u2(fp);
 	printf("	Field count: %d\n", fields_count);
@@ -670,7 +669,7 @@ int main (int argc, char *argv[]){
 	/*Carrega e mostra os fields existentes */
 	for (int i = 0; i < fields_count; ++i){
 		fields[i] = ler_fields(fp);
-		show_fields(constPool, fields[i]);
+		show_fields(classFile.constant_pool, fields[i]);
 	}
 
 	methods_count = ler_u2(fp);
@@ -678,7 +677,7 @@ int main (int argc, char *argv[]){
 
 	/*################################################################*/
 	/*Chamada para mostrar CP*/
-	showConstPool(const_pool_cont, constPool);
+	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
 	/*################################################################*/
 
 	methods = (method_info*) malloc (sizeof(method_info)*methods_count);
@@ -686,7 +685,7 @@ int main (int argc, char *argv[]){
 	for (int i=0;i<methods_count;i++){
 		printf ("\n	Method [%d]\n", i);
 		methods[i] = ler_methods(fp);
-		show_methods(constPool, methods[i]);
+		show_methods(classFile.constant_pool, methods[i]);
 	}
 
 	fclose(fp);
