@@ -351,6 +351,7 @@ int init_leitor(FILE *fp){
 		/* show_methods(classFile.constant_pool, classFile.methods[i]);*/
 	}
 
+	/*Mostra as informações basicas como magic number, minversion...etc*/
 	infoBasic(classFile);
 
 	int attributes_count = ler_u2(fp);
