@@ -119,4 +119,5 @@
 	EXT_LEITOR double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow);
 	EXT_LEITOR void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPool, FILE *fp);
 	EXT_LEITOR method_info ler_methods(FILE *fp);
+	EXT_LEITOR int findMain (cFile classFile);
 #endif
