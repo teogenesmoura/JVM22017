@@ -373,3 +373,15 @@ int init_leitor(FILE *fp){
 
 	return 0;
 }
+
+int findMain (cFile classFile){
+	int i;
+
+	while (i<classFile.methods_count){
+		if (strcmp(classFile.constant_pool[(classFile.methods[i].name_index)].info[1].array, "main")==0){
+			return i;
+		}
+		i++;
+	}
+	return -1;
+}
