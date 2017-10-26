@@ -2,7 +2,7 @@ all: build clean
 
 build: leitor.o exibidor.o interface.o main.o
 	@echo "Criando executavel...Pronto!"
-	@gcc leitor.o exibidor.o interface.o main.o -ansi -std=c99 -lcunit -o jvm -Wall -g -lm
+	@gcc leitor.o exibidor.o interface.o main.o -ansi -std=c99 -o jvm -Wall -g -lm
 
 main.o: main.c
 	@echo "Compilando..."

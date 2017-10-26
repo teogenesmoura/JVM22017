@@ -351,9 +351,6 @@ int init_leitor(FILE *fp){
 		/* show_methods(classFile.constant_pool, classFile.methods[i]);*/
 	}
 
-	/*Mostra as informações basicas como magic number, minversion...etc*/
-	infoBasic(classFile);
-
 	int attributes_count = ler_u2(fp);
 	printf("attribute_count = %d\n", attributes_count);
 	attributes = (attribute_info *) malloc (sizeof(attribute_info) * attributes_count);
@@ -362,7 +359,8 @@ int init_leitor(FILE *fp){
 		/*printf("%x\n", attributes[i]);*/
 	}
 
-
+	/*Mostra as informações basicas como magic number, minversion...etc*/
+	infoBasic(classFile);
 	/*chama a função para mostrar as flags ativas*/
 	show_flags(classFile.access_flags, splitFlags);
 	/*Exibe a informação (string) da classe*/

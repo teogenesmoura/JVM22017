@@ -38,19 +38,20 @@ void show_UTF8 (int size, unsigned char *string){
 }
 
 void infoBasic(cFile classFile){
-
-	printf("Informações gerais:\n\n");
-	printf ("\tMagic number: 0x%x\n", classFile.magic);
-	printf("\tMinVersion = %d\n", classFile.minor_version);
-	printf("\t = %d\n", classFile.major_version);
-	printf("\tConstant pool count: %d\n", classFile.constant_pool_count);
-	printf("\tthis_class_info: ");
-	printf("\n");
-	printf("\tsuper_class_info: ");
-	printf("\n");
-	printf("\tField count: %d\n", classFile.fields_count);
-	printf("\tMethod count: %d\n\n", classFile.methods_count);
-
+	printf("--------------------\n");
+	printf("|Informações gerais|\n");
+	printf("--------------------\n\n");
+	printf ("Magic number: 0x%x\n", classFile.magic);
+	printf("MinVersion = %d\n", classFile.minor_version);
+	printf("MajVersion = %d\n", classFile.major_version);
+	printf("Constant pool count: %d\n", classFile.constant_pool_count);
+	printf("This class: cp_info[%d]\n", classFile.this_class);
+	/* printf ("\n%d\n", classFile.constant_pool[classFile.this_class].info[0].u2); */
+	printf("Super class: cp_info[%d]\n", classFile.super_class);
+	printf("Interfaces count: %d\n", classFile.interfaces_count);
+	printf("Field count: %d\n", classFile.fields_count);
+	printf("Method count: %d\n", classFile.methods_count);
+	printf("Attributes count: %d\n\n", classFile.attributes_count);
 }
 
 /* A recebe a qtd de constantes presentes na tabela do CP
