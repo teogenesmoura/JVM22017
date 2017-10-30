@@ -181,11 +181,15 @@ attribute_info ler_attribute(FILE *fp){
 	out.attribute_name_index = ler_u2(fp);
 	out.attribute_length = ler_u4(fp);
 	out.info = (unsigned char *) malloc(sizeof(unsigned char) * out.attribute_length);
-	for (int i = 0; i < out.attribute_length; i++)
-	out.info = (uint8_t *) malloc(sizeof(uint8_t) * out.attribute_length);
-	for (int i = 0; i < out.attribute_length; ++i)
+	// for (int i = 0; i < out.attribute_length; i++)
+	//	out.info = (uint8_t *) malloc(sizeof(uint8_t) * out.attribute_length);
+	for (int i=0; i < out.attribute_length; i++){
 		out.info[i] = ler_u1(fp);
-	
+	}
+	/*
+	printf ("Attribute Name Index: 0x%04x\n", out.attribute_name_index);
+	printf ("Attribute Length: %d\n", out.attribute_length);
+	*/
 	return out;
 }
 
@@ -317,23 +321,16 @@ int init_leitor(FILE *fp){
 		/* show_methods(classFile.constant_pool, classFile.methods[i]);*/
 	}
 
-	int attributes_count = ler_u2(fp);
-	printf("attribute_count = %d\n", attributes_count);
-	attributes = (attribute_info *) malloc (sizeof(attribute_info) * attributes_count);
-	for (int i = 0; i < attributes_count; i++){
-		attributes[i] = ler_attribute(fp);
-		/*printf("%x\n", attributes[i]);*/
+	classFile.attributes_count = ler_u2(fp);
+	printf("attribute_count = %d\n", classFile.attributes_count);
+	classFile.attributes = (attribute_info *) malloc (sizeof(attribute_info) * classFile.attributes_count);
+	for (int i = 0; i < classFile.attributes_count; i++){
+		/*printf("Attribute [%d]: 0x%x\n", i, attributes[i]);*/
+		classFile.attributes[i] = ler_attribute(fp);
 	}
 
 	/*Mostra as informações basicas como magic number, minversion...etc*/
-	infoBasic(classFile);
-	/*chama a função para mostrar as flags ativas*/
-	//show_flags(classFile.access_flags, splitFlags);
-	/*Exibe a informação (string) da classe*/
-	//dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
-	/*Exibe a informação (string) da super_classe*/
-	//dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
-	//showConstPool(classFile.constant_pool_count, classFile.constant_pool);
+	infoBasic(classFile); /*Comentar so para termos de desenvolvimento. Deve ser descomentada na versao final*/
 
 	return 0;
 }
@@ -342,7 +339,7 @@ int findMain (cFile classFile){
 	int i;
 
 	while (i<classFile.methods_count){
-		if (strcmp(classFile.constant_pool[(classFile.methods[i].name_index)].info[1].array, "main")==0){
+		if (strcmp((char*)classFile.constant_pool[(classFile.methods[i].name_index)].info[1].array, "main")==0){
 			return i;
 		}
 		i++;

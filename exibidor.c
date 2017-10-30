@@ -89,7 +89,6 @@ void infoBasic(cFile classFile){
 	printf("MajVersion = %d\n", classFile.major_version);
 	printf("Constant pool count: %d\n", classFile.constant_pool_count);
 	printf("Access flags: %s \n", show_flags(classFile));
-
 	printf("This class: cp_info[%d] ", classFile.this_class);
 	printf ("<");
 	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
@@ -103,7 +102,10 @@ void infoBasic(cFile classFile){
 	printf("Interfaces count: %d\n", classFile.interfaces_count);
 	printf("Field count: %d\n", classFile.fields_count);
 	printf("Method count: %d\n", classFile.methods_count);
-	printf("Attributes count: %d\n\n", classFile.attributes_count);
+	/*show_methods(classFile);*/
+	printf("Attributes count: %d\n", classFile.attributes_count);
+	/*show_cFile_attributes(classFile);*/
+
 }
 
 /* A recebe a qtd de constantes presentes na tabela do CP
@@ -308,63 +310,92 @@ void show_fields (cp_info *cp, field_info fields){
 	}
 }
 
-void show_method_flags(unsigned short flags){
-	/*bool first = true;*/
+char* show_method_flags(unsigned short flags){
+	static char s[160]="[";
 
 	if(flags & 0x0001){
-		printf("[ACC_PUBLIC] ");
+		strcat(s, "ACC_PUBLIC ");
 	}
 	if(flags & 0x0002){
-		printf("[ACC_PRIVATE] ");
+		strcat(s, "ACC_PRIVATE ");
 	}
 	if(flags & 0x0004){
-		printf("[ACC_PROTECTED] ");
+		strcat(s, "ACC_PROTECTED ");
 	}
 	if(flags & 0x0008){
-		printf("[ACC_STATIC] ");
+		strcat(s, "ACC_STATIC ");
 	}
 	if(flags & 0x0010){
-		printf("[ACC_FINAL] ");
+		strcat(s, "ACC_FINAL ");
 	}
 	if(flags & 0x0020){
-		printf("[ACC_SYNCHRONIZED] ");
+		strcat(s, "ACC_SYNCHRONIZED ");
 	}
 	if(flags & 0x0040){
-		printf("[ACC_BRIDGE] ");
+		strcat(s, "ACC_BRIDGE ");
 	}
 	if(flags & 0x0080){
-		printf("[ACC_VARARGS] ");
+		strcat(s, "ACC_VARARGS ");
 	}
 	if(flags & 0x0100){
-		printf("[ACC_NATIVE] ");
+		strcat(s, "ACC_NATIVE ");
 	}
 	if(flags & 0x0400){
-		printf("[ACC_ABstringACT] ");
+		strcat(s, "ACC_ABSTRACT ");
 	}
 	if(flags & 0x0800){
-		printf("[ACC_stringICT] ");
+		strcat(s, "ACC_STRICT ");
 	}
 	if(flags & 0x1000){
-		printf("[ACC_SYNTHETIC] ");
+		strcat(s, "ACC_SYNTHETIC ");
+	}
+	s[strlen(s)-1]=']';
+	/*printf ("%s", s);*/
+	return s;
+}
+
+void show_methods(cFile classFile){
+	char* name;
+	for (int i=0;i<classFile.methods_count;i++){
+		printf ("\tMethod[%d]\n", i);
+		printf ("\t\tName: <%s>\n", classFile.constant_pool[classFile.methods[i].name_index].info[1].array);
+		printf ("\t\tDescriptor: <%s>\n", classFile.constant_pool[classFile.methods[i].descriptor_index].info[1].array);
+		printf ("\t\tAccess flags: 0x%04x [%s]\n", classFile.methods[i].access_flags, show_method_flags(classFile.methods[i].access_flags));
+		show_method_attributes(classFile, i);
 	}
 }
 
-void show_methods(cp_info *cp, method_info method){
-	printf ("	access_flags: 0x%04x", method.access_flags);
-	show_method_flags(method.access_flags);
-	printf ("\n");
-	printf ("	Name_index: ");
-	dereference_index_UTF8(method.name_index, cp);
-	printf ("\n");
-	printf ("	Descriptor_index: ");
-	dereference_index_UTF8(method.descriptor_index, cp);
-	printf ("\n");
-	printf ("	attribute_count: %d", method.attributes_count);
-	printf ("\n");
-	for (int i = 0; i < method.attributes_count; ++i){
-		printf("\tAtributo [%d]: ", i+1);
-		show_field_attribute(cp, method.attributes[i]);
-		printf("\n");
+void show_cFile_attributes(cFile classFile){
+	char name[255];
+	for (int i=0;i<classFile.attributes_count;i++){
+		printf("\tattribute[%d]\t Len: %d", i, classFile.attributes[i].attribute_length);
+		printf("\tcp_info[%d]\t <%s>\n\t\t", classFile.attributes[i].attribute_name_index, (char*)classFile.constant_pool[classFile.attributes[i].attribute_name_index].info[1].array);		/* REVISAR esse cast*/
+		strcpy(name, (char*)classFile.constant_pool[classFile.attributes[i].attribute_name_index].info[1].array);		/* REVISAR esse cast*/
+		if (!strcmp(name, "SourceFile")){
+			printf("Sourcefile name index: %s\n", classFile.constant_pool[classFile.attributes[i].info[1]].info[1].array);
+		}else{
+			/*Atributo ainda nao tratado. Possiveis atributos do class file sao:
+			InnerClasses, EnclosingMethod, SourceDebugExtension, BootstrapMethods, Module, ModulePackages, ModuleMainClass,
+			Synthetic, Deprecated, Signature, RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations, RuntimeVisibleTypeAnnotations, RuntimeInvisibleTypeAnnotations */
+			printf("");
+		}
 	}
 }
 
+
+void show_method_attributes(cFile classFile, int method_index){
+	char name[255];
+	for (int i=0;i<classFile.methods[i].attributes_count;i++){
+		printf ("\t\t\tAttribute[%d]\t Len: %d", i, classFile.methods[method_index].attributes[i].attribute_length);
+		printf ("\tcp_info[%d]\t <%s>\n", classFile.methods[method_index].attributes[i].attribute_name_index, (char*)classFile.constant_pool[classFile.methods[method_index].attributes[i].attribute_name_index].info[1].array);		/* REVISAR esse cast*/
+		strcpy(name, (char*)classFile.constant_pool[classFile.methods[method_index].attributes[i].attribute_name_index].info[1].array);		/* REVISAR esse cast*/
+		if(!strcmp(name, "Code")){
+			printf ("\t\t\t Code details (em desenvolvimento)...\n");
+		}else{
+			/*Atributo ainda nao tratado. Possiveis atributos de methods sao:
+			Exceptions, RuntimeVisibleParameterAnnotations, RuntimeInvisibleParameterAnnotations, AnnotationDefault, MethodParameters,
+			Synthetic, Deprecated, Signature, RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations, RuntimeVisibleTypeAnnotations,RuntimeInvisibleTypeAnnotations */
+			printf("");
+		}
+	}
+}
