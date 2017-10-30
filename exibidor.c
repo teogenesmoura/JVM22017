@@ -15,13 +15,13 @@ const char *flag_name [5] = {"ACC_PUBLIC", "ACC_FINAL", "ACC_SUPER", "ACC_INTERF
 const char *type_Names [12] = {"UFT8_info", "-", "Integer_info", "Float_info", "Long_info", "Double_info", "Class_info", "String_info", "Fieldref_info", "Methodref_info", "Interface_info", "Name and Type"};
 
 /*show_UTF8: monta e mostra a string UTF8*/
-void show_UTF8 (int size, unsigned char *string){
+char* show_UTF8 (int size, unsigned char *string){
 	int i = 0;
 	unsigned short aux;
-	char c[255]="";
-	char a[255]="";
-
-	/*printf("   ");*/
+	static char c[255]="";
+	static char a[255]="";
+	
+	
 	while(i < size){ 	/*enquanto tiver byte no array de bytes*/
 		if(!(string[i] & 0x80)){ 	/*1 byte para utf-8: Se inverso é true, então caracter é representado por 0, ou seja, o bit 7 é 0*/
 			a[0]=string[i];
@@ -42,7 +42,7 @@ void show_UTF8 (int size, unsigned char *string){
 		}
 		i++;
 	}
-	printf ("%s", c);
+	return c;
 }
 
 /* função recursiva para desreferenciar indices das constantes
@@ -55,8 +55,9 @@ void show_UTF8 (int size, unsigned char *string){
 void dereference_index_UTF8 (int index, cp_info *cp){ 
 	switch(cp[index].tag){
 		case UTF8: /*Neste caso, estamos no caso trivial, onde a estrutura contem a string desejada.*/
-			show_UTF8(cp[index].info[0].u2, cp[index].info[1].array); /*eh passado qtd de byte no array de byte e array contendo bytes*/
+			printf("%s", show_UTF8(cp[index].info[0].u2, cp[index].info[1].array)); /*eh passado qtd de byte no array de byte e array contendo bytes*/
 			break;
+
 		case CLASS:
 		case STRING:
 			dereference_index_UTF8(cp[index].info[0].u2, cp);
@@ -78,43 +79,40 @@ void dereference_index_UTF8 (int index, cp_info *cp){
 	}
 }
 
-
 void infoBasic(cFile classFile){
 	printf("--------------------\n");
 	printf("|Informações gerais|\n");
 	printf("--------------------\n\n");
+
 	printf ("Magic number: 0x%x\n", classFile.magic);
 	printf("MinVersion = %d\n", classFile.minor_version);
 	printf("MajVersion = %d\n", classFile.major_version);
 	printf("Constant pool count: %d\n", classFile.constant_pool_count);
 	printf("Access flags: %s \n", show_flags(classFile));
-	printf("This class: cp_info[%d]\n", classFile.this_class);
-	/*printf ("\n%d\n", classFile.constant_pool[classFile.this_class].info[0].u2);*/
-	printf("Super class: cp_info[%d]\n", classFile.super_class);
+
+	printf("This class: cp_info[%d] ", classFile.this_class);
+	printf ("<");
+	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
+	printf (">\n");
+
+	printf("Super class: cp_info[%d]", classFile.super_class);
+	printf ("<");
+	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
+	printf (">\n");
+
 	printf("Interfaces count: %d\n", classFile.interfaces_count);
 	printf("Field count: %d\n", classFile.fields_count);
 	printf("Method count: %d\n", classFile.methods_count);
 	printf("Attributes count: %d\n\n", classFile.attributes_count);
-
-
-	/*chama a função para mostrar as flags ativas*/
-	// show_flags(classFile.access_flags, splitFlags);
-	/*Exibe a informação (string) da classe*/
-	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
-	/*Exibe a informação (string) da super_classe*/
-	//dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
-	//showConstPool(classFile.constant_pool_count, classFile.constant_pool);
 }
 
 /* A recebe a qtd de constantes presentes na tabela do CP
 ** e ponteiro para a tabela dos constantes.
 ** Percorre a tabela e exibe toda a informação contida nela.
 ** %d|%d mostringa os indices na estringutura seguido das informações
-** relacionadas aos stringings nas outras estringuturas.*/
+** relacionadas aos stringings nas outras estringuturas. */
 void showConstPool(int const_pool_cont, cp_info *constPool){
-
 	printf("Pool de Constantes:\n");
-
 	for(int i = 1; i < const_pool_cont; i++){
 		printf("\t[%d] = %s", i, type_Names[constPool[i].tag-1]);
 
@@ -352,7 +350,6 @@ void show_method_flags(unsigned short flags){
 }
 
 void show_methods(cp_info *cp, method_info method){
-
 	printf ("	access_flags: 0x%04x", method.access_flags);
 	show_method_flags(method.access_flags);
 	printf ("\n");
