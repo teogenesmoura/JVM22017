@@ -17,23 +17,32 @@ const char *type_Names [12] = {"UFT8_info", "-", "Integer_info", "Float_info", "
 /*show_UTF8: monta e mostra a string UTF8*/
 void show_UTF8 (int size, unsigned char *string){
 	int i = 0;
+	unsigned short aux;
+	char c[255]="";
+	char a[255]="";
+
 	/*printf("   ");*/
 	while(i < size){ 	/*enquanto tiver byte no array de bytes*/
 		if(!(string[i] & 0x80)){ 	/*1 byte para utf-8: Se inverso é true, então caracter é representado por 0, ou seja, o bit 7 é 0*/
-			printf("%c", string[i]);
-		}else{	/*Caso não esteja na faixa dos caracteres "usuais"*/
-			unsigned short aux;
+			a[0]=string[i];
+			a[1]='\0';
+			/* printf("[%c]", string[i]); */
+			strcat (c, a);
+		}else{	/* Caso não esteja na faixa dos caracteres "usuais" */
 			if(!(string[i+1] & 0x20)){	/* para utf8 de 2 bytes */
 				aux = ((string[i] & 0xf) << 6) + ((string[i+1] & 0x3f));
-			}else{	/*para utf8 de 3 byte*/
+			}else{	/* Para utf8 de 3 byte */
 				aux = ((string[i] & 0xf) << 12) + ((string[i+1] & 0x3f) << 6) + (string[i + 2] & 0x3f);
 				i++;
 			}
 			i++;
-			printf("%d", aux);
+			/* printf ("%d", aux); */
+			sprintf(a, "%d", aux);
+			strcat (c, a);
 		}
 		i++;
 	}
+	printf ("%s", c);
 }
 
 /* função recursiva para desreferenciar indices das constantes
@@ -86,6 +95,15 @@ void infoBasic(cFile classFile){
 	printf("Field count: %d\n", classFile.fields_count);
 	printf("Method count: %d\n", classFile.methods_count);
 	printf("Attributes count: %d\n\n", classFile.attributes_count);
+
+
+	/*chama a função para mostrar as flags ativas*/
+	// show_flags(classFile.access_flags, splitFlags);
+	/*Exibe a informação (string) da classe*/
+	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
+	/*Exibe a informação (string) da super_classe*/
+	//dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
+	//showConstPool(classFile.constant_pool_count, classFile.constant_pool);
 }
 
 /* A recebe a qtd de constantes presentes na tabela do CP
