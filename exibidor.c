@@ -14,10 +14,9 @@
 const char *flag_name [5] = {"ACC_PUBLIC", "ACC_FINAL", "ACC_SUPER", "ACC_INTERFACE", "ACC_ABSTRACT"};
 const char *type_Names [12] = {"UFT8_info", "-", "Integer_info", "Float_info", "Long_info", "Double_info", "Class_info", "String_info", "Fieldref_info", "Methodref_info", "Interface_info", "Name and Type"};
 
-/*show_UTF8: monta e mostringa a stringing UTF8*/
+/*show_UTF8: monta e mostra a string UTF8*/
 void show_UTF8 (int size, unsigned char *string){
 	int i = 0;
-
 	/*printf("   ");*/
 	while(i < size){ 	/*enquanto tiver byte no array de bytes*/
 		if(!(string[i] & 0x80)){ 	/*1 byte para utf-8: Se inverso é true, então caracter é representado por 0, ou seja, o bit 7 é 0*/
@@ -37,6 +36,41 @@ void show_UTF8 (int size, unsigned char *string){
 	}
 }
 
+/* função recursiva para desreferenciar indices das constantes
+** que contem strings nas suas informações.
+** Recebe o indice (posição) de uma constante na tabela
+** e o penteiro para a tabela e recursivamente acessa os
+** indices na tabela até chegar no indice referenciando
+** estrutura UTF8 que contem a string da constante inicialmente
+** passado.*/
+void dereference_index_UTF8 (int index, cp_info *cp){ 
+	switch(cp[index].tag){
+		case UTF8: /*Neste caso, estamos no caso trivial, onde a estrutura contem a string desejada.*/
+			show_UTF8(cp[index].info[0].u2, cp[index].info[1].array); /*eh passado qtd de byte no array de byte e array contendo bytes*/
+			break;
+
+		case CLASS:
+		case STRING:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			break;
+
+		case INTERFACE_REF:
+		case METHOD_REF:
+		case FIELD_REF:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			printf("|");
+			dereference_index_UTF8(cp[index].info[1].u2, cp);
+			break;
+
+		case NAME_AND_TYPE:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			printf(":");
+			dereference_index_UTF8(cp[index].info[1].u2, cp);
+			break;
+	}
+}
+
+
 void infoBasic(cFile classFile){
 	printf("--------------------\n");
 	printf("|Informações gerais|\n");
@@ -45,8 +79,9 @@ void infoBasic(cFile classFile){
 	printf("MinVersion = %d\n", classFile.minor_version);
 	printf("MajVersion = %d\n", classFile.major_version);
 	printf("Constant pool count: %d\n", classFile.constant_pool_count);
+	printf("Access flags: %s \n", show_flags(classFile));
 	printf("This class: cp_info[%d]\n", classFile.this_class);
-	/* printf ("\n%d\n", classFile.constant_pool[classFile.this_class].info[0].u2); */
+	/*printf ("\n%d\n", classFile.constant_pool[classFile.this_class].info[0].u2);*/
 	printf("Super class: cp_info[%d]\n", classFile.super_class);
 	printf("Interfaces count: %d\n", classFile.interfaces_count);
 	printf("Field count: %d\n", classFile.fields_count);
@@ -109,15 +144,36 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 	}
 }
 
+char* show_flags(cFile classFile){
+	static char s[60];
+	sprintf (s, "0x%04x", classFile.access_flags);
 
-/*Verifica flags ativas e mostringa.*/
+	if (classFile.access_flags & 0x01){
+		strcat (s, "[public]");
+	}
+	if (classFile.access_flags & 0x010){
+		strcat (s, "[final]");
+	}
+	if (classFile.access_flags & 0x020){
+		strcat (s, "[super]");
+	}
+	if (classFile.access_flags & 0x0200){
+		strcat (s, "[interface]");
+	}
+	if (classFile.access_flags & 0x0400){
+		strcat (s, "[abstract]");
+	}
+	return s;
+}
+
+/*Verifica flags ativas e mostra.* /
 void show_flags(uint16_t access_flags, bool *flags){
-	bool first = true; /*Apenas para exibir a mensagem "Flags" uma vez na tela.*/
+	bool first = true; 	/*Apenas para exibir a mensagem "Flags" uma vez na tela.* /
 
 	for (int i = 0; i < 5; ++i){
 		if(flags[i]){
 			if(first){
-				printf("	ACcess flags: 0x%04x", access_flags);
+				printf("	Access flags: 0x%04x", access_flags);
 			}else{
 				printf("]");
 			}
@@ -126,7 +182,7 @@ void show_flags(uint16_t access_flags, bool *flags){
 		}
 	}
 	printf("]\n");
-}
+}*/
 
 
 
@@ -226,8 +282,6 @@ void show_field_flags(unsigned short flags){
 
 	printf("\n");
 }
-
-
 
 void show_field_attribute(cp_info *cp, attribute_info attribute){
 	printf(" \n\tNome do atributo: ");

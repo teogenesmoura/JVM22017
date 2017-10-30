@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "interface.h"
 #include "leitor.h"
+#include <stdlib.h>
 
 int main (int argc, char *argv[]){
 
@@ -13,8 +14,10 @@ int main (int argc, char *argv[]){
 
 	FILE *fp = fopen(argv[1], "rb");
 	
-	if(fp == NULL)
+	if(fp == NULL){
 		ret = error_openFile();
+		exit(0);
+	}
 
 	//FILE *cruzeiro = fopen("cruzeiro.txt", "r");
 

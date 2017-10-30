@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "leitor.h"
+
 int menu_interface(){
 	
 	bool erro = true;

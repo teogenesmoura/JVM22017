@@ -118,42 +118,6 @@ double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow){
 	return out;
 }
 
-
-
-/* função recursiva para desreferenciar indices das constantes
-** que contem strings nas suas informações.
-** Recebe o indice (posição) de uma constante na tabela
-** e o penteiro para a tabela e recursivamente acessa os
-** indices na tabela até chegar no indice referenciando
-** estrutura UTF8 que contem a string da constante inicialmente
-** passado.*/
-void dereference_index_UTF8 (int index, cp_info *cp){ 
-	switch(cp[index].tag){
-		case UTF8: /*Neste caso, estamos no caso trivial, onde a estrutura contem a string desejada.*/
-			show_UTF8(cp[index].info[0].u2, cp[index].info[1].array); /*eh passado qtd de byte no array de byte e array contendo bytes*/
-			break;
-
-		case CLASS:
-		case STRING:
-			dereference_index_UTF8(cp[index].info[0].u2, cp);
-			break;
-
-		case INTERFACE_REF:
-		case METHOD_REF:
-		case FIELD_REF:
-			dereference_index_UTF8(cp[index].info[0].u2, cp);
-			printf("|");
-			dereference_index_UTF8(cp[index].info[1].u2, cp);
-			break;
-
-		case NAME_AND_TYPE:
-			dereference_index_UTF8(cp[index].info[0].u2, cp);
-			printf(":");
-			dereference_index_UTF8(cp[index].info[1].u2, cp);
-			break;
-	}
-}
-
 /*loadInfConstPoos: carrega as informacoes de pool de constate para memoria*/
 int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 	int i;
@@ -362,7 +326,7 @@ int init_leitor(FILE *fp){
 	/*Mostra as informações basicas como magic number, minversion...etc*/
 	infoBasic(classFile);
 	/*chama a função para mostrar as flags ativas*/
-	show_flags(classFile.access_flags, splitFlags);
+	//show_flags(classFile.access_flags, splitFlags);
 	/*Exibe a informação (string) da classe*/
 	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
 	/*Exibe a informação (string) da super_classe*/
