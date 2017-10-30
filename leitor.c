@@ -225,9 +225,11 @@ void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPo
 	/*printf("	Interface count: %d\n", interfaces_count);*/
 	for (int i = 0; i < interfaces_count; ++i){
 		interfaces[i] = ler_u2(fp);
+		/*
 		printf("\tInterface %d:", i);
 		dereference_index_UTF8(interfaces[i], constPool);
 		printf("\n");
+		*/
 	}
 }
 
@@ -328,10 +330,10 @@ int init_leitor(FILE *fp){
 	/*chama a função para mostrar as flags ativas*/
 	//show_flags(classFile.access_flags, splitFlags);
 	/*Exibe a informação (string) da classe*/
-	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
+	//dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
 	/*Exibe a informação (string) da super_classe*/
-	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
-	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
+	//dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
+	//showConstPool(classFile.constant_pool_count, classFile.constant_pool);
 
 	return 0;
 }

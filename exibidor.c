@@ -39,16 +39,15 @@ void show_UTF8 (int size, unsigned char *string){
 /* função recursiva para desreferenciar indices das constantes
 ** que contem strings nas suas informações.
 ** Recebe o indice (posição) de uma constante na tabela
-** e o penteiro para a tabela e recursivamente acessa os
+** e o ponteiro para a tabela e recursivamente acessa os
 ** indices na tabela até chegar no indice referenciando
 ** estrutura UTF8 que contem a string da constante inicialmente
-** passado.*/
+** passado. */
 void dereference_index_UTF8 (int index, cp_info *cp){ 
 	switch(cp[index].tag){
 		case UTF8: /*Neste caso, estamos no caso trivial, onde a estrutura contem a string desejada.*/
 			show_UTF8(cp[index].info[0].u2, cp[index].info[1].array); /*eh passado qtd de byte no array de byte e array contendo bytes*/
 			break;
-
 		case CLASS:
 		case STRING:
 			dereference_index_UTF8(cp[index].info[0].u2, cp);
@@ -165,26 +164,6 @@ char* show_flags(cFile classFile){
 	}
 	return s;
 }
-
-/*Verifica flags ativas e mostra.* /
-void show_flags(uint16_t access_flags, bool *flags){
-	bool first = true; 	/*Apenas para exibir a mensagem "Flags" uma vez na tela.* /
-
-	for (int i = 0; i < 5; ++i){
-		if(flags[i]){
-			if(first){
-				printf("	Access flags: 0x%04x", access_flags);
-			}else{
-				printf("]");
-			}
-			first = false;
-			printf("[%s", flag_name[i]);
-		}
-	}
-	printf("]\n");
-}*/
-
-
 
 /*mostringa as flags do campo verificando todas as flags presentes no field*/
 void show_field_flags(unsigned short flags){
