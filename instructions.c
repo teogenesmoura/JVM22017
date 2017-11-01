@@ -8,6 +8,7 @@
 typedef struct{ //Nome da struct = ""
 	int32_t hexa;
 	char name[20]; //Definindo com *name cria-se uma posição na memória sendo read-only
+	int8_t byte; //Quantidade de argumentos
 	//Chamada da função
 	void (*ins)();
 }AllIns; //"Abreviação" do nome struct + ""
@@ -535,244 +536,244 @@ void mount_inst_array(AllIns *instructions){
 	//******************************************************************
 	//CONSTANTES
 	
-  	instructions[0].ins = nop;
-  	instructions[1].ins = aconst_null;
-  	instructions[2].ins = iconst_m1;
-  	instructions[3].ins = iconst_0;
-  	instructions[4].ins = iconst_1;
-  	instructions[5].ins = iconst_2;
-	instructions[6].ins = iconst_3;
-  	instructions[7].ins = iconst_4;
-  	instructions[8].ins = iconst_5;
-  	instructions[9].ins = lconst_0;
-  	instructions[10].ins = lconst_1;
-  	instructions[11].ins = fconst_0;
-  	instructions[12].ins = fconst_1;
-  	instructions[13].ins = fconst_2;
-  	instructions[14].ins = dconst_0;
-  	instructions[15].ins = dconst_1;
-  	instructions[16].ins = bipush;
-  	instructions[17].ins = sipush;
-  	instructions[18].ins = ldc;
-  	instructions[19].ins = ldc_w;
-  	instructions[20].ins = ldc2_w;
+  	instructions[0].ins = nop;		instructions[0].byte = 0;
+  	instructions[1].ins = aconst_null;	instructions[1].byte = 0;
+  	instructions[2].ins = iconst_m1;	instructions[2].byte = 0;
+  	instructions[3].ins = iconst_0;		instructions[3].byte = 0;
+  	instructions[4].ins = iconst_1;		instructions[4].byte = 0;
+  	instructions[5].ins = iconst_2;		instructions[5].byte = 0;
+	instructions[6].ins = iconst_3;		instructions[6].byte = 0;
+  	instructions[7].ins = iconst_4;		instructions[7].byte = 0;
+  	instructions[8].ins = iconst_5;		instructions[8].byte = 0;
+  	instructions[9].ins = lconst_0;		instructions[9].byte = 0;
+  	instructions[10].ins = lconst_1;	instructions[10].byte = 0;
+  	instructions[11].ins = fconst_0;	instructions[11].byte = 0;
+  	instructions[12].ins = fconst_1;	instructions[12].byte = 0;
+  	instructions[13].ins = fconst_2;	instructions[13].byte = 0;
+  	instructions[14].ins = dconst_0;	instructions[14].byte = 0;
+  	instructions[15].ins = dconst_1;	instructions[15].byte = 0;
+  	instructions[16].ins = bipush;		instructions[16].byte = 1;
+  	instructions[17].ins = sipush;		instructions[17].byte = 2;
+  	instructions[18].ins = ldc;		instructions[18].byte = 1;
+  	instructions[19].ins = ldc_w;		instructions[19].byte = 2;
+  	instructions[20].ins = ldc2_w;		instructions[20].byte = 2;
 	
 	//******************************************************************
 	//LOADS
 	
-	instructions[21].ins = iload;
-	instructions[22].ins = lload;
-	instructions[23].ins = fload;
-	instructions[24].ins = dload;
-	instructions[25].ins = aload;
-	instructions[26].ins = iload_0;
-	instructions[27].ins = iload_1;
-	instructions[28].ins = iload_2;
-	instructions[29].ins = iload_3;
-	instructions[30].ins = lload_0;
-	instructions[31].ins = lload_1;
-	instructions[32].ins = lload_2;
-	instructions[33].ins = lload_3;
-	instructions[34].ins = fload_0;
-	instructions[35].ins = fload_1;
-	instructions[36].ins = fload_2;
-	instructions[37].ins = fload_3;
-	instructions[38].ins = dload_0;
-	instructions[39].ins = dload_1;
-	instructions[40].ins = dload_2;
-	instructions[41].ins = dload_3;
-	instructions[42].ins = aload_0;
-	instructions[43].ins = aload_1;
-	instructions[44].ins = aload_2;
-	instructions[45].ins = aload_3;
-	instructions[46].ins = iaload;
-	instructions[47].ins = laload;
-	instructions[48].ins = faload;
-	instructions[49].ins = daload;
-	instructions[50].ins = aaload;
-	instructions[51].ins = baload;
-	instructions[52].ins = caload;
-	instructions[53].ins = saload;
+	instructions[21].ins = iload;		instructions[21].byte = 1;
+	instructions[22].ins = lload;		instructions[22].byte = 1;
+	instructions[23].ins = fload;		instructions[23].byte = 1;
+	instructions[24].ins = dload;		instructions[24].byte = 1;
+	instructions[25].ins = aload;		instructions[25].byte = 1;
+	instructions[26].ins = iload_0;		instructions[26].byte = 0;
+	instructions[27].ins = iload_1;		instructions[27].byte = 0;
+	instructions[28].ins = iload_2;		instructions[28].byte = 0;
+	instructions[29].ins = iload_3;		instructions[29].byte = 0;
+	instructions[30].ins = lload_0;		instructions[30].byte = 0;
+	instructions[31].ins = lload_1;		instructions[31].byte = 0;
+	instructions[32].ins = lload_2;		instructions[32].byte = 0;
+	instructions[33].ins = lload_3;		instructions[33].byte = 0;
+	instructions[34].ins = fload_0;		instructions[34].byte = 0;
+	instructions[35].ins = fload_1;		instructions[35].byte = 0;
+	instructions[36].ins = fload_2;		instructions[36].byte = 0;
+	instructions[37].ins = fload_3;		instructions[37].byte = 0;
+	instructions[38].ins = dload_0;		instructions[38].byte = 0;
+	instructions[39].ins = dload_1;		instructions[39].byte = 0;
+	instructions[40].ins = dload_2;		instructions[40].byte = 0;
+	instructions[41].ins = dload_3;		instructions[41].byte = 0;
+	instructions[42].ins = aload_0;		instructions[42].byte = 0;
+	instructions[43].ins = aload_1;		instructions[43].byte = 0;
+	instructions[44].ins = aload_2;		instructions[44].byte = 0;
+	instructions[45].ins = aload_3;		instructions[45].byte = 0;
+	instructions[46].ins = iaload;		instructions[46].byte = 0;
+	instructions[47].ins = laload;		instructions[47].byte = 0;
+	instructions[48].ins = faload;		instructions[48].byte = 0;
+	instructions[49].ins = daload;		instructions[49].byte = 0;
+	instructions[50].ins = aaload;		instructions[50].byte = 0;
+	instructions[51].ins = baload;		instructions[51].byte = 0;
+	instructions[52].ins = caload;		instructions[52].byte = 0;
+	instructions[53].ins = saload;		instructions[53].byte = 0;
 	
 	//******************************************************************
 	//STORES
 	
-	instructions[54].ins = istore;
-	instructions[55].ins = lstore;
-	instructions[56].ins = fstore;
-	instructions[57].ins = dstore;
-	instructions[58].ins = astore;
-	instructions[59].ins = istore_0;
-	instructions[60].ins = istore_1;
-	instructions[61].ins = istore_2;
-	instructions[62].ins = istore_3;
-	instructions[63].ins = lstore_0;
-	instructions[64].ins = lstore_1;
-	instructions[65].ins = lstore_2;
-	instructions[66].ins = lstore_3;
-	instructions[67].ins = fstore_0;
-	instructions[68].ins = fstore_1;
-	instructions[69].ins = fstore_2;
-	instructions[70].ins = fstore_3;
-	instructions[71].ins = dstore_0;
-	instructions[72].ins = dstore_1;
-	instructions[73].ins = dstore_2;
-	instructions[74].ins = dstore_3;
-	instructions[75].ins = astore_0;
-	instructions[76].ins = astore_1;
-	instructions[77].ins = astore_2;
-	instructions[78].ins = astore_3;
-	instructions[79].ins = iastore;
-	instructions[80].ins = lastore;
-	instructions[81].ins = fastore;
-	instructions[82].ins = dastore;
-	instructions[83].ins = aastore;
-	instructions[84].ins = bastore;
-	instructions[85].ins = castore;
-	instructions[86].ins = sastore;
+	instructions[54].ins = istore;		instructions[54].byte = 1;
+	instructions[55].ins = lstore;		instructions[55].byte = 1;
+	instructions[56].ins = fstore;		instructions[56].byte = 1;
+	instructions[57].ins = dstore;		instructions[57].byte = 1;
+	instructions[58].ins = astore;		instructions[58].byte = 1;
+	instructions[59].ins = istore_0;	instructions[59].byte = 0;
+	instructions[60].ins = istore_1;	instructions[60].byte = 0;
+	instructions[61].ins = istore_2;	instructions[61].byte = 0;
+	instructions[62].ins = istore_3;	instructions[62].byte = 0;
+	instructions[63].ins = lstore_0;	instructions[63].byte = 0;
+	instructions[64].ins = lstore_1;	instructions[64].byte = 0;
+	instructions[65].ins = lstore_2;	instructions[65].byte = 0;
+	instructions[66].ins = lstore_3;	instructions[66].byte = 0;
+	instructions[67].ins = fstore_0;	instructions[67].byte = 0;
+	instructions[68].ins = fstore_1;	instructions[68].byte = 0;
+	instructions[69].ins = fstore_2;	instructions[69].byte = 0;
+	instructions[70].ins = fstore_3;	instructions[70].byte = 0;
+	instructions[71].ins = dstore_0;	instructions[71].byte = 0;
+	instructions[72].ins = dstore_1;	instructions[72].byte = 0;
+	instructions[73].ins = dstore_2;	instructions[73].byte = 0;
+	instructions[74].ins = dstore_3;	instructions[74].byte = 0;
+	instructions[75].ins = astore_0;	instructions[75].byte = 0;
+	instructions[76].ins = astore_1;	instructions[76].byte = 0;
+	instructions[77].ins = astore_2;	instructions[77].byte = 0;
+	instructions[78].ins = astore_3;	instructions[78].byte = 0;
+	instructions[79].ins = iastore;		instructions[79].byte = 0;
+	instructions[80].ins = lastore;		instructions[80].byte = 0;
+	instructions[81].ins = fastore;		instructions[81].byte = 0;
+	instructions[82].ins = dastore;		instructions[82].byte = 0;
+	instructions[83].ins = aastore;		instructions[83].byte = 0;
+	instructions[84].ins = bastore;		instructions[84].byte = 0;
+	instructions[85].ins = castore;		instructions[85].byte = 0;
+	instructions[86].ins = sastore;		instructions[86].byte = 0;
 	
 	//******************************************************************
 	//PILHA
 	
-// 	instructions[87].ins = pop;
-// 	instructions[88].ins = pop2;
-// 	instructions[89].ins = dup;
-// 	instructions[90].ins = dup_x1;
-// 	instructions[91].ins = dup_x2;
-// 	instructions[92].ins = dup2;
-// 	instructions[93].ins = dup2_x1;
-// 	instructions[94].ins = dup2_x2;
-// 	instructions[95].ins = swap;
+// 	instructions[87].ins = pop;		instructions[87].byte = 0;
+// 	instructions[88].ins = pop2;		instructions[88].byte = 0;
+// 	instructions[89].ins = dup;		instructions[89].byte = 0;
+// 	instructions[90].ins = dup_x1;		instructions[90].byte = 0;
+// 	instructions[91].ins = dup_x2;		instructions[91].byte = 0;
+// 	instructions[92].ins = dup2;		instructions[92].byte = 0;
+// 	instructions[93].ins = dup2_x1;		instructions[93].byte = 0;
+// 	instructions[94].ins = dup2_x2;		instructions[94].byte = 0;
+// 	instructions[95].ins = swap;		instructions[95].byte = 0;
 	
 	//******************************************************************
 	//OPERAÇÕES MATEMÁTICAS	
 	
-	instructions[96].ins = iadd;
-	instructions[97].ins = ladd;
-	instructions[98].ins = fadd;
-	instructions[99].ins = dadd;
-	instructions[100].ins = isub;
-	instructions[101].ins = lsub;
-	instructions[102].ins = fsub;
-	instructions[103].ins = dsub;
-	instructions[104].ins = imul;
-	instructions[105].ins = lmul;
-	instructions[106].ins = fmul;
-	instructions[107].ins = dmul;
-	instructions[108].ins = idiv;
-	instructions[109].ins = ldiv_;
-	instructions[110].ins = fdiv;
-	instructions[111].ins = ddiv;
-	instructions[112].ins = irem;
-	instructions[113].ins = lrem;
-	instructions[114].ins = frem;
-	instructions[115].ins = drem;
-	instructions[116].ins = ineg;
-	instructions[117].ins = lneg;
-	instructions[118].ins = fneg;
-	instructions[119].ins = dneg;
-	instructions[120].ins = ishl;
-	instructions[121].ins = lshl;
-	instructions[122].ins = ishr;
-	instructions[123].ins = lshr;
-	instructions[124].ins = iushr;
-	instructions[125].ins = lushr;
-	instructions[126].ins = iand;
-	instructions[127].ins = land;
-	instructions[128].ins = ior;
-	instructions[129].ins = lor;
-	instructions[130].ins = ixor;
-	instructions[131].ins = lxor;
-	instructions[132].ins = iinc;
+	instructions[96].ins = iadd;		instructions[96].byte = 0;
+	instructions[97].ins = ladd;		instructions[97].byte = 0;
+	instructions[98].ins = fadd;		instructions[98].byte = 0;
+	instructions[99].ins = dadd;		instructions[99].byte = 0;
+	instructions[100].ins = isub;		instructions[100].byte = 0;
+	instructions[101].ins = lsub;		instructions[101].byte = 0;
+	instructions[102].ins = fsub;		instructions[102].byte = 0;
+	instructions[103].ins = dsub;		instructions[103].byte = 0;
+	instructions[104].ins = imul;		instructions[104].byte = 0;
+	instructions[105].ins = lmul;		instructions[105].byte = 0;
+	instructions[106].ins = fmul;		instructions[106].byte = 0;
+	instructions[107].ins = dmul;		instructions[107].byte = 0;
+	instructions[108].ins = idiv;		instructions[108].byte = 0;
+	instructions[109].ins = ldiv_;		instructions[109].byte = 0;
+	instructions[110].ins = fdiv;		instructions[110].byte = 0;
+	instructions[111].ins = ddiv;		instructions[111].byte = 0;
+	instructions[112].ins = irem;		instructions[112].byte = 0;
+	instructions[113].ins = lrem;		instructions[111].byte = 0;
+	instructions[114].ins = frem;		instructions[114].byte = 0;
+	instructions[115].ins = drem;		instructions[115].byte = 0;
+	instructions[116].ins = ineg;		instructions[116].byte = 0;
+	instructions[117].ins = lneg;		instructions[117].byte = 0;
+	instructions[118].ins = fneg;		instructions[118].byte = 0;
+	instructions[119].ins = dneg;		instructions[119].byte = 0;
+	instructions[120].ins = ishl;		instructions[120].byte = 0;
+	instructions[121].ins = lshl;		instructions[121].byte = 0;
+	instructions[122].ins = ishr;		instructions[122].byte = 0;
+	instructions[123].ins = lshr;		instructions[123].byte = 0;
+	instructions[124].ins = iushr;		instructions[124].byte = 0;
+	instructions[125].ins = lushr;		instructions[125].byte = 0;
+	instructions[126].ins = iand;		instructions[126].byte = 0;
+	instructions[127].ins = land;		instructions[127].byte = 0;
+	instructions[128].ins = ior;		instructions[128].byte = 0;
+	instructions[129].ins = lor;		instructions[129].byte = 0;
+	instructions[130].ins = ixor;		instructions[130].byte = 0;
+	instructions[131].ins = lxor;		instructions[131].byte = 0;
+	instructions[132].ins = iinc;		instructions[132].byte = 2;
 	
 	//******************************************************************
 	//CONVERSÕES
 	
-	instructions[133].ins = i2l;
-	instructions[134].ins = i2f;
-	instructions[135].ins = i2d;
-	instructions[136].ins = l2i;
-	instructions[137].ins = l2f;
-	instructions[138].ins = l2d;
-	instructions[139].ins = f2i;
-	instructions[140].ins = f2l;
-	instructions[141].ins = f2d;
-	instructions[142].ins = d2i;
-	instructions[143].ins = d2l;
-	instructions[144].ins = d2f;
-	instructions[145].ins = i2b;
-	instructions[146].ins = i2c;
-	instructions[147].ins = i2s;
+	instructions[133].ins = i2l;		instructions[133].byte = 0;
+	instructions[134].ins = i2f;		instructions[134].byte = 0;
+	instructions[135].ins = i2d;		instructions[135].byte = 0;
+	instructions[136].ins = l2i;		instructions[136].byte = 0;
+	instructions[137].ins = l2f;		instructions[137].byte = 0;
+	instructions[138].ins = l2d;		instructions[138].byte = 0;
+	instructions[139].ins = f2i;		instructions[139].byte = 0;
+	instructions[140].ins = f2l;		instructions[140].byte = 0;
+	instructions[141].ins = f2d;		instructions[141].byte = 0;
+	instructions[142].ins = d2i;		instructions[142].byte = 0;
+	instructions[143].ins = d2l;		instructions[143].byte = 0;
+	instructions[144].ins = d2f;		instructions[144].byte = 0;
+	instructions[145].ins = i2b;		instructions[145].byte = 0;
+	instructions[146].ins = i2c;		instructions[146].byte = 0;
+	instructions[147].ins = i2s;		instructions[147].byte = 0;
 	
 	//******************************************************************
 	//COMPARAÇÕES
 		
-	instructions[148].ins = lcmp;
-	instructions[149].ins = fcmpl;
-	instructions[150].ins = fcmpg;
-	instructions[151].ins = dcmpl;
-	instructions[152].ins = dcmpg;
-	instructions[153].ins = ifeq;
-	instructions[154].ins = ifne;
-	instructions[155].ins = iflt;
-	instructions[156].ins = ifge;
-	instructions[157].ins = ifgt;
-	instructions[158].ins = ifle;
-	instructions[159].ins = if_icmpeq;
-	instructions[160].ins = if_icmpne;
-	instructions[161].ins = if_icmplt;
-	instructions[162].ins = if_icmpge;
-	instructions[163].ins = if_icmpgt;
-	instructions[164].ins = if_icmple;
-	instructions[165].ins = if_acmpeq;
-	instructions[166].ins = if_acmpne;
+	instructions[148].ins = lcmp;		instructions[148].byte = 0;
+	instructions[149].ins = fcmpl;		instructions[149].byte = 0;
+	instructions[150].ins = fcmpg;		instructions[148].byte = 0;
+	instructions[151].ins = dcmpl;		instructions[151].byte = 0;
+	instructions[152].ins = dcmpg;		instructions[152].byte = 0;
+	instructions[153].ins = ifeq;		instructions[153].byte = 2;
+	instructions[154].ins = ifne;		instructions[154].byte = 2;
+	instructions[155].ins = iflt;		instructions[155].byte = 2;
+	instructions[156].ins = ifge;		instructions[156].byte = 2;
+	instructions[157].ins = ifgt;		instructions[157].byte = 2;
+	instructions[158].ins = ifle;		instructions[158].byte = 2;
+	instructions[159].ins = if_icmpeq;	instructions[159].byte = 2;
+	instructions[160].ins = if_icmpne;	instructions[160].byte = 2;
+	instructions[161].ins = if_icmplt;	instructions[161].byte = 2;
+	instructions[162].ins = if_icmpge;	instructions[162].byte = 2;
+	instructions[163].ins = if_icmpgt;	instructions[163].byte = 2;
+	instructions[164].ins = if_icmple;	instructions[164].byte = 2;
+	instructions[165].ins = if_acmpeq;	instructions[165].byte = 2;
+	instructions[166].ins = if_acmpne;	instructions[166].byte = 2;
 	
 	//******************************************************************
 	//CONTROLE
 	
-	instructions[167].ins = goto_;
-	instructions[168].ins = jsr;
-	instructions[169].ins = ret;
-	instructions[170].ins = tableswitch;
-	instructions[171].ins = lookupswitch;
-	instructions[172].ins = ireturn;
-	instructions[173].ins = lreturn;
-	instructions[174].ins = freturn;
-	instructions[175].ins = dreturn;
-	instructions[176].ins = areturn;
-	instructions[177].ins = return_;
+	instructions[167].ins = goto_;		instructions[167].byte = 2;
+	instructions[168].ins = jsr;		instructions[168].byte = 2;
+	instructions[169].ins = ret;		instructions[169].byte = 1;
+	instructions[170].ins = tableswitch;	instructions[170].byte = 14; //CONFIRMAR
+	instructions[171].ins = lookupswitch;	instructions[171].byte = 10; //CONFIRMAR
+	instructions[172].ins = ireturn;	instructions[172].byte = 0;
+	instructions[173].ins = lreturn;	instructions[173].byte = 0;
+	instructions[174].ins = freturn;	instructions[174].byte = 0;
+	instructions[175].ins = dreturn;	instructions[175].byte = 0;
+	instructions[176].ins = areturn;	instructions[176].byte = 0;
+	instructions[177].ins = return_;	instructions[177].byte = 0;
 	
 	//******************************************************************
 	//REFERÊNCIAS
 	
-	instructions[178].ins = getstatic;
-	instructions[179].ins = putstatic;
-	instructions[180].ins = getfield;
-	instructions[181].ins = putfield;
-	instructions[182].ins = invokevirtual;
-	instructions[183].ins = invokespecial;
-	instructions[184].ins = invokestatic;
-	instructions[185].ins = invokeinterface;
-// 	instructions[186].ins = invokedynamic;
-	instructions[187].ins = new;
-	instructions[188].ins = newarray;
-	instructions[189].ins = anewarray;
-	instructions[190].ins = arraylength;
-// 	instructions[191].ins = athrow;
-// 	instructions[192].ins = checkcast;
-// 	instructions[193].ins = instanceof;
-// 	instructions[194].ins = monitorenter;
-// 	instructions[195].ins = monitorexit;
+	instructions[178].ins = getstatic;	instructions[178].byte = 2;
+	instructions[179].ins = putstatic;	instructions[179].byte = 2;
+	instructions[180].ins = getfield;	instructions[180].byte = 2;
+	instructions[181].ins = putfield;	instructions[181].byte = 2;
+	instructions[182].ins = invokevirtual;	instructions[182].byte = 2;
+	instructions[183].ins = invokespecial;	instructions[183].byte = 2;
+	instructions[184].ins = invokestatic;	instructions[184].byte = 2;
+	instructions[185].ins = invokeinterface;instructions[185].byte = 4;
+// 	instructions[186].ins = invokedynamic;	instructions[186].byte = 4;
+	instructions[187].ins = new;		instructions[187].byte = 2;
+	instructions[188].ins = newarray;	instructions[188].byte = 1;
+	instructions[189].ins = anewarray;	instructions[189].byte = 2;
+	instructions[190].ins = arraylength;	instructions[190].byte = 0;
+// 	instructions[191].ins = athrow;		instructions[191].byte = 0;
+// 	instructions[192].ins = checkcast;	instructions[192].byte = 2;
+// 	instructions[193].ins = instanceof;	instructions[193].byte = 2;
+// 	instructions[194].ins = monitorenter;	instructions[194].byte = 0;
+// 	instructions[195].ins = monitorexit;	instructions[195].byte = 0;
 	
 	//******************************************************************
 	//EXTENDIDO
 	
-	instructions[196].ins = wide;
-	instructions[197].ins = multianewarray;
-	instructions[198].ins = ifnull;
-	instructions[199].ins = ifnonnull;
-	instructions[200].ins = goto_w;
-	instructions[201].ins = jsr_w;
+	instructions[196].ins = wide;		instructions[196].byte = 3; //PODE SER 5 TAMBÉM DEPENDENDO DO OPCODE, FAZER A EXCESSÃO DEPOIS
+	instructions[197].ins = multianewarray;	instructions[197].byte = 3;
+	instructions[198].ins = ifnull;		instructions[198].byte = 2;
+	instructions[199].ins = ifnonnull;	instructions[199].byte = 2;
+	instructions[200].ins = goto_w;		instructions[200].byte = 4;
+	instructions[201].ins = jsr_w;		instructions[201].byte = 4;
 
  	for (int i=0; i < 202; i++){
   		instructions[i].hexa = i;
