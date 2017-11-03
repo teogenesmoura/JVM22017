@@ -391,6 +391,9 @@ void show_method_attributes(cFile classFile, int method_index){
 		strcpy(name, (char*)classFile.constant_pool[classFile.methods[method_index].attributes[i].attribute_name_index].info[1].array);		/* REVISAR esse cast*/
 		if(!strcmp(name, "Code")){
 			printf ("\t\t\t Code details (em desenvolvimento)...\n");
+			for (int j=0;j<classFile.methods[method_index].attributes[i].attribute_length;j+=1)
+				printf ("\t\t\t Attribute->info: 0x%02x\n\n", classFile.methods[method_index].attributes[i].info[j]);
+			//printf ("\t\t\t ")
 		}else{
 			/*Atributo ainda nao tratado. Possiveis atributos de methods sao:
 			Exceptions, RuntimeVisibleParameterAnnotations, RuntimeInvisibleParameterAnnotations, AnnotationDefault, MethodParameters,
