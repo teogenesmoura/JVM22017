@@ -188,7 +188,7 @@ int findMain (cFile classFile){
 }
 */
 
-/*lê um atributo*/
+/* Lê um atributo */
 attribute_info ler_attribute(FILE *fp){
 	attribute_info out;
 
@@ -207,7 +207,27 @@ attribute_info ler_attribute(FILE *fp){
 	return out;
 }
 
-/*Lê os fields*/
+/* Lê todos os methods */
+void ler_methods(cFile *classFile, FILE *fp){
+	classFile->methods = (method_info*) malloc (sizeof(method_info)*classFile->methods_count);
+	for (int i=0;i<classFile->methods_count;i++){
+		classFile->methods[i].access_flags = ler_u2(fp);
+		classFile->methods[i].name_index = ler_u2(fp);
+		classFile->methods[i].descriptor_index = ler_u2(fp);
+		classFile->methods[i].attributes_count = ler_u2(fp);
+		classFile->methods[i].attributes = (attribute_info*) malloc (sizeof(attribute_info)*classFile->methods[i].attributes_count);
+		for (int j=0;j<classFile->methods[i].attributes_count;j++){
+			classFile->methods[i].attributes[j].attribute_name_index = ler_u2(fp);
+			classFile->methods[i].attributes[j].attribute_length = ler_u4(fp);
+			classFile->methods[i].attributes[j].info = (uint8_t*) malloc(sizeof(uint8_t)*classFile->methods[i].attributes[j].attribute_length);
+			for (int k=0;k<classFile->methods[i].attributes[j].attribute_length;k++){
+				classFile->methods[i].attributes[j].info[k]=ler_u1(fp);
+			}
+		}
+	}
+}
+
+/* Lê um field */
 field_info ler_fields (FILE *fp){
 	field_info out;
 
@@ -220,35 +240,6 @@ field_info ler_fields (FILE *fp){
 		out.attributes[i] = ler_attribute(fp);
 
 	return out;
-}
-
-
-/* Funcoes de methods */
-/*
-method_info ler_methods(FILE *fp){
-	method_info out;
-	out.access_flags = ler_u2(fp);
-	out.name_index = ler_u2(fp);
-	out.descriptor_index = ler_u2(fp);
-	out.attributes_count = ler_u2(fp);
-	out.attributes = (attribute_info *) malloc(sizeof(attribute_info) * out.attributes_count);
-	for (int i=0;i<out.attributes_count;i++)
-		out.attributes[i] = ler_attribute(fp);
-	return out;
-}
-*/
-void ler_methods(cFile *classFile, FILE *fp){
-	classFile->methods = (method_info*) malloc (sizeof(method_info)*classFile->methods_count);
-	for (int i=0;i<classFile->methods_count;i++){
-		classFile->methods[i].access_flags = ler_u2(fp);
-		classFile->methods[i].name_index = ler_u2(fp);
-		classFile->methods[i].descriptor_index = ler_u2(fp);
-		classFile->methods[i].attributes_count = ler_u2(fp);
-		classFile->methods[i].attributes = (attribute_info*) malloc (sizeof(attribute_info)*classFile->methods[i].attributes_count);
-		for (int j=0;j<classFile->methods[i].attributes_count;j++)
-			classFile->methods[i].attributes[j]=ler_attribute(fp);
-
-	}
 }
 
 /*carrega e mostra todas interfaces que estão presentes.*/
@@ -343,11 +334,6 @@ int init_leitor(FILE *fp){
 	classFile.methods_count = ler_u2(fp);
 	classFile.methods = (method_info*) malloc (sizeof(method_info)*classFile.methods_count);
 	ler_methods(&classFile, fp);
-	for (int i = 0;i < classFile.methods_count; i++){
-		/* printf ("\n	Method [%d]\n", i); */
-		/*classFile.methods[i] = ler_methods(fp);*/
-		/* show_methods(classFile.constant_pool, classFile.methods[i]);*/
-	}
 
 	classFile.attributes_count = ler_u2(fp);
 	printf("attribute_count = %d\n", classFile.attributes_count);
