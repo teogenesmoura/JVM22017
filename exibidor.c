@@ -102,7 +102,7 @@ void infoBasic(cFile classFile){
 	printf("Interfaces count: %d\n", classFile.interfaces_count);
 	printf("Field count: %d\n", classFile.fields_count);
 	printf("Method count: %d\n", classFile.methods_count);
-	/*show_methods(classFile);*/
+	show_methods(classFile);
 	printf("Attributes count: %d\n", classFile.attributes_count);
 	/*show_cFile_attributes(classFile);*/
 

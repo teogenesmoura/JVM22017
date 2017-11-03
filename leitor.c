@@ -174,6 +174,20 @@ int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp){
 	return i;
 }
 
+/*
+int findMain (cFile classFile){
+	int i;
+
+	while (i<classFile.methods_count){
+		if (strcmp((char*)classFile.constant_pool[(classFile.methods[i].name_index)].info[1].array, "main")==0){
+			return i;
+		}
+		i++;
+	}
+	return -1;
+}
+*/
+
 /*lê um atributo*/
 attribute_info ler_attribute(FILE *fp){
 	attribute_info out;
@@ -210,6 +224,7 @@ field_info ler_fields (FILE *fp){
 
 
 /* Funcoes de methods */
+/*
 method_info ler_methods(FILE *fp){
 	method_info out;
 	out.access_flags = ler_u2(fp);
@@ -221,7 +236,20 @@ method_info ler_methods(FILE *fp){
 		out.attributes[i] = ler_attribute(fp);
 	return out;
 }
+*/
+void ler_methods(cFile *classFile, FILE *fp){
+	classFile->methods = (method_info*) malloc (sizeof(method_info)*classFile->methods_count);
+	for (int i=0;i<classFile->methods_count;i++){
+		classFile->methods[i].access_flags = ler_u2(fp);
+		classFile->methods[i].name_index = ler_u2(fp);
+		classFile->methods[i].descriptor_index = ler_u2(fp);
+		classFile->methods[i].attributes_count = ler_u2(fp);
+		classFile->methods[i].attributes = (attribute_info*) malloc (sizeof(attribute_info)*classFile->methods[i].attributes_count);
+		for (int j=0;j<classFile->methods[i].attributes_count;j++)
+			classFile->methods[i].attributes[j]=ler_attribute(fp);
 
+	}
+}
 
 /*carrega e mostra todas interfaces que estão presentes.*/
 void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPool, FILE *fp){
@@ -314,10 +342,10 @@ int init_leitor(FILE *fp){
 
 	classFile.methods_count = ler_u2(fp);
 	classFile.methods = (method_info*) malloc (sizeof(method_info)*classFile.methods_count);
-
+	ler_methods(&classFile, fp);
 	for (int i = 0;i < classFile.methods_count; i++){
 		/* printf ("\n	Method [%d]\n", i); */
-		classFile.methods[i] = ler_methods(fp);
+		/*classFile.methods[i] = ler_methods(fp);*/
 		/* show_methods(classFile.constant_pool, classFile.methods[i]);*/
 	}
 
@@ -333,16 +361,4 @@ int init_leitor(FILE *fp){
 	infoBasic(classFile); /*Comentar so para termos de desenvolvimento. Deve ser descomentada na versao final*/
 
 	return 0;
-}
-
-int findMain (cFile classFile){
-	int i;
-
-	while (i<classFile.methods_count){
-		if (strcmp((char*)classFile.constant_pool[(classFile.methods[i].name_index)].info[1].array, "main")==0){
-			return i;
-		}
-		i++;
-	}
-	return -1;
 }
