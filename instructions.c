@@ -5,20 +5,61 @@
 #include<unistd.h>
 #include<errno.h>
 
+#define NULL_REF NULL
+
 typedef struct{ //Nome da struct = ""
 	int32_t hexa;
 	char name[20]; //Definindo com *name cria-se uma posição na memória sendo read-only
-	int8_t byte; //Quantidade de argumentos
+	int8_t byte;
 	//Chamada da função
 	void (*ins)();
 }AllIns; //"Abreviação" do nome struct + ""
+
+//Definição da pilha
+typedef struct node{
+ 	int32_t dado;
+	struct node *prox;
+}Node;
+
+//Variável que armazenará o tamanho da pilha
+int32_t tamanho_pilha;
+
+//************Funções para tratamento da pilha************
+//Função para a inicialização da pilha
+void inicializa_pilha(Node *pilha);
+
+//Função para a alocação de um novo espaço na pilha para o empilhamento
+Node *aloca_elemento(int32_t dado);
+
+//Função que irá empilhar um elemento no topo da pilha
+void empilha(Node *pilha, int32_t dado);
+
+//Função que irá desempilhar um elemento do topo da pilha
+void desempilha(Node *pilha);
+
+//Função que verifica se a pilha está vazia
+int verifica_pilha_vazia(Node *pilha);
+
+//Função para fazer o print da pilha
+void mostra_pilha(Node *pilha);
+
+//Função para zerar a pilha
+void zera_pilha(Node *pilha);
+
+//Função para destruir a pilha completamente
+void destroi_pilha(Node *pilha);
+
+int32_t pc = 0;
 
 //Funções das intruções
 
 //***********************************************
 //CONSTANTES
+
+//Incrementa o pc
 void nop();
-void aconst_null();
+//Coloca uma referência null no topo da pilha
+void aconst_null(Node *pilha);
 void iconst_m1();
 void iconst_0();
 void iconst_1();
@@ -264,7 +305,38 @@ int main(int argc, char *argv[]){
 	
 	AllIns instructions[256];
 	
+	Node *pilha = (Node*) malloc(sizeof(Node));
+	
+	if (!pilha){
+		printf("Sem memória disponível");
+		exit(0);
+	}
+	
+	inicializa_pilha(pilha);
+	
 	mount_inst_array(instructions);
+	
+	instructions[0].ins();
+	
+	inicializa_pilha(pilha);
+	
+	empilha(pilha,1);
+	empilha(pilha,2);
+	empilha(pilha,3);
+	
+	mostra_pilha(pilha);
+	
+	zera_pilha(pilha);
+	
+	mostra_pilha(pilha);
+	
+	desempilha(pilha);
+	
+	mostra_pilha(pilha);
+	
+	destroi_pilha(pilha);
+	
+// 	printf("pc = %d\n", pc);
 	
 // 	internal_error();
 // 	out_of_mem();
@@ -790,8 +862,132 @@ void mount_inst_array(AllIns *instructions){
 	instructions[254].hexa = 0xFE;
  	strcpy(instructions[254].name, "impdep1");
 	instructions[255].hexa = 0xFF;
-	strcpy(instructions[255].name, "impdep2");
+	strcpy(instructions[255].name, "impdep2");	
+}
+
+void inicializa_pilha(Node *pilha){
 	
+	//Inicializa a pilha com o primeiro elemento em NULL
+	pilha->prox = NULL;
+	
+	//Define o tamanho da pilha em 0
+	tamanho_pilha = 0;
+}
+
+Node *aloca_elemento(int32_t dado){
+	
+	//Cria um espaço na memória do tamanho de Node para a novo elemento "novo"
+	Node *novo = (Node *) malloc(sizeof(Node));
+	
+	//Condicional pra caso não dê pra criar o "novo"
+	if(!novo){
+		printf("Sem memória disponivel!\n");
+		exit(0);
+	}else{
+		novo->dado = dado;
+		return novo;
+	}
+}
+
+void empilha(Node *pilha, int32_t dado){
+	
+	Node *novo_elemento = aloca_elemento(dado);
+	novo_elemento->prox = NULL;
+	
+	if(verifica_pilha_vazia(pilha))
+		pilha->prox=novo_elemento;
+	else{
+		Node *tmp = pilha->prox;
+		
+		while(tmp->prox != NULL)
+			tmp = tmp->prox;
+		
+		tmp->prox = novo_elemento;
+	}
+	
+	tamanho_pilha++;
+	
+}
+
+void desempilha(Node *pilha){
+	
+	if(pilha->prox == NULL)
+		printf("A pilha está vazia\n\n");
+	else{
+		Node *ultimo_elem = pilha->prox, *penultimo_elem = pilha;
+		
+		while(ultimo_elem->prox != NULL){
+			penultimo_elem = ultimo_elem;
+			ultimo_elem = ultimo_elem->prox;
+		}
+		
+		penultimo_elem->prox = NULL;
+		
+		tamanho_pilha--;
+	}
+}
+
+int verifica_pilha_vazia(Node *pilha){
+	if(pilha->prox == NULL)
+		return 1;
+	else
+		return 0;	
+}
+
+void mostra_pilha(Node *pilha){
+	
+	if(verifica_pilha_vazia(pilha)){
+		printf("Pilha vazia!\n\n");
+		return ;
+	}
+	
+	Node *ponteiro_tmp;
+	ponteiro_tmp = pilha->prox;
+	
+	printf("Pilha:");
+	
+	while( ponteiro_tmp != NULL){
+		printf("%5d", ponteiro_tmp->dado); //%5d => printa com 5 caracteres sempre
+		ponteiro_tmp = ponteiro_tmp->prox;
+	}
+	
+	printf("\n        ");
+	
+	int count;
+	
+	for(count=0 ; count < tamanho_pilha ; count++)
+		printf("  ^  ");
+	
+	printf("\nOrdem:");
+	
+	for(count=0 ; count < tamanho_pilha ; count++){
+		if (tamanho_pilha-1 != count)
+			printf("%5d", count+1);
+		else 
+			printf("   topo\n");
+	}
+
+	printf("\n\n");
+}
+
+void zera_pilha(Node *pilha){
+	if(!verifica_pilha_vazia(pilha)){
+		Node *proxNode,
+		*atual;
+
+		atual = pilha->prox;
+		while(atual != NULL){
+			proxNode = atual->prox;
+			free(atual);
+			atual = proxNode;
+		}
+	}
+	
+	inicializa_pilha(pilha);
+}
+
+void destroi_pilha(Node *pilha){
+	free(pilha);
 }
 
 void internal_error(){ printf("InternalError\n"); exit(0);}
@@ -803,8 +999,17 @@ void stack__ovflw_error(){ printf("StackOverflowError\n"); exit(0);}
 void unkwn_err(){ printf("UnknownError\n"); exit(0);}
 
 //CONSTANTES
-void nop(){return;}
-void aconst_null(){return;}
+void nop(){
+	pc++;
+	return;
+}
+
+//PRECISA VER COMO FAZER PRA COLOCAR O NULL NO TOPO DA PILHA
+void aconst_null(Node *pilha){
+	empilha(pilha, 0);
+	pc++;
+	return;
+}
 void iconst_m1(){return;}
 void iconst_0(){return;}
 void iconst_1(){return;}
