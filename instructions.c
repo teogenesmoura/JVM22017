@@ -24,6 +24,8 @@ typedef struct node{
 //Variável que armazenará o tamanho da pilha
 int32_t tamanho_pilha;
 
+void flush_in();
+
 //************Funções para tratamento da pilha************
 //Função para a inicialização da pilha
 void inicializa_pilha(Node *pilha);
@@ -60,13 +62,13 @@ int32_t pc = 0;
 void nop();
 //Coloca uma referência null no topo da pilha
 void aconst_null(Node *pilha);
-void iconst_m1();
-void iconst_0();
-void iconst_1();
-void iconst_2();
-void iconst_3();
-void iconst_4();
-void iconst_5();
+void iconst_m1(Node *pilha);
+void iconst_0(Node *pilha);
+void iconst_1(Node *pilha);
+void iconst_2(Node *pilha);
+void iconst_3(Node *pilha);
+void iconst_4(Node *pilha);
+void iconst_5(Node *pilha);
 void lconst_0();
 void lconst_1();
 void fconst_0();
@@ -316,11 +318,32 @@ int main(int argc, char *argv[]){
 	
 	mount_inst_array(instructions);
 	
-	instructions[0].ins();
+// 	instructions[0].ins();
 	
 	inicializa_pilha(pilha);
 	
+	instructions[2].ins();
+	instructions[3].ins();
+	instructions[4].ins();
+	instructions[5].ins();
+	instructions[6].ins();
+	instructions[7].ins();
+//     	mostra_pilha(pilha);
+    	instructions[8].ins();
+	
+  	mostra_pilha(pilha);
+
+	/*
 	empilha(pilha,1);
+	mostra_pilha(pilha);
+	empilha(pilha,2);
+	empilha(pilha,2);
+	empilha(pilha,2);
+	empilha(pilha,2);
+	empilha(pilha,2);
+	empilha(pilha,2);
+	empilha(pilha,2);
+	mostra_pilha(pilha);
 	empilha(pilha,2);
 	empilha(pilha,3);
 	
@@ -335,6 +358,7 @@ int main(int argc, char *argv[]){
 	mostra_pilha(pilha);
 	
 	destroi_pilha(pilha);
+	*/
 	
 // 	printf("pc = %d\n", pc);
 	
@@ -355,6 +379,12 @@ int main(int argc, char *argv[]){
  		perror("getcwd() error");
 	
  	return 0;
+}
+
+void flush_in(){ 
+	
+	int ch;
+	while((ch = fgetc(stdin)) != EOF && ch != '\n' ){} 
 }
 
 void mount_inst_array(AllIns *instructions){
@@ -906,7 +936,6 @@ void empilha(Node *pilha, int32_t dado){
 	}
 	
 	tamanho_pilha++;
-	
 }
 
 void desempilha(Node *pilha){
@@ -931,7 +960,7 @@ int verifica_pilha_vazia(Node *pilha){
 	if(pilha->prox == NULL)
 		return 1;
 	else
-		return 0;	
+		return 0;
 }
 
 void mostra_pilha(Node *pilha){
@@ -946,28 +975,29 @@ void mostra_pilha(Node *pilha){
 	
 	printf("Pilha:");
 	
-	while( ponteiro_tmp != NULL){
-		printf("%5d", ponteiro_tmp->dado); //%5d => printa com 5 caracteres sempre
+	while(ponteiro_tmp != NULL){
+   		printf("%5d", ponteiro_tmp->dado); //%5d => printa com 5 caracteres sempre
 		ponteiro_tmp = ponteiro_tmp->prox;
 	}
 	
 	printf("\n        ");
 	
-	int count;
-	
-	for(count=0 ; count < tamanho_pilha ; count++)
-		printf("  ^  ");
+	for(int count=0; count<tamanho_pilha; count++)
+  		printf("  ^  ");
 	
 	printf("\nOrdem:");
 	
-	for(count=0 ; count < tamanho_pilha ; count++){
-		if (tamanho_pilha-1 != count)
-			printf("%5d", count+1);
-		else 
-			printf("   topo\n");
-	}
+ 	for(int count=0; count<tamanho_pilha; count++){
+  		if (tamanho_pilha-1 != count)
+  			printf("%5d", count+1);
+ 		else 
+  			printf("   topo\n");
+ 	}
 
-	printf("\n\n");
+  	printf("\n\n");
+  	free(ponteiro_tmp);
+	
+	return;
 }
 
 void zera_pilha(Node *pilha){
@@ -1010,13 +1040,39 @@ void aconst_null(Node *pilha){
 	pc++;
 	return;
 }
-void iconst_m1(){return;}
-void iconst_0(){return;}
-void iconst_1(){return;}
-void iconst_2(){return;}
-void iconst_3(){return;}
-void iconst_4(){return;}
-void iconst_5(){return;}
+void iconst_m1(Node *pilha){
+	empilha(pilha, -1);
+	pc++;
+}
+void iconst_0(Node *pilha){
+ 	empilha(pilha, 0);
+	pc++;
+//  	return;
+}
+void iconst_1(Node *pilha){
+	empilha(pilha, 1);
+	pc++;
+// 	return;
+}
+void iconst_2(Node *pilha){
+	empilha(pilha, 2);
+	pc++;
+// 	return;
+}
+void iconst_3(Node *pilha){
+	empilha(pilha, 3);
+	pc++;
+}
+void iconst_4(Node *pilha){
+	empilha(pilha, 4);
+	pc++;
+// 	return;
+}
+void iconst_5(Node *pilha){
+	empilha(pilha, 5);
+	pc++;
+// 	return;
+}
 void lconst_0(){return;}
 void lconst_1(){return;}
 void fconst_0(){return;}
