@@ -4,6 +4,8 @@
 #include<stdint.h>
 #include<unistd.h>
 #include<errno.h>
+#include<limits.h>
+#include<inttypes.h>
 
 #define NULL_REF NULL
 
@@ -37,7 +39,7 @@ Node *aloca_elemento(int32_t dado);
 void empilha(Node *pilha, int32_t dado);
 
 //Função que irá desempilhar um elemento do topo da pilha
-void desempilha(Node *pilha);
+int32_t desempilha(Node *pilha);
 
 //Função que verifica se a pilha está vazia
 int verifica_pilha_vazia(Node *pilha);
@@ -69,15 +71,15 @@ void iconst_2(Node *pilha);
 void iconst_3(Node *pilha);
 void iconst_4(Node *pilha);
 void iconst_5(Node *pilha);
-void lconst_0();
-void lconst_1();
-void fconst_0();
-void fconst_1();
-void fconst_2();
-void dconst_0();
-void dconst_1();
-void bipush();
-void sipush();
+void lconst_0(Node *pilha);
+void lconst_1(Node *pilha);
+void fconst_0(Node *pilha);
+void fconst_1(Node *pilha);
+void fconst_2(Node *pilha);
+void dconst_0(Node *pilha);
+void dconst_1(Node *pilha);
+void bipush(Node *pilha, int8_t byte);
+void sipush(Node *pilha, uint8_t byte1, uint8_t byte2);
 void ldc();
 void ldc_w();
 void ldc2_w();
@@ -168,7 +170,7 @@ void sastore();
 
 //***********************************************
 //OPERAÇÕES MATEMÁTICAS
-void iadd();
+void iadd(Node *pilha);
 void ladd();
 void fadd();
 void dadd();
@@ -187,7 +189,7 @@ void ddiv();
 void irem();
 void lrem();
 void frem();
-void drem();
+void drem_();
 void ineg();
 void lneg();
 void fneg();
@@ -322,16 +324,18 @@ int main(int argc, char *argv[]){
 	
 	inicializa_pilha(pilha);
 	
-	instructions[2].ins();
-	instructions[3].ins();
-	instructions[4].ins();
-	instructions[5].ins();
-	instructions[6].ins();
-	instructions[7].ins();
-//     	mostra_pilha(pilha);
-    	instructions[8].ins();
+	for (int i = 15; i < 17; i++)
+		instructions[i].ins();
 	
-  	mostra_pilha(pilha);
+// 	empilha(pilha, 2147483647);
+// 	empilha(pilha, 2147483647);
+	
+// 	mostra_pilha(pilha);
+	
+ 	instructions[96].ins();
+	
+	
+   	mostra_pilha(pilha);
 
 	/*
 	empilha(pilha,1);
@@ -769,7 +773,7 @@ void mount_inst_array(AllIns *instructions){
 	instructions[112].ins = irem;		instructions[112].byte = 0;
 	instructions[113].ins = lrem;		instructions[111].byte = 0;
 	instructions[114].ins = frem;		instructions[114].byte = 0;
-	instructions[115].ins = drem;		instructions[115].byte = 0;
+	instructions[115].ins = drem_;		instructions[115].byte = 0;
 	instructions[116].ins = ineg;		instructions[116].byte = 0;
 	instructions[117].ins = lneg;		instructions[117].byte = 0;
 	instructions[118].ins = fneg;		instructions[118].byte = 0;
@@ -938,7 +942,7 @@ void empilha(Node *pilha, int32_t dado){
 	tamanho_pilha++;
 }
 
-void desempilha(Node *pilha){
+int32_t desempilha(Node *pilha){
 	
 	if(pilha->prox == NULL)
 		printf("A pilha está vazia\n\n");
@@ -953,7 +957,9 @@ void desempilha(Node *pilha){
 		penultimo_elem->prox = NULL;
 		
 		tamanho_pilha--;
+		return ultimo_elem->dado;
 	}
+	return 0;
 }
 
 int verifica_pilha_vazia(Node *pilha){
@@ -1073,22 +1079,114 @@ void iconst_5(Node *pilha){
 	pc++;
 // 	return;
 }
-void lconst_0(){return;}
-void lconst_1(){return;}
-void fconst_0(){return;}
-void fconst_1(){return;}
-void fconst_2(){return;}
-void dconst_0(){return;}
-void dconst_1(){return;}
-void bipush(){return;}
-void sipush(){return;}
-void ldc(){return;}
-void ldc_w(){return;}
-void ldc2_w(){return;}
+void lconst_0(Node *pilha){
+	
+	//De acordo com a especificação: "A value of type long or type double occupies two consecutive local variables"
+	int32_t double_alta_pilha = 0;
+	int32_t double_baixa_pilha = 0;
+	
+	empilha(pilha, double_alta_pilha);
+	empilha(pilha, double_baixa_pilha);
+	
+	pc++;
+	
+	return;
+}
+void lconst_1(Node *pilha){
+	
+	//De acordo com a especificação: "A value of type long or type double occupies two consecutive local variables"
+	int32_t double_alta_pilha = 0;
+	int32_t double_baixa_pilha = 0;
+	
+	double_baixa_pilha |= 0x00000001;
+	
+	empilha(pilha, double_alta_pilha);
+	empilha(pilha, double_baixa_pilha);
+	
+	pc++;
+	
+	return;
+}
+void fconst_0(Node *pilha){
+	
+	//Float por padrão possui 32 bits
+	int32_t para_empilhar = 0.0;
+	
+	empilha(pilha, (float)para_empilhar);
+	
+	return;
+}
+void fconst_1(Node *pilha){
+	
+	//Float por padrão possui 32 bits
+	int32_t para_empilhar = 1.0;
+	
+	empilha(pilha, (float)para_empilhar);
+	
+	return;
+}
+void fconst_2(Node *pilha){
+	
+	//Float por padrão possui 32 bits
+	int32_t para_empilhar = 2.0;
+	
+	empilha(pilha, (float)para_empilhar);
+	
+	return;
+}
+void dconst_0(Node *pilha){
+	
+	//De acordo com a especificação: "A value of type long or type double occupies two consecutive local variables"
+	
+	double valor1 = 0.0, valor2 = 0.0;
+	
+	empilha(pilha, valor1);
+	empilha(pilha, valor2);
+	
+	return;
+}
+void dconst_1(Node *pilha){
+	
+	//De acordo com a especificação: "A value of type long or type double occupies two consecutive local variables"
+	
+	double valor1 = 0.0, valor2 = 1.0;
+	
+	empilha(pilha, (int32_t)valor1);
+	empilha(pilha, (int32_t)valor2);
+	
+	return;
+}
+void bipush(Node *pilha, int8_t byte){
+	
+	int32_t completa_bits = 0x00000000;
+	
+	completa_bits |= byte;
+	
+	empilha(pilha, completa_bits);
+	return;
+}
+void sipush(Node *pilha, uint8_t byte1, uint8_t byte2){
+	
+	uint16_t valor = 0x0000;
+	int32_t para_empilhar = 0x00000000;
+	
+	valor |= byte1;
+	valor <<= 8;
+	valor |= byte2;
+	
+	para_empilhar |= valor;
+	
+	empilha(pilha, para_empilhar);
+	
+	return;
+}
+void ldc(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
+void ldc_w(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
+void ldc2_w(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
 
 //LOADS
-void iload(){return;}
-void lload(){return;}
+void iload(){return;} //IMPLEMENTAR - PEGA O VALOR DA VARIÁVEL LOCAL E COLOCA NA PILHA
+void lload(){return;} 
 void fload(){return;}
 void dload(){return;}
 void aload(){return;}
@@ -1157,8 +1255,50 @@ void castore(){return;}
 void sastore(){return;}
 
 //OPERAÇÕES MATEMÁTICAS
-void iadd(){return;}
-void ladd(){return;}
+void iadd(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+	int32_t valor2 = desempilha(pilha);
+	
+	int64_t resultado;
+	
+	resultado = (long long int) valor1 + (long long int) valor2;
+	
+//  	printf("%"PRId64"\n", resultado);
+	
+  	if (resultado > INT32_MAX){
+		printf("\n(-) ERROR! ");
+		printf("%s\n\n", strerror(34));
+  	}
+	
+	empilha(pilha, (int32_t)resultado);
+	
+	return;
+}
+void ladd(Node *pilha){
+	
+	int32_t valor1_primeira_parte = desempilha(pilha);
+	int32_t valor1_segunda_parte = desempilha(pilha);
+	int32_t valor2_primeira_parte = desempilha(pilha);
+	int32_t valor2_segunda_parte = desempilha(pilha);
+	
+	int64_t resultado;
+	
+	resultado = valor1_primeira_parte + valor1_segunda_parte;
+	
+// 	printf("%"PRId64"\n", resultado);
+	
+  	if (resultado < 0){
+		printf("\n(-) ERROR! ");
+		printf("%s\n\n", strerror(34));
+  	}
+	
+	empilha(pilha, (int32_t)resultado);
+	
+	return;
+	
+	return;
+}
 void fadd(){return;}
 void dadd(){return;}
 void isub(){return;}
@@ -1176,7 +1316,7 @@ void ddiv(){return;}
 void irem(){return;}
 void lrem(){return;}
 void frem(){return;}
-void drem(){return;}
+void drem_(){return;}
 void ineg(){return;}
 void lneg(){return;}
 void fneg(){return;}
