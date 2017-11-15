@@ -8,6 +8,8 @@
 #include<inttypes.h>
 
 #define NULL_REF NULL
+#define MAX_LOCAL_VARIABLES 200 //Valor de u2 - int16_t
+//DEFINIR O VALOR MÁXIMO DA PILHA ATRAVÉS DO CÓDIGO DO JEAN
 
 typedef struct{ //Nome da struct = ""
 	int32_t hexa;
@@ -316,11 +318,13 @@ int main(int argc, char *argv[]){
 		exit(0);
 	}
 	
+	int16_t variaveis_locais[MAX_LOCAL_VARIABLES];
+	
 	inicializa_pilha(pilha);
 	
 	mount_inst_array(instructions);
 	
-// 	instructions[0].ins();
+ 	instructions[16].ins();
 	
 	inicializa_pilha(pilha);
 	
@@ -1299,7 +1303,12 @@ void ladd(Node *pilha){
 	
 	return;
 }
-void fadd(){return;}
+void fadd(){
+	
+	
+	
+	return;
+}
 void dadd(){return;}
 void isub(){return;}
 void lsub(){return;}
