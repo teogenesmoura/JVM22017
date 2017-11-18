@@ -1,34 +1,30 @@
 #include <stdbool.h>
 #include <stdio.h>
-#include "interface.h"
-#include "leitor.h"
+#include "../headers/interface.h"
+#include "../headers/leitor.h"
 
 int main (int argc, char *argv[]){
 
 	bool True = true;
 	int ret;
+	// extern cFile class_file;
 	/*Verifica se o arquivo foi passado*/
 	if(argc != 2)
 		ret = error_missingFile();
 
 	FILE *fp = fopen(argv[1], "rb");
 	
-	if(fp == NULL)
+	if(fp == NULL){
 		ret = error_openFile();
+		return ret;
+	}
 
-	//FILE *cruzeiro = fopen("cruzeiro.txt", "r");
-
-	/*Verifica se o arquivo recebido foi aberto com sucesso*/
-
-
-	//if(cruzeiro == NULL){
-	//	printf("ERRO: não foi possivel abrir o arquivo [cruzeiro.txt].\n");
-	//}
+	init_leitor(fp);
 	
-	while(True)
+	while(True) 
 		True = callFunc(fp);
 
-	fclose(fp);
+	// fclose(fp);
 	printf("\n\n");
 	return 0;
 

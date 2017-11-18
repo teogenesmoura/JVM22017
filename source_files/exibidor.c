@@ -1,14 +1,6 @@
 #define EXIBIDOR_SERVER
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdint.h>
-
-#include "leitor.h"
-#include "exibidor.h"
+#include "../headers/exibidor.h"
+#include "../headers/instructions.h"
 
 /*CONSTANTES PARA FORMATAÇÃO DOS DADOS*/
 const char *flag_name [5] = {"ACC_PUBLIC", "ACC_FINAL", "ACC_SUPER", "ACC_INTERFACE", "ACC_ABSTRACT"};
@@ -39,17 +31,23 @@ void show_UTF8 (int size, unsigned char *string){
 
 void infoBasic(cFile classFile){
 
-	printf("Informações gerais:\n\n");
+	printf("  Informações gerais:\n\n");
 	printf ("\tMagic number: 0x%x\n", classFile.magic);
 	printf("\tMinVersion = %d\n", classFile.minor_version);
-	printf("\t = %d\n", classFile.major_version);
+	printf("\tMajVersion = %d\n", classFile.major_version);
 	printf("\tConstant pool count: %d\n", classFile.constant_pool_count);
 	printf("\tthis_class_info: ");
+	/*Exibe a informação (string) da classe*/
+	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
 	printf("\n");
 	printf("\tsuper_class_info: ");
+	/*Exibe a informação (string) da super_classe*/
+	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
 	printf("\n");
+	printf("\tInterfaces count: %d\n", classFile.interfaces_count);
 	printf("\tField count: %d\n", classFile.fields_count);
-	printf("\tMethod count: %d\n\n", classFile.methods_count);
+	printf("\tMethod count: %d\n", classFile.methods_count);
+	printf("\tAttributes count: %d\n", classFile.attributes_count);
 
 }
 
@@ -60,7 +58,7 @@ void infoBasic(cFile classFile){
 ** relacionadas aos stringings nas outras estringuturas.*/
 void showConstPool(int const_pool_cont, cp_info *constPool){
 
-	printf("Pool de Constantes:\n");
+	printf("  Pool de Constantes:\n");
 
 	for(int i = 1; i < const_pool_cont; i++){
 		printf("\t[%d] = %s", i, type_Names[constPool[i].tag-1]);
@@ -80,11 +78,11 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 				break;
 
 			case LONG:
-				printf("\t%ld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
+				printf("\t\t%ld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
 				break;
 			
 			case DOUBLE:
-				printf("\t%lf", convert_u4_toDouble(constPool[i].info[0], constPool[i].info[1]));
+				printf("\t\t%lf", convert_u4_toDouble(constPool[i].info[0], constPool[i].info[1]));
 				break;
 			case CLASS:
 			case STRING:
@@ -226,21 +224,143 @@ void show_field_flags(unsigned short flags){
 	printf("\n");
 }
 
+void show_field_attribute(cp_info *cp, AT_ConstantValue att_ctv){
 
+	if(att_ctv.attribute_length == 2){
+		printf(" \n\tNome do atributo: ");
+		dereference_index_UTF8(att_ctv.attribute_name_index, cp);
 
-void show_field_attribute(cp_info *cp, attribute_info attribute){
+		printf("\n");
+		printf(" \tAttribute length: %d\n", att_ctv.attribute_length);
+	}else{
+		printf("ERROR! Attribute length do field != 2\n");
+		exit(-1);
+	}
+		
+}
+
+void show_method_attribute(cp_info *cp, AT_Code att_code){
+	int i = 0, aux = 0, byte_preenchimento, match_offset;
+	uint32_t npairs = 0, match_atual, offset_do_match;
+	// int32_t match_atual;
+	uint32_t low = 0, high = 0, defaultbyte = 0, offset;
+	AllIns decode[NUM_INSTRUC];
+	mount_inst_array(decode);
+
 	printf(" \n\tNome do atributo: ");
-	dereference_index_UTF8(attribute.attribute_name_index, cp);
+	dereference_index_UTF8(att_code.attribute_name_index, cp);
 
 	printf("\n");
-	printf(" \tTamanho: %d", attribute.attribute_length);
+	printf(" \tAttribute length: %d\n", att_code.attribute_length);
 
 	/*Completar a função para diferente tipos de atributo*/
+	if(strcmp((char *) cp[att_code.attribute_name_index].info[1].array, "Code") == 0){
+		printf("\tmax_stack = %d\n", att_code.max_stack);
+		printf("\tmax_locals = %d\n", att_code.max_locals);
+		printf("\tcode_length = %d\n", att_code.code_length);
+		printf("\topcde = %x\n", att_code.code[i]);
+		printf("\tInstrução: %s\n", decode[att_code.code[i]].name);
+		
+		if(decode[att_code.code[i]].bytes != 0){
+			aux = i;
+			for(int x = 0; x < decode[att_code.code[i]].bytes; x++)
+				aux++;
+		}
+
+		for(int i = (aux+1); i < att_code.code_length; ){
+
+			if(att_code.code[i] == TABLESWITCH){
+				i++;
+				byte_preenchimento = (4 - (i % 4)) % 4;
+				for(int x = 0; x < byte_preenchimento; x++)
+					i++;
+				for(int x = 0; x < 4; x++){
+					defaultbyte = (defaultbyte << 8) + att_code.code[i];
+					i++;
+				}
+				
+				for(int x = 0; x < 4; x++){
+					low = (low << 8) + att_code.code[i];
+					i++;
+				}
+
+				for(int x = 0; x < 4; x++){
+					high = (high << 8) + att_code.code[i];
+					i++;
+				}
+
+				printf("\tTableswitch %d to %d\n", low, high);
+				
+				match_offset = high - low + 1;
+				for(int x = 0; x < match_offset; x++){
+					printf("\t\t %d: ", x);
+					for (int j = 0; j < 4; j++){
+						offset = att_code.code[i];
+						i++;
+					}
+					printf("\t %d(+%d)\n", (1+offset), offset);
+				}
+
+				printf("\t\tdefault: %d(+%d)\n", (1+defaultbyte), defaultbyte);
+
+			}else if(att_code.code[i] == LOOKUPSWITCH){
+				i++;
+				byte_preenchimento = (4 - (i % 4)) % 4;
+				for(int x = 0; x < byte_preenchimento; x++)
+					i++;
+				for(int x = 0; x < 4; x++){
+					defaultbyte = (defaultbyte << 8) + att_code.code[i];
+					i++;
+				}
+				for(int x = 0; x < 4; x++){
+					npairs = (npairs << 8) + att_code.code[i];
+					i++;
+				}
+
+				printf("\tLookupswitch %d:\n", npairs);
+
+				for(uint32_t x = 0; x < npairs; x++){
+					for(int j = 0; j < 4; j++){
+						match_atual = (match_atual << 8) + att_code.code[i];
+						i++;	
+					}
+					for (int j = 0; j < 4; j++){
+						offset_do_match = att_code.code[i];
+						i++;
+					}
+					printf("\t\t%d:\t %d(+%d)\n", match_atual, (offset_do_match+1), offset_do_match);
+				}
+				printf("\t\tdefault: %d(+%d)\n", (1+defaultbyte), defaultbyte);
+				
+			}else if(att_code.code[i] == WIDE){
+				printf("WIDE...\n");
+				i++;
+				if(att_code.code[i] == IINC){
+					printf("IINC...\n");
+					i++;
+				}else if(att_code.code[i] == ALOAD || att_code.code[i] == FLOAD || att_code.code[i] == ILOAD || att_code.code[i] == DLOAD || \
+						att_code.code[i] == ISTORE || att_code.code[i] == LSTORE || att_code.code[i] == ASTORE || att_code.code[i] == FSTORE || \
+						att_code.code[i] == RET || att_code.code[i] == DSTORE || att_code.code[i] == LLOAD)
+				{
+					printf("ALGUM I/FLOAD...\n");
+					i++;
+				}
+			}else{
+				printf("\tInstrução %s\n", decode[att_code.code[i]].name);
+				if(decode[att_code.code[i]].bytes != 0){
+					int aux = i;
+					for(int x = 0; x < decode[att_code.code[aux]].bytes; x++)
+						i++;
+				}
+				i++;
+			}
+		}
+	}
 }
 
 /*Mostringa um field*/
 void show_fields (cp_info *cp, field_info fields){
-	/*mostringa flags*/
+	/*mostra flags*/
 	show_field_flags(fields.access_flags);
 
 	printf(" \tNome do campo: ");
@@ -254,7 +374,7 @@ void show_fields (cp_info *cp, field_info fields){
 	printf(" \tNumero de atributos: %d\n", fields.attribute_count);
 	for (int i = 0; i < fields.attribute_count; ++i){
 		printf(" Atributo[%d]: ", i);
-		show_field_attribute(cp, fields.attributes[i]);
+		show_field_attribute(cp, fields.att_ctv[i]);
 	}
 }
 
@@ -301,6 +421,7 @@ void show_method_flags(unsigned short flags){
 
 void show_methods(cp_info *cp, method_info method){
 
+
 	printf ("	access_flags: 0x%04x", method.access_flags);
 	show_method_flags(method.access_flags);
 	printf ("\n");
@@ -314,8 +435,53 @@ void show_methods(cp_info *cp, method_info method){
 	printf ("\n");
 	for (int i = 0; i < method.attributes_count; ++i){
 		printf("\tAtributo [%d]: ", i+1);
-		show_field_attribute(cp, method.attributes[i]);
+		show_method_attribute(cp, method.att_code[i]);
 		printf("\n");
 	}
 }
 
+void show_info(){
+
+
+	/*vetor booleano para controle de flags presentes.*/
+	bool splitFlags[5];
+
+	/*Assumindo que todas as flags são false (ou seja, não estão presentes)*/
+	for(int i = 0; i < 5; i++){
+		splitFlags[i] = false;
+	}
+
+	/*Testa uma a uma setando como true as que estão presentes*/
+	if (classFile.access_flags & 0x01){
+		splitFlags[0] = true;
+	}
+	if (classFile.access_flags & 0x010){
+		splitFlags[1] = true;
+	}
+	if (classFile.access_flags & 0x020){
+		splitFlags[2] = true;
+	}
+	if (classFile.access_flags & 0x0200){
+		splitFlags[3] = true;
+	}
+	if (classFile.access_flags & 0x0400){
+		splitFlags[4] = true;
+	}
+
+	infoBasic(classFile);
+	/*chama a função para mostrar as flags ativas*/
+	show_flags(classFile.access_flags, splitFlags);
+	/*Exibe informações de Pool de constante*/
+	showConstPool(classFile.constant_pool_count, classFile.constant_pool); 
+	
+	for(int i = 0; i < classFile.methods_count; i++){
+		printf ("\n	Method [%d]:\n", i);
+		show_methods(classFile.constant_pool, classFile.methods[i]);
+	}
+
+	for(int i = 0; i < classFile.fields_count; i++){
+		printf("\n\tFields[%d]:\n", i);
+		show_fields(classFile.constant_pool, classFile.fields[i]);
+	}
+
+}
