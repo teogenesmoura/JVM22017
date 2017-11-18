@@ -173,7 +173,6 @@
 	EXT_LEITOR method_info ler_methods(FILE *fp, cp_info *constPool);
 	EXT_LEITOR field_info ler_fields (FILE *fp, cp_info *constPool);
 	EXT_LEITOR AT_Code ler_Att_code(AT_Code **code_att, FILE *fp, uint16_t name_ind);
-	EXT_LEITOR int findMain (cFile classFile);
 	EXT_LEITOR void verifica_instrucao(AT_Code **att_code, FILE *fp);
 	EXT_LEITOR void if_tableswitch(uint32_t *i, FILE *fp, AT_Code **att_code);
 	EXT_LEITOR void if_lookupswitch(uint32_t *i, FILE *fp, AT_Code **att_code);
