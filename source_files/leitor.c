@@ -94,7 +94,7 @@ long convert_u4_toLong (classLoadrType entHigh, classLoadrType entLow){
 
 /*Converte o valor em u4 para double.*/
 double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow){
-	double out;
+	double out=0;
 
 	long check_boundaries = convert_u4_toLong(entHigh, entLow);
 
@@ -697,17 +697,4 @@ int init_leitor(FILE *fp){
 
 	fclose(fp);
 	return 0;
-}
-
-int findMain (cFile classFile){
-
-	int i;
-
-	while (i<classFile.methods_count){
-		if (strcmp((char *)classFile.constant_pool[(classFile.methods[i].name_index)].info[1].array, "main")==0){
-			return i;
-		}
-		i++;
-	}
-	return -1;
 }
