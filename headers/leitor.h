@@ -114,6 +114,8 @@
 		attribute_info *attributes;
 	}cFile;
 
+	/* Variavel global */
+	cFile classFile;
 
 
 	#define	INSTRUC_NAME	35
@@ -123,9 +125,6 @@
 		int bytes;
 		void (*ins)(); 
 	}decoder;
-
-
-	cFile classFile;
 
 	/*DEFINIÇÃO PARA TRATAMENTO DE POSSIVEIS ERROS*/
 	#define MISSING_ARGUMENT 1

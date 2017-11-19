@@ -34,12 +34,12 @@
 	EXT_EXIBIDOR char* show_method_flags(unsigned short flags);
 	EXT_EXIBIDOR void show_UTF8 (int size, unsigned char *str);
 	EXT_EXIBIDOR void showConstPool(int const_pool_cont, cp_info *constPool);
-	EXT_EXIBIDOR char* show_flags(cFile classFile);
+	EXT_EXIBIDOR char* show_cFile_flags(cFile classFile);
 	EXT_EXIBIDOR void show_methods(cFile classFile);
 	EXT_EXIBIDOR void show_field_flags(unsigned short flags);
 	EXT_EXIBIDOR void show_method_attribute(cp_info *cp, AT_Code att_code);
 	EXT_EXIBIDOR void show_field_attribute(cp_info *cp, AT_ConstantValue att_cvt);
-	EXT_EXIBIDOR void show_fields(cp_info *cp, field_info field);
+	EXT_EXIBIDOR void show_field(cp_info *cp, field_info field);
 	EXT_EXIBIDOR void show_info();
 	EXT_EXIBIDOR void dereference_index_UTF8 (int index, cp_info *cp);
 
