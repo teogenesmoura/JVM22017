@@ -42,10 +42,12 @@ void pushFrame(tipoStackFrame* stackFrame, int methodIndex){
 	if (!newFrame){
 		printf ("Erro na alocacao de memoria!\n");
 	}else{
-		/* O vetor de variaveis locais deve ser alocado de acordo com o valor do max_locals do atributo CODE do metodo especificado. */
-		// newFrame->variables = 	(int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex]->att_code.max_locals);
-		/* A pilha de operandos deve ser alocada de acordo com o valor do max_stack do atributo CODE do metodo especificado. */
-		//newFrame->operandStack = (int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex]->att_code.max_stack);
+		/* Vetor de variaveis locais alocado pelo max_locals do CODE do metodo em questao. */
+		newFrame->variables = 	(int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex].att_code->max_locals);
+
+		/* Pilha de operandos alocada pelo max_stack do atributo CODE do metodo especificado. */
+		newFrame->operandStack = (int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex].att_code->max_stack);
+		
 		newFrame->ownIndex = methodIndex;
 		newFrame->constant_pool = classFile.constant_pool;
 		if (isEmpty(stackFrame)){
@@ -80,18 +82,14 @@ int sizeStackFrame(tipoStackFrame* stackFrame){
 
 void showStackFrame(tipoStackFrame* stackFrame){
 	/* Nao mover essa funcao pro exibidor! */
-
-	printf ("O stackFrame tem %d frames.", sizeStackFrame(stackFrame));
+	printf ("O stackFrame tem %d frame(s).", sizeStackFrame(stackFrame));
 	tipoStackFrame *w;
 	w=stackFrame;
-	if (isEmpty(w)){
-		printf ("O stackFrame estah vazio!");
-	}else{
+	if (!isEmpty(w)){
 		w = stackFrame->next;
 		do{
 			printf ("%s", w->constant_pool[(classFile.methods[w->ownIndex].name_index)].info[1].array);
 			w = w->next;
 		}while (w!=NULL);
 	}
-	printf ("\n");
 }

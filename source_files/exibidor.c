@@ -29,26 +29,66 @@ void show_UTF8 (int size, unsigned char *string){
 	}
 }
 
+/* função recursiva para desreferenciar indices das constantes
+** que contem strings nas suas informações.
+** Recebe o indice (posição) de uma constante na tabela
+** e o penteiro para a tabela e recursivamente acessa os
+** indices na tabela até chegar no indice referenciando
+** estrutura UTF8 que contem a string da constante inicialmente
+** passado.*/
+void dereference_index_UTF8 (int index, cp_info *cp){ 
+	switch(cp[index].tag){
+		case UTF8: /*Neste caso, estamos no caso trivial, onde a estrutura contem a string desejada.*/
+			show_UTF8(cp[index].info[0].u2, cp[index].info[1].array); /*eh passado qtd de byte no array de byte e array contendo bytes*/
+			break;
+
+		case CLASS:
+		case STRING:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			break;
+
+		case INTERFACE_REF:
+		case METHOD_REF:
+		case FIELD_REF:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			printf("|");
+			dereference_index_UTF8(cp[index].info[1].u2, cp);
+			break;
+
+		case NAME_AND_TYPE:
+			dereference_index_UTF8(cp[index].info[0].u2, cp);
+			printf(":");
+			dereference_index_UTF8(cp[index].info[1].u2, cp);
+			break;
+	}
+}
+
 void infoBasic(cFile classFile){
+	printf("--------------------\n");
+	printf("|Informações gerais|\n");
+	printf("--------------------\n\n");
 
-	printf("  Informações gerais:\n\n");
-	printf ("\tMagic number: 0x%x\n", classFile.magic);
-	printf("\tMinVersion = %d\n", classFile.minor_version);
-	printf("\tMajVersion = %d\n", classFile.major_version);
-	printf("\tConstant pool count: %d\n", classFile.constant_pool_count);
-	printf("\tthis_class_info: ");
-	/*Exibe a informação (string) da classe*/
+	printf ("Magic number: 0x%x\n", classFile.magic);
+	printf("MinVersion = %d\n", classFile.minor_version);
+	printf("MajVersion = %d\n", classFile.major_version);
+	printf("Constant pool count: %d\n", classFile.constant_pool_count);
+	printf("Access flags: %s \n", show_flags(classFile));
+	printf("This class: cp_info[%d] ", classFile.this_class);
+	printf ("<");
 	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
-	printf("\n");
-	printf("\tsuper_class_info: ");
-	/*Exibe a informação (string) da super_classe*/
-	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
-	printf("\n");
-	printf("\tInterfaces count: %d\n", classFile.interfaces_count);
-	printf("\tField count: %d\n", classFile.fields_count);
-	printf("\tMethod count: %d\n", classFile.methods_count);
-	printf("\tAttributes count: %d\n", classFile.attributes_count);
+	printf (">\n");
 
+	printf("Super class: cp_info[%d]", classFile.super_class);
+	printf ("<");
+	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
+	printf (">\n");
+
+	printf("Interfaces count: %d\n", classFile.interfaces_count);
+	printf("Field count: %d\n", classFile.fields_count);
+	printf("Method count: %d\n", classFile.methods_count);
+	/*show_methods(classFile);*/
+	printf("Attributes count: %d\n", classFile.attributes_count);
+	/*show_cFile_attributes(classFile);*/
 }
 
 /* A recebe a qtd de constantes presentes na tabela do CP
@@ -58,7 +98,7 @@ void infoBasic(cFile classFile){
 ** relacionadas aos stringings nas outras estringuturas.*/
 void showConstPool(int const_pool_cont, cp_info *constPool){
 
-	printf("  Pool de Constantes:\n");
+	printf("\n\nPool de Constantes:\n");
 
 	for(int i = 1; i < const_pool_cont; i++){
 		printf("\t[%d] = %s", i, type_Names[constPool[i].tag-1]);
@@ -104,30 +144,34 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 		}
 		printf("\n");
 	}
+	printf("\n");
 }
 
+/* Retorna string com flags ativas */
+char* show_flags(cFile classFile){
+	static char s[60];
+	sprintf (s, "0x%04x", classFile.access_flags);
 
-/*Verifica flags ativas e mostringa.*/
-void show_flags(uint16_t access_flags, bool *flags){
-	bool first = true; /*Apenas para exibir a mensagem "Flags" uma vez na tela.*/
-
-	for (int i = 0; i < 5; ++i){
-		if(flags[i]){
-			if(first){
-				printf("	ACcess flags: 0x%04x", access_flags);
-			}else{
-				printf("]");
-			}
-			first = false;
-			printf("[%s", flag_name[i]);
-		}
+	if (classFile.access_flags & 0x01){
+		strcat (s, "[public]");
 	}
-	printf("]\n");
+	if (classFile.access_flags & 0x010){
+		strcat (s, "[final]");
+	}
+	if (classFile.access_flags & 0x020){
+		strcat (s, "[super]");
+	}
+	if (classFile.access_flags & 0x0200){
+		strcat (s, "[interface]");
+	}
+	if (classFile.access_flags & 0x0400){
+		strcat (s, "[abstract]");
+	}
+
+	return s;
 }
 
-
-
-/*mostringa as flags do campo verificando todas as flags presentes no field*/
+/* Mostra as flags do campo verificando todas as flags presentes no field */
 void show_field_flags(unsigned short flags){
 	bool first = true;
 
@@ -236,7 +280,6 @@ void show_field_attribute(cp_info *cp, AT_ConstantValue att_ctv){
 		printf("ERROR! Attribute length do field != 2\n");
 		exit(-1);
 	}
-		
 }
 
 void show_method_attribute(cp_info *cp, AT_Code att_code){
@@ -358,7 +401,7 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 	}
 }
 
-/*Mostringa um field*/
+/*Mostra um field*/
 void show_fields (cp_info *cp, field_info fields){
 	/*mostra flags*/
 	show_field_flags(fields.access_flags);
@@ -378,110 +421,93 @@ void show_fields (cp_info *cp, field_info fields){
 	}
 }
 
-void show_method_flags(unsigned short flags){
-	/*bool first = true;*/
+char* show_method_flags(unsigned short flags){
+	static char s[160]="[";
 
 	if(flags & 0x0001){
-		printf("[ACC_PUBLIC] ");
+		strcat(s, "ACC_PUBLIC ");
 	}
 	if(flags & 0x0002){
-		printf("[ACC_PRIVATE] ");
+		strcat(s, "ACC_PRIVATE ");
 	}
 	if(flags & 0x0004){
-		printf("[ACC_PROTECTED] ");
+		strcat(s, "ACC_PROTECTED ");
 	}
 	if(flags & 0x0008){
-		printf("[ACC_STATIC] ");
+		strcat(s, "ACC_STATIC ");
 	}
 	if(flags & 0x0010){
-		printf("[ACC_FINAL] ");
+		strcat(s, "ACC_FINAL ");
 	}
 	if(flags & 0x0020){
-		printf("[ACC_SYNCHRONIZED] ");
+		strcat(s, "ACC_SYNCHRONIZED ");
 	}
 	if(flags & 0x0040){
-		printf("[ACC_BRIDGE] ");
+		strcat(s, "ACC_BRIDGE ");
 	}
 	if(flags & 0x0080){
-		printf("[ACC_VARARGS] ");
+		strcat(s, "ACC_VARARGS ");
 	}
 	if(flags & 0x0100){
-		printf("[ACC_NATIVE] ");
+		strcat(s, "ACC_NATIVE ");
 	}
 	if(flags & 0x0400){
-		printf("[ACC_ABstringACT] ");
+		strcat(s, "ACC_ABSTRACT ");
 	}
 	if(flags & 0x0800){
-		printf("[ACC_stringICT] ");
+		strcat(s, "ACC_STRICT ");
 	}
 	if(flags & 0x1000){
-		printf("[ACC_SYNTHETIC] ");
+		strcat(s, "ACC_SYNTHETIC ");
 	}
+	s[strlen(s)-1]=']';
+	/*printf ("%s", s);*/
+	return s;
 }
 
-void show_methods(cp_info *cp, method_info method){
-
-
-	printf ("	access_flags: 0x%04x", method.access_flags);
-	show_method_flags(method.access_flags);
-	printf ("\n");
-	printf ("	Name_index: ");
-	dereference_index_UTF8(method.name_index, cp);
-	printf ("\n");
-	printf ("	Descriptor_index: ");
-	dereference_index_UTF8(method.descriptor_index, cp);
-	printf ("\n");
-	printf ("	attribute_count: %d", method.attributes_count);
-	printf ("\n");
-	for (int i = 0; i < method.attributes_count; ++i){
-		printf("\tAtributo [%d]: ", i+1);
-		show_method_attribute(cp, method.att_code[i]);
+void show_methods(cFile classFile){
+	for (int i=0;i<classFile.methods_count;i++){
+		printf ("\tMethod[%d]\n", i);
+		printf ("\t\tName: <%s>\n", classFile.constant_pool[classFile.methods[i].name_index].info[1].array);
+		printf ("\t\tDescriptor: <%s>\n", classFile.constant_pool[classFile.methods[i].descriptor_index].info[1].array);
+		printf ("\t\tAccess flags: 0x%04x [%s]\n", classFile.methods[i].access_flags, show_method_flags(classFile.methods[i].access_flags));
+		for (int j=0;j<classFile.methods[i].attributes_count;j++){
+			show_method_attribute(classFile.constant_pool, classFile.methods[i].att_code[j]);
+		}
 		printf("\n");
 	}
 }
 
+void show_cFile_attributes(cFile classFile){
+	char name[255];
+	for (int i=0;i<classFile.attributes_count;i++){
+		printf("\tattribute[%d]\t Len: %d", i, classFile.attributes[i].attribute_length);
+		printf("\tcp_info[%d]\t <%s>\n\t\t", classFile.attributes[i].attribute_name_index, (char*)classFile.constant_pool[classFile.attributes[i].attribute_name_index].info[1].array);		/* REVISAR esse cast*/
+		strcpy(name, (char*)classFile.constant_pool[classFile.attributes[i].attribute_name_index].info[1].array);		/* REVISAR esse cast*/
+		if (!strcmp(name, "SourceFile")){
+			printf("Sourcefile name index: %s\n", classFile.constant_pool[classFile.attributes[i].info[1]].info[1].array);
+		}else{
+			/*Atributo ainda nao tratado. Possiveis atributos do class file sao:
+			InnerClasses, EnclosingMethod, SourceDebugExtension, BootstrapMethods, Module, ModulePackages, ModuleMainClass,
+			Synthetic, Deprecated, Signature, RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations, RuntimeVisibleTypeAnnotations, RuntimeInvisibleTypeAnnotations */
+			printf("");
+		}
+	}
+}
+
 void show_info(){
-
-
-	/*vetor booleano para controle de flags presentes.*/
-	bool splitFlags[5];
-
-	/*Assumindo que todas as flags são false (ou seja, não estão presentes)*/
-	for(int i = 0; i < 5; i++){
-		splitFlags[i] = false;
-	}
-
-	/*Testa uma a uma setando como true as que estão presentes*/
-	if (classFile.access_flags & 0x01){
-		splitFlags[0] = true;
-	}
-	if (classFile.access_flags & 0x010){
-		splitFlags[1] = true;
-	}
-	if (classFile.access_flags & 0x020){
-		splitFlags[2] = true;
-	}
-	if (classFile.access_flags & 0x0200){
-		splitFlags[3] = true;
-	}
-	if (classFile.access_flags & 0x0400){
-		splitFlags[4] = true;
-	}
-
 	infoBasic(classFile);
+
 	/*chama a função para mostrar as flags ativas*/
-	show_flags(classFile.access_flags, splitFlags);
-	/*Exibe informações de Pool de constante*/
-	showConstPool(classFile.constant_pool_count, classFile.constant_pool); 
+	/*show_flags(classFile);*/
 	
-	for(int i = 0; i < classFile.methods_count; i++){
-		printf ("\n	Method [%d]:\n", i);
-		show_methods(classFile.constant_pool, classFile.methods[i]);
-	}
+	/*Exibe informações de Pool de constante*/
+	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
+	
+	show_methods(classFile);
 
 	for(int i = 0; i < classFile.fields_count; i++){
 		printf("\n\tFields[%d]:\n", i);
 		show_fields(classFile.constant_pool, classFile.fields[i]);
 	}
-
 }
