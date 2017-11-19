@@ -2,10 +2,8 @@
 #include <stdio.h>
 #include "../headers/interface.h"
 #include "../headers/leitor.h"
+#include "../headers/instructions.h"
 
-/* Variaveis globais */
-/* Variavel global */
-cFile classFile;
 int main (int argc, char *argv[]){
 
 	bool True = true;
@@ -22,6 +20,8 @@ int main (int argc, char *argv[]){
 		return ret;
 	}
 
+	/* Configuracoes iniciais para a inicializacao do programa... */
+	mount_inst_array(decode);
 	init_leitor(fp);
 	
 	while(True) 

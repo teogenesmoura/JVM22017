@@ -361,7 +361,7 @@ void if_wide(uint32_t *i, FILE *fp, AT_Code **att_code, int *opcode){
 
 void pega_operandos(AllIns /*decoder*/ *decode, FILE *fp, int opcode, AT_Code **att_code, uint32_t *i){
 
-	mount_inst_array(decode);
+	// mount_inst_array(decode);
 	//init_decoder(decode);
 	int n_bytes = decode[opcode].bytes;
 
@@ -382,7 +382,7 @@ void pega_operandos(AllIns /*decoder*/ *decode, FILE *fp, int opcode, AT_Code **
 void verifica_instrucao(AT_Code **att_code, FILE *fp){
 	int opcode;
 	
-	AllIns decode[NUM_INSTRUC];
+	// AllIns decode[NUM_INSTRUC];
 	// decoder decode[NUM_INSTRUC];
 	
 

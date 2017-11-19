@@ -263,7 +263,9 @@ void show_field (cp_info *cp, field_info fields){
 
 char* show_method_flags(unsigned short flags){
 	static char s[160];
-	s[0]='[';	/* 'Zerando' a string */
+
+	/* 'Zerando' a string com os dois comandos abaixo... */
+	s[0]='[';
 	s[1]='\0';
 
 	if(flags & 0x0001){
@@ -312,9 +314,10 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 	uint32_t npairs = 0, match_atual, offset_do_match;
 	// int32_t match_atual;
 	uint32_t low = 0, high = 0, defaultbyte = 0, offset;
+	/*
 	AllIns decode[NUM_INSTRUC];
 	mount_inst_array(decode);
-
+	*/
 	printf(" \n\tNome do atributo: ");
 	dereference_index_UTF8(att_code.attribute_name_index, cp);
 
