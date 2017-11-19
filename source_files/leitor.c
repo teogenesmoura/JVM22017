@@ -8,7 +8,7 @@
 **		Aluno 4: Teogenes Moura                                            **
 **		Aluno 5: Michel Melo                                               **
 **                                                                         **
-** Descrição: Lietor de arquivo .class                                     **
+** Descrição: Leitor de arquivo .class                                     **
 ** compile com: make													   **
 *****************************************************************************/
 

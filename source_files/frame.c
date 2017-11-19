@@ -82,14 +82,16 @@ int sizeStackFrame(tipoStackFrame* stackFrame){
 
 void showStackFrame(tipoStackFrame* stackFrame){
 	/* Nao mover essa funcao pro exibidor! */
-	printf ("O stackFrame tem %d frame(s).", sizeStackFrame(stackFrame));
+	printf ("O stackFrame tem %d frame(s).\n", sizeStackFrame(stackFrame));
 	tipoStackFrame *w;
 	w=stackFrame;
 	if (!isEmpty(w)){
 		w = stackFrame->next;
+		printf (">\t");
 		do{
-			printf ("%s", w->constant_pool[(classFile.methods[w->ownIndex].name_index)].info[1].array);
+			printf ("%s\n\t", w->constant_pool[(classFile.methods[w->ownIndex].name_index)].info[1].array);
 			w = w->next;
 		}while (w!=NULL);
+		printf ("\n");
 	}
 }

@@ -3,6 +3,9 @@
 #include "../headers/interface.h"
 #include "../headers/leitor.h"
 
+/* Variaveis globais */
+/* Variavel global */
+cFile classFile;
 int main (int argc, char *argv[]){
 
 	bool True = true;

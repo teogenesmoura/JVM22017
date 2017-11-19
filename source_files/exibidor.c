@@ -6,7 +6,7 @@
 const char *flag_name [5] = {"ACC_PUBLIC", "ACC_FINAL", "ACC_SUPER", "ACC_INTERFACE", "ACC_ABSTRACT"};
 const char *type_Names [12] = {"UFT8_info", "-", "Integer_info", "Float_info", "Long_info", "Double_info", "Class_info", "String_info", "Fieldref_info", "Methodref_info", "Interface_info", "Name and Type"};
 
-/*show_UTF8: monta e mostringa a stringing UTF8*/
+/*show_UTF8: monta e mostra a string UTF8*/
 void show_UTF8 (int size, unsigned char *string){
 	int i = 0;
 
@@ -63,38 +63,10 @@ void dereference_index_UTF8 (int index, cp_info *cp){
 	}
 }
 
-void infoBasic(cFile classFile){
-	printf("--------------------\n");
-	printf("|Informações gerais|\n");
-	printf("--------------------\n\n");
-
-	printf ("Magic number: 0x%x\n", classFile.magic);
-	printf("MinVersion = %d\n", classFile.minor_version);
-	printf("MajVersion = %d\n", classFile.major_version);
-	printf("Constant pool count: %d\n", classFile.constant_pool_count);
-	printf("Access flags: %s \n", show_flags(classFile));
-	printf("This class: cp_info[%d] ", classFile.this_class);
-	printf ("<");
-	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
-	printf (">\n");
-
-	printf("Super class: cp_info[%d]", classFile.super_class);
-	printf ("<");
-	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
-	printf (">\n");
-
-	printf("Interfaces count: %d\n", classFile.interfaces_count);
-	printf("Field count: %d\n", classFile.fields_count);
-	printf("Method count: %d\n", classFile.methods_count);
-	/*show_methods(classFile);*/
-	printf("Attributes count: %d\n", classFile.attributes_count);
-	/*show_cFile_attributes(classFile);*/
-}
-
 /* A recebe a qtd de constantes presentes na tabela do CP
 ** e ponteiro para a tabela dos constantes.
 ** Percorre a tabela e exibe toda a informação contida nela.
-** %d|%d mostringa os indices na estringutura seguido das informações
+** %d|%d mostra os indices na estringutura seguido das informações
 ** relacionadas aos stringings nas outras estringuturas.*/
 void showConstPool(int const_pool_cont, cp_info *constPool){
 
@@ -147,31 +119,13 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 	printf("\n");
 }
 
-/* Retorna string com flags ativas */
-char* show_flags(cFile classFile){
-	static char s[60];
-	sprintf (s, "0x%04x", classFile.access_flags);
+/* 
+* Funcoes para exibicao dos fields do Class File.
+* 	show_field_flags
+*	show_field_attribute
+*	show_field 	
+*/
 
-	if (classFile.access_flags & 0x01){
-		strcat (s, "[public]");
-	}
-	if (classFile.access_flags & 0x010){
-		strcat (s, "[final]");
-	}
-	if (classFile.access_flags & 0x020){
-		strcat (s, "[super]");
-	}
-	if (classFile.access_flags & 0x0200){
-		strcat (s, "[interface]");
-	}
-	if (classFile.access_flags & 0x0400){
-		strcat (s, "[abstract]");
-	}
-
-	return s;
-}
-
-/* Mostra as flags do campo verificando todas as flags presentes no field */
 void show_field_flags(unsigned short flags){
 	bool first = true;
 
@@ -269,7 +223,6 @@ void show_field_flags(unsigned short flags){
 }
 
 void show_field_attribute(cp_info *cp, AT_ConstantValue att_ctv){
-
 	if(att_ctv.attribute_length == 2){
 		printf(" \n\tNome do atributo: ");
 		dereference_index_UTF8(att_ctv.attribute_name_index, cp);
@@ -280,6 +233,78 @@ void show_field_attribute(cp_info *cp, AT_ConstantValue att_ctv){
 		printf("ERROR! Attribute length do field != 2\n");
 		exit(-1);
 	}
+}
+
+void show_field (cp_info *cp, field_info fields){
+	/*mostra flags*/
+	show_field_flags(fields.access_flags);
+
+	printf(" \tNome do campo: ");
+	dereference_index_UTF8(fields.name_index, cp);
+	printf("\n");
+
+	printf(" \tDescriptor do campo: ");
+	dereference_index_UTF8(fields.descriptor_index, cp);
+	printf("\n");
+
+	printf(" \tNumero de atributos: %d\n", fields.attribute_count);
+	for (int i = 0; i < fields.attribute_count; ++i){
+		printf(" Atributo[%d]: ", i);
+		show_field_attribute(cp, fields.att_ctv[i]);
+	}
+}
+
+/* 
+* Funcoes para exibicao dos methods do Class File.
+* 	show_method_flags
+*	show_method_attribute
+*	show_methods
+*/
+
+char* show_method_flags(unsigned short flags){
+	static char s[160];
+	s[0]='[';	/* 'Zerando' a string */
+	s[1]='\0';
+
+	if(flags & 0x0001){
+		strcat(s, "ACC_PUBLIC ");
+	}
+	if(flags & 0x0002){
+		strcat(s, "ACC_PRIVATE ");
+	}
+	if(flags & 0x0004){
+		strcat(s, "ACC_PROTECTED ");
+	}
+	if(flags & 0x0008){
+		strcat(s, "ACC_STATIC ");
+	}
+	if(flags & 0x0010){
+		strcat(s, "ACC_FINAL ");
+	}
+	if(flags & 0x0020){
+		strcat(s, "ACC_SYNCHRONIZED ");
+	}
+	if(flags & 0x0040){
+		strcat(s, "ACC_BRIDGE ");
+	}
+	if(flags & 0x0080){
+		strcat(s, "ACC_VARARGS ");
+	}
+	if(flags & 0x0100){
+		strcat(s, "ACC_NATIVE ");
+	}
+	if(flags & 0x0400){
+		strcat(s, "ACC_ABSTRACT ");
+	}
+	if(flags & 0x0800){
+		strcat(s, "ACC_STRICT ");
+	}
+	if(flags & 0x1000){
+		strcat(s, "ACC_SYNTHETIC ");
+	}
+	s[strlen(s)-1]=']';
+	/*printf ("%s", s);*/
+	return s;
 }
 
 void show_method_attribute(cp_info *cp, AT_Code att_code){
@@ -311,7 +336,6 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 		}
 
 		for(int i = (aux+1); i < att_code.code_length; ){
-
 			if(att_code.code[i] == TABLESWITCH){
 				i++;
 				byte_preenchimento = (4 - (i % 4)) % 4;
@@ -401,81 +425,51 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 	}
 }
 
-/*Mostra um field*/
-void show_fields (cp_info *cp, field_info fields){
-	/*mostra flags*/
-	show_field_flags(fields.access_flags);
-
-	printf(" \tNome do campo: ");
-	dereference_index_UTF8(fields.name_index, cp);
-	printf("\n");
-
-	printf(" \tDescriptor do campo: ");
-	dereference_index_UTF8(fields.descriptor_index, cp);
-	printf("\n");
-
-	printf(" \tNumero de atributos: %d\n", fields.attribute_count);
-	for (int i = 0; i < fields.attribute_count; ++i){
-		printf(" Atributo[%d]: ", i);
-		show_field_attribute(cp, fields.att_ctv[i]);
-	}
-}
-
-char* show_method_flags(unsigned short flags){
-	static char s[160]="[";
-
-	if(flags & 0x0001){
-		strcat(s, "ACC_PUBLIC ");
-	}
-	if(flags & 0x0002){
-		strcat(s, "ACC_PRIVATE ");
-	}
-	if(flags & 0x0004){
-		strcat(s, "ACC_PROTECTED ");
-	}
-	if(flags & 0x0008){
-		strcat(s, "ACC_STATIC ");
-	}
-	if(flags & 0x0010){
-		strcat(s, "ACC_FINAL ");
-	}
-	if(flags & 0x0020){
-		strcat(s, "ACC_SYNCHRONIZED ");
-	}
-	if(flags & 0x0040){
-		strcat(s, "ACC_BRIDGE ");
-	}
-	if(flags & 0x0080){
-		strcat(s, "ACC_VARARGS ");
-	}
-	if(flags & 0x0100){
-		strcat(s, "ACC_NATIVE ");
-	}
-	if(flags & 0x0400){
-		strcat(s, "ACC_ABSTRACT ");
-	}
-	if(flags & 0x0800){
-		strcat(s, "ACC_STRICT ");
-	}
-	if(flags & 0x1000){
-		strcat(s, "ACC_SYNTHETIC ");
-	}
-	s[strlen(s)-1]=']';
-	/*printf ("%s", s);*/
-	return s;
-}
-
 void show_methods(cFile classFile){
 	for (int i=0;i<classFile.methods_count;i++){
 		printf ("\tMethod[%d]\n", i);
 		printf ("\t\tName: <%s>\n", classFile.constant_pool[classFile.methods[i].name_index].info[1].array);
 		printf ("\t\tDescriptor: <%s>\n", classFile.constant_pool[classFile.methods[i].descriptor_index].info[1].array);
-		printf ("\t\tAccess flags: 0x%04x [%s]\n", classFile.methods[i].access_flags, show_method_flags(classFile.methods[i].access_flags));
+		printf ("\t\tAccess flags: 0x%04x %s\n", classFile.methods[i].access_flags, show_method_flags(classFile.methods[i].access_flags));
+
 		for (int j=0;j<classFile.methods[i].attributes_count;j++){
 			show_method_attribute(classFile.constant_pool, classFile.methods[i].att_code[j]);
 		}
+
 		printf("\n");
 	}
+}
+
+
+/* 
+* Funcoes para exibicao de informacoes gerais do Class File
+* 	show_cFile_flags
+*	show_cFile_attributes
+*	infoBasic
+*	show_info 	
+*/
+/* Retorna string com flags ativas */
+char* show_cFile_flags(cFile classFile){
+	static char s[60];
+	sprintf (s, "0x%04x", classFile.access_flags);
+
+	if (classFile.access_flags & 0x01){
+		strcat (s, "[public]");
+	}
+	if (classFile.access_flags & 0x010){
+		strcat (s, "[final]");
+	}
+	if (classFile.access_flags & 0x020){
+		strcat (s, "[super]");
+	}
+	if (classFile.access_flags & 0x0200){
+		strcat (s, "[interface]");
+	}
+	if (classFile.access_flags & 0x0400){
+		strcat (s, "[abstract]");
+	}
+
+	return s;
 }
 
 void show_cFile_attributes(cFile classFile){
@@ -495,19 +489,50 @@ void show_cFile_attributes(cFile classFile){
 	}
 }
 
+void infoBasic(cFile classFile){
+	printf("--------------------\n");
+	printf("|Informações gerais|\n");
+	printf("--------------------\n\n");
+
+	printf ("Magic number: 0x%x\n", classFile.magic);
+	printf("MinVersion = %d\n", classFile.minor_version);
+	printf("MajVersion = %d\n", classFile.major_version);
+	printf("Constant pool count: %d\n", classFile.constant_pool_count);
+	printf("Access flags: %s \n", show_cFile_flags(classFile));
+	printf("This class: cp_info[%d] ", classFile.this_class);
+	printf ("<");
+	dereference_index_UTF8(classFile.this_class, classFile.constant_pool);
+	printf (">\n");
+
+	printf("Super class: cp_info[%d]", classFile.super_class);
+	printf ("<");
+	dereference_index_UTF8(classFile.super_class, classFile.constant_pool);
+	printf (">\n");
+
+	printf("Interfaces count: %d\n", classFile.interfaces_count);
+	printf("Field count: %d\n", classFile.fields_count);
+	printf("Method count: %d\n", classFile.methods_count);
+	/*show_methods(classFile);*/
+	printf("Attributes count: %d\n", classFile.attributes_count);
+	/*show_cFile_attributes(classFile);*/
+}
+
+/*
+*	Essa funcao show_info eh a funcao que se chama na execucao central do
+*	programa. Eh aqui que definimos quais informacoes exibimos do class File
+*/
 void show_info(){
 	infoBasic(classFile);
-
-	/*chama a função para mostrar as flags ativas*/
-	/*show_flags(classFile);*/
 	
 	/*Exibe informações de Pool de constante*/
-	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
+	/*showConstPool(classFile.constant_pool_count, classFile.constant_pool);*/
 	
+	/*Exibe os metodos*/
 	show_methods(classFile);
 
+	/*Exibe os fields*/
 	for(int i = 0; i < classFile.fields_count; i++){
 		printf("\n\tFields[%d]:\n", i);
-		show_fields(classFile.constant_pool, classFile.fields[i]);
+		show_field(classFile.constant_pool, classFile.fields[i]);
 	}
 }
