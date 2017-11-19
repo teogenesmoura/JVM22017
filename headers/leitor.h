@@ -161,7 +161,6 @@
 	EXT_LEITOR int init_leitor(FILE *fp);
 	EXT_LEITOR uint8_t ler_u1 (FILE *fp);
 	EXT_LEITOR int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp);
-	EXT_LEITOR void dereference_index_UTF8 (int index, cp_info *cp);
 	EXT_LEITOR float convert_u4_toFloat(classLoadrType ent);
 	EXT_LEITOR long convert_u4_toLong (classLoadrType entHigh, classLoadrType entLow);
 	EXT_LEITOR double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow);
