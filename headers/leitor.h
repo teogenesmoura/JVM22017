@@ -114,9 +114,6 @@
 		attribute_info *attributes;
 	}cFile;
 
-	/* Variavel global */
-	cFile classFile;
-
 
 	#define	INSTRUC_NAME	35
 
@@ -156,6 +153,15 @@
 
 	//FORMATO 2
 	#define IINC	0x84
+
+	/*********************/
+	/* Variaveis globais */
+	cFile classFile;
+	AllIns decode[NUM_INSTRUC];
+	/*********************/
+	/*********************/
+
+
 
 	EXT_LEITOR int init_leitor(FILE *fp);
 	EXT_LEITOR uint8_t ler_u1 (FILE *fp);
