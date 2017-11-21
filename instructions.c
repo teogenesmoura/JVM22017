@@ -1,11 +1,18 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<stdint.h>
-#include<unistd.h>
-#include<errno.h>
-#include<limits.h>
-#include<inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <errno.h>
+#include <limits.h>
+#include <inttypes.h>
+#include <math.h>
+#ifdef NAN
+/* NAN is supported */
+#endif
+#ifdef INFINITY
+/* INFINITY is supported */
+#endif
 
 #define NULL_REF NULL
 #define MAX_LOCAL_VARIABLES 200 //Valor de u2 - int16_t
@@ -80,8 +87,8 @@ void fconst_1(Node *pilha);
 void fconst_2(Node *pilha);
 void dconst_0(Node *pilha);
 void dconst_1(Node *pilha);
-void bipush(Node *pilha, int8_t byte);
-void sipush(Node *pilha, uint8_t byte1, uint8_t byte2);
+void bipush(Node *pilha, int32_t byte);
+void sipush(Node *pilha, uint32_t byte1, uint32_t byte2);
 void ldc();
 void ldc_w();
 void ldc2_w();
@@ -173,42 +180,42 @@ void sastore();
 //***********************************************
 //OPERAÇÕES MATEMÁTICAS
 void iadd(Node *pilha);
-void ladd();
-void fadd();
-void dadd();
-void isub();
-void lsub();
-void fsub();
-void dsub();
-void imul();
-void lmul();
-void fmul();
-void dmul();
-void idiv();
-void ldiv_();
-void fdiv();
-void ddiv();
-void irem();
-void lrem();
-void frem();
-void drem_();
-void ineg();
-void lneg();
-void fneg();
-void dneg();
-void ishl();
-void lshl();
-void ishr();
-void lshr();
-void iushr();
-void lushr();
-void iand();
-void land();
-void ior();
-void lor();
-void ixor();
-void lxor();
-void iinc();
+void ladd(Node *pilha);
+void fadd(Node *pilha);
+void dadd(Node *pilha); //Testar
+void isub(Node *pilha); //Testar
+void lsub(Node *pilha); //Testar
+void fsub(Node *pilha); //Testar
+void dsub(Node *pilha); //Testar
+void imul(Node *pilha); //Testar
+void lmul(Node *pilha); //Testar
+void fmul(Node *pilha); //Testar
+void dmul(Node *pilha); //Testar
+void idiv(Node *pilha); //Testar
+void ldiv_(Node *pilha);//Testar
+void fdiv(Node *pilha); //Testar
+void ddiv(Node *pilha); //Testar
+void irem(Node *pilha); //Testar
+void lrem(Node *pilha); //Testar
+void frem(Node *pilha); //Testar
+void drem_(Node *pilha); //Testar
+void ineg(Node *pilha);
+void lneg(Node *pilha);
+void fneg(Node *pilha);
+void dneg(Node *pilha);
+void ishl(Node *pilha);
+void lshl(Node *pilha);
+void ishr(Node *pilha);
+void lshr(Node *pilha);
+void iushr(Node *pilha);
+void lushr(Node *pilha);
+void iand(Node *pilha);
+void land(Node *pilha);
+void ior(Node *pilha);
+void lor(Node *pilha);
+void ixor(Node *pilha);
+void lxor(Node *pilha);
+void iinc(Node *pilha);
 
 //***********************************************
 //CONVERSÕES
@@ -303,11 +310,18 @@ void internal_error();
 void out_of_mem();
 void stack__ovflw_error();
 void unkwn_err();
+void ArithmeticException();
 
 int main(int argc, char *argv[]){
 	
-// 	int8_t opcode;
+//  	int32_t opcode;
+// 	int32_t opcode, opcode2;
+// 	float a = 12.2;
+// 	float b= 13.3;
+
 // 	char desire[20];
+	
+	system("clear");
 	
 	AllIns instructions[256];
 	
@@ -318,25 +332,44 @@ int main(int argc, char *argv[]){
 		exit(0);
 	}
 	
-	int16_t variaveis_locais[MAX_LOCAL_VARIABLES];
+// 	int32_t variaveis_locais[MAX_LOCAL_VARIABLES];
 	
 	inicializa_pilha(pilha);
 	
 	mount_inst_array(instructions);
 	
- 	instructions[16].ins();
+//  	instructions[97].ins();
 	
 	inicializa_pilha(pilha);
 	
-	for (int i = 15; i < 17; i++)
-		instructions[i].ins();
+//  	for (int i = 16; i < 18; i++)
+// 	instructions[98].ins(pilha);
 	
-// 	empilha(pilha, 2147483647);
-// 	empilha(pilha, 2147483647);
+// 	empilha(pilha, 2147483647)
 	
-// 	mostra_pilha(pilha);
+// 	float c = 0.0;
+// 	memcpy(&opcode, &c, sizeof(int32_t));
+	empilha(pilha, 0);
 	
- 	instructions[96].ins();
+// 	memcpy(&opcode, &a, sizeof(int32_t));
+//  	printf("VALORA = %032x\n", opcode);
+//    	empilha(pilha, opcode);
+	empilha(pilha, 12);
+	
+// 	empilha(pilha, 0x22222222);
+	empilha(pilha, 0);
+	
+// 	memcpy(&opcode2, &b, sizeof(int32_t));
+// 	printf("VALORB = %032x\n", opcode2);
+//    	empilha(pilha, opcode2);
+	empilha(pilha, 14);
+	
+	instructions[99].ins(pilha);
+// 	empilha(pilha, 0xDDDDDDDD);
+	
+//  	mostra_pilha(pilha);
+	
+//  	instructions[98].ins();
 	
 	
    	mostra_pilha(pilha);
@@ -983,7 +1016,7 @@ void mostra_pilha(Node *pilha){
 	Node *ponteiro_tmp;
 	ponteiro_tmp = pilha->prox;
 	
-	printf("Pilha:");
+	printf("\nPilha:");
 	
 	while(ponteiro_tmp != NULL){
    		printf("%5d", ponteiro_tmp->dado); //%5d => printa com 5 caracteres sempre
@@ -1004,7 +1037,7 @@ void mostra_pilha(Node *pilha){
   			printf("   topo\n");
  	}
 
-  	printf("\n\n");
+  	printf("\n");
   	free(ponteiro_tmp);
 	
 	return;
@@ -1030,13 +1063,15 @@ void destroi_pilha(Node *pilha){
 	free(pilha);
 }
 
-void internal_error(){ printf("InternalError\n"); exit(0);}
+void internal_error(){ printf("(-) InternalError\n"); exit(0);}
 
-void out_of_mem(){ printf("OutOfMemoryError\n"); exit(0);}
+void out_of_mem(){ printf("(-) OutOfMemoryError\n"); exit(0);}
 
-void stack__ovflw_error(){ printf("StackOverflowError\n"); exit(0);}
+void stack__ovflw_error(){ printf("(-) StackOverflowError\n"); exit(0);}
 
-void unkwn_err(){ printf("UnknownError\n"); exit(0);}
+void unkwn_err(){ printf("(-) UnknownError\n"); exit(0);}
+
+void ArithmeticException(){printf("(-) ArithmeticException\n");}
 
 //CONSTANTES
 void nop(){
@@ -1114,27 +1149,62 @@ void lconst_1(Node *pilha){
 void fconst_0(Node *pilha){
 	
 	//Float por padrão possui 32 bits
-	int32_t para_empilhar = 0.0;
+	float valor = 0.0;
+	int32_t para_empilhar;
 	
-	empilha(pilha, (float)para_empilhar);
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&para_empilhar, &valor, sizeof(int32_t));
+	
+	empilha(pilha, para_empilhar);
 	
 	return;
 }
 void fconst_1(Node *pilha){
 	
 	//Float por padrão possui 32 bits
-	int32_t para_empilhar = 1.0;
+	float valor = 1.0;
+	int32_t para_empilhar;
 	
-	empilha(pilha, (float)para_empilhar);
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&para_empilhar, &valor, sizeof(int32_t));
+	
+	empilha(pilha, para_empilhar);
 	
 	return;
 }
 void fconst_2(Node *pilha){
 	
 	//Float por padrão possui 32 bits
-	int32_t para_empilhar = 2.0;
+	float valor = 2.0;
+	int32_t para_empilhar;
 	
-	empilha(pilha, (float)para_empilhar);
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&para_empilhar, &valor, sizeof(int32_t));
+	
+	empilha(pilha, para_empilhar);
+	
+	/*
+	valor = 0;
+	para_empilhar = 0;
+	
+	para_empilhar = desempilha(pilha);
+	
+	memcpy(&valor, &para_empilhar, sizeof(int32_t));*/
 	
 	return;
 }
@@ -1160,23 +1230,32 @@ void dconst_1(Node *pilha){
 	
 	return;
 }
-void bipush(Node *pilha, int8_t byte){
+void bipush(Node *pilha, int32_t byte){
+	
+	int8_t converte_para_8bits = 0x00;
+	
+	converte_para_8bits |= byte;
 	
 	int32_t completa_bits = 0x00000000;
 	
 	completa_bits |= byte;
 	
-	empilha(pilha, completa_bits);
+ 	empilha(pilha, completa_bits);
 	return;
 }
-void sipush(Node *pilha, uint8_t byte1, uint8_t byte2){
+void sipush(Node *pilha, uint32_t byte1, uint32_t byte2){
+	
+	uint8_t valor_convertido_byte1 = 0x00, valor_convertido_byte2 = 0x00;
+	
+	valor_convertido_byte1 |= byte1;
+	valor_convertido_byte2 |= byte2;
 	
 	uint16_t valor = 0x0000;
 	int32_t para_empilhar = 0x00000000;
 	
-	valor |= byte1;
+	valor |= valor_convertido_byte1;
 	valor <<= 8;
-	valor |= byte2;
+	valor |= valor_convertido_byte2;
 	
 	para_empilhar |= valor;
 	
@@ -1281,18 +1360,209 @@ void iadd(Node *pilha){
 }
 void ladd(Node *pilha){
 	
-	int32_t valor1_primeira_parte = desempilha(pilha);
-	int32_t valor1_segunda_parte = desempilha(pilha);
-	int32_t valor2_primeira_parte = desempilha(pilha);
-	int32_t valor2_segunda_parte = desempilha(pilha);
+	int64_t valor1_primeira_parte = desempilha(pilha);
+	int64_t valor1_segunda_parte  = desempilha(pilha);
+	int64_t valor2_primeira_parte = desempilha(pilha);
+	int64_t valor2_segunda_parte  = desempilha(pilha);
+	
+	int64_t valor1, valor2;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_primeira_parte;
+	valor1_segunda_parte <<= 32;
+	valor1 |= valor1_segunda_parte;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_primeira_parte;
+	valor2_segunda_parte <<= 32;
+	valor2 |= valor2_segunda_parte;
+	
+	int64_t resultado = valor1 + valor2;
+// 	printf("\nHEXA = %016p\n", resultado);
+	
+  	if (valor1 > (LLONG_MAX - valor2)){
+		printf("\n(-) ERROR! ");
+		printf("%s\n\n", strerror(34));
+  	}
+	
+	/*
+	 * Empilhar o maior valor
+	 * FFFFFFFF FFFFFFFF (64 bits)
+	 * 00000000 FFFFFFFF (Shift de 32 pra direita)
+	 * 00000000 FFFFFFFF & FFFFFFFF = FFFFFFFF (Resultado de 32 bits)
+	 * 
+	 * Empilhar o menor valor
+	 * FFFFFFFF FFFFFFFF (64 bits)
+	 * FFFFFFFF 00000000 (Shift de 32 pra esquerda)
+	 * 00000000 FFFFFFFF (Shift de 32 pra direita)
+	 * 00000000 FFFFFFFF & FFFFFFFF = FFFFFFFF (Resultado de 32 bits)
+	 */
+	
+	int32_t maior_valor = 0xFFFFFFFF;
+	maior_valor &= (resultado >> 32);
+	
+	int32_t menor_valor = 0xFFFFFFFF;
+	int64_t aux = (resultado << 32);
+	menor_valor &= (aux >> 32);
+	
+ 	empilha(pilha, maior_valor);
+ 	empilha(pilha, menor_valor);
+	
+	return;
+}
+void fadd(Node *pilha){
+	
+   	int32_t valor1 = desempilha(pilha);
+   	int32_t valor2 = desempilha(pilha);
+	int32_t para_empilhar;
+	
+	float valor1_f, valor2_f;
+	
+	float valor_float;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(int32_t));
+	memcpy(&valor2_f, &valor2, sizeof(int32_t));
+	
+	if (valor1_f == NAN || valor2_f == NAN)
+		valor_float = NAN;
+	else {
+		if ((valor1_f == INFINITY && valor2_f == -INFINITY) || (valor1_f == -INFINITY && valor2_f == INFINITY))
+			valor_float = NAN;
+		else {
+			if (valor1_f == INFINITY && valor2_f == INFINITY)
+				valor_float = INFINITY;
+			else {
+				if (valor1_f == -INFINITY && valor2_f == -INFINITY)
+					valor_float = -INFINITY;
+				else{
+					if ((valor1_f == INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+						valor_float = INFINITY;
+					else {
+						if ((valor1_f == -INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == -INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+							valor_float = INFINITY;
+						else {
+							if ((valor1_f == -0 && valor2_f == 0) || (valor1_f == 0 && valor2_f == -0))
+								valor_float = 0.0;
+							else {
+								if (valor1_f == 0 && valor2_f == 0)
+									valor_float = 0.0;
+								else {
+									if (valor1_f == -0 && valor2_f == -0){
+										valor_float = -0.0;
+									}
+									else {
+										valor_float = valor1_f+valor2_f;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int32_t));
+	
+	empilha(pilha, para_empilhar);
+	
+	return;
+}
+void dadd(Node *pilha){
+	
+	int64_t valor1_lo = desempilha(pilha);
+	int64_t valor1_hi = desempilha(pilha);
+   	int64_t valor2_lo = desempilha(pilha);
+	int64_t valor2_hi = desempilha(pilha);
+	int32_t para_empilhar_lo = 0xFFFFFFFF;
+	int32_t para_empilhar_hi = 0xFFFFFFFF;
+	int64_t para_empilhar;
+	int64_t valor1, valor2;
+	
+	double valor1_f, valor2_f;
+	double valor_float;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_lo;
+	valor1_hi <<= 32;
+	valor1 |= valor1_hi;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_lo;
+	valor2_hi <<= 32;
+	valor2 |= valor2_hi;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(double));
+	memcpy(&valor2_f, &valor2, sizeof(double));
+	
+	if (valor1_f == NAN || valor2_f == NAN)
+		valor_float = NAN;
+	else {
+		if ((valor1_f == INFINITY && valor2_f == -INFINITY) || (valor1_f == -INFINITY && valor2_f == INFINITY))
+			valor_float = NAN;
+		else {
+			if (valor1_f == INFINITY && valor2_f == INFINITY)
+				valor_float = INFINITY;
+			else {
+				if (valor1_f == -INFINITY && valor2_f == -INFINITY)
+					valor_float = -INFINITY;
+				else{
+					if ((valor1_f == INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+						valor_float = INFINITY;
+					else {
+						if ((valor1_f == -INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == -INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+							valor_float = INFINITY;
+						else {
+							if ((valor1_f == -0 && valor2_f == 0) || (valor1_f == 0 && valor2_f == -0))
+								valor_float = 0.0;
+							else {
+								if (valor1_f == 0 && valor2_f == 0)
+									valor_float = 0.0;
+								else {
+									if (valor1_f == -0 && valor2_f == -0){
+										valor_float = -0.0;
+									}
+									else {
+										valor_float = valor1_f+valor2_f;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int64_t));
+	para_empilhar_hi &= para_empilhar >> 32;
+	para_empilhar_lo &= para_empilhar;
+	
+	empilha(pilha, para_empilhar_hi);
+	empilha(pilha, para_empilhar_lo);
+	
+	return;
+}
+void isub(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+	int32_t valor2 = desempilha(pilha);
 	
 	int64_t resultado;
 	
-	resultado = valor1_primeira_parte + valor1_segunda_parte;
+	resultado = (long long int) valor1 - (long long int) valor2;
 	
-// 	printf("%"PRId64"\n", resultado);
+//  	printf("%"PRId64"\n", resultado);
 	
-  	if (resultado < 0){
+  	if (resultado < INT32_MIN){
 		printf("\n(-) ERROR! ");
 		printf("%s\n\n", strerror(34));
   	}
@@ -1300,49 +1570,720 @@ void ladd(Node *pilha){
 	empilha(pilha, (int32_t)resultado);
 	
 	return;
+}
+void lsub(Node *pilha){
+	int64_t valor1_primeira_parte = desempilha(pilha);
+	int64_t valor1_segunda_parte  = desempilha(pilha);
+	int64_t valor2_primeira_parte = desempilha(pilha);
+	int64_t valor2_segunda_parte  = desempilha(pilha);
+	
+	int64_t valor1, valor2;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_primeira_parte;
+	valor1_segunda_parte <<= 32;
+	valor1 |= valor1_segunda_parte;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_primeira_parte;
+	valor2_segunda_parte <<= 32;
+	valor2 |= valor2_segunda_parte;
+	
+	int64_t resultado = valor1 - valor2;
+// 	printf("\nHEXA = %016p\n", resultado);
+	
+  	if (valor1 < (LLONG_MIN - valor2)){
+		printf("\n(-) ERROR! ");
+		printf("%s\n\n", strerror(34));
+  	}
+	
+	/*
+	 * Empilhar o maior valor
+	 * FFFFFFFF FFFFFFFF (64 bits)
+	 * 00000000 FFFFFFFF (Shift de 32 pra direita)
+	 * 00000000 FFFFFFFF & FFFFFFFF = FFFFFFFF (Resultado de 32 bits)
+	 * 
+	 * Empilhar o menor valor
+	 * FFFFFFFF FFFFFFFF (64 bits)
+	 * FFFFFFFF 00000000 (Shift de 32 pra esquerda)
+	 * 00000000 FFFFFFFF (Shift de 32 pra direita)
+	 * 00000000 FFFFFFFF & FFFFFFFF = FFFFFFFF (Resultado de 32 bits)
+	 */
+	
+	int32_t maior_valor = 0xFFFFFFFF;
+	maior_valor &= (resultado >> 32);
+	
+	int32_t menor_valor = 0xFFFFFFFF;
+	int64_t aux = (resultado << 32);
+	menor_valor &= (aux >> 32);
+	
+ 	empilha(pilha, maior_valor);
+ 	empilha(pilha, menor_valor);
 	
 	return;
 }
-void fadd(){
+void fsub(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+   	int32_t valor2 = desempilha(pilha);
+	int32_t para_empilhar;
+	
+	float valor1_f, valor2_f;
+	
+	float valor_float;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(int32_t));
+	memcpy(&valor2_f, &valor2, sizeof(int32_t));
+	
+	if ((valor1 == -0.0 && valor2 == -0.0) || (valor1 == -0.0 && valor2 == 0.0))
+		valor_float = -0.0;
+	else{
+		if ((valor1 == 0.0 && valor2 == -0.0) || (valor1 == 0.0 && valor2 == 0.0))
+			valor_float = 0.0;
+		else{
+			valor_float = valor1_f-valor2_f;
+		}
+	}
 	
 	
+	memcpy(&para_empilhar, &valor_float, sizeof(int32_t));
+	
+	empilha(pilha, para_empilhar);
 	
 	return;
 }
-void dadd(){return;}
-void isub(){return;}
-void lsub(){return;}
-void fsub(){return;}
-void dsub(){return;}
-void imul(){return;}
-void lmul(){return;}
-void fmul(){return;}
-void dmul(){return;}
-void idiv(){return;}
-void ldiv_(){return;}
-void fdiv(){return;}
-void ddiv(){return;}
-void irem(){return;}
-void lrem(){return;}
-void frem(){return;}
-void drem_(){return;}
-void ineg(){return;}
-void lneg(){return;}
-void fneg(){return;}
-void dneg(){return;}
-void ishl(){return;}
-void lshl(){return;}
-void ishr(){return;}
-void lshr(){return;}
-void iushr(){return;}
-void lushr(){return;}
-void iand(){return;}
-void land(){return;}
-void ior(){return;}
-void lor(){return;}
-void ixor(){return;}
-void lxor(){return;}
-void iinc(){return;}
+void dsub(Node *pilha){
+	
+	int64_t valor1_lo = desempilha(pilha);
+	int64_t valor1_hi = desempilha(pilha);
+   	int64_t valor2_lo = desempilha(pilha);
+	int64_t valor2_hi = desempilha(pilha);
+	int32_t para_empilhar_lo = 0xFFFFFFFF;
+	int32_t para_empilhar_hi = 0xFFFFFFFF;
+	int64_t para_empilhar;
+	int64_t valor1, valor2;
+	
+	double valor1_f, valor2_f;
+	double valor_float;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_lo;
+	valor1_hi <<= 32;
+	valor1 |= valor1_hi;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_lo;
+	valor2_hi <<= 32;
+	valor2 |= valor2_hi;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(double));
+	memcpy(&valor2_f, &valor2, sizeof(double));
+	
+	if ((valor1 == -0.0 && valor2 == -0.0) || (valor1 == -0.0 && valor2 == 0.0))
+		valor_float = -0.0;
+	else{
+		if ((valor1 == 0.0 && valor2 == -0.0) || (valor1 == 0.0 && valor2 == 0.0))
+			valor_float = 0.0;
+		else{
+			valor_float = valor1_f-valor2_f;
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int64_t));
+	para_empilhar_hi &= para_empilhar >> 32;
+	para_empilhar_lo &= para_empilhar;
+	
+	empilha(pilha, para_empilhar_hi);
+	empilha(pilha, para_empilhar_lo);
+	
+	return;
+}
+void imul(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+	int32_t valor2 = desempilha(pilha);
+	
+	int64_t resultado;
+	
+	resultado = (long long int) valor1 * (long long int) valor2;
+	
+//  	printf("%"PRId64"\n", resultado);
+	
+  	if (resultado > INT32_MAX){
+		printf("\n(-) ERROR! ");
+		printf("%s\n\n", strerror(34));
+  	}
+	
+	empilha(pilha, (int32_t)resultado);
+	
+	return;
+}
+void lmul(Node *pilha){
+	
+	int64_t valor1_primeira_parte = desempilha(pilha);
+	int64_t valor1_segunda_parte  = desempilha(pilha);
+	int64_t valor2_primeira_parte = desempilha(pilha);
+	int64_t valor2_segunda_parte  = desempilha(pilha);
+	
+	int64_t valor1, valor2;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_primeira_parte;
+	valor1_segunda_parte <<= 32;
+	valor1 |= valor1_segunda_parte;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_primeira_parte;
+	valor2_segunda_parte <<= 32;
+	valor2 |= valor2_segunda_parte;
+	
+	int64_t resultado = valor1 * valor2;
+// 	printf("\nHEXA = %016p\n", resultado);
+	
+  	if (valor1 > (LLONG_MAX - valor2)){
+		printf("\n(-) ERROR! ");
+		printf("%s\n\n", strerror(34));
+  	}
+	
+	/*
+	 * Empilhar o maior valor
+	 * FFFFFFFF FFFFFFFF (64 bits)
+	 * 00000000 FFFFFFFF (Shift de 32 pra direita)
+	 * 00000000 FFFFFFFF & FFFFFFFF = FFFFFFFF (Resultado de 32 bits)
+	 * 
+	 * Empilhar o menor valor
+	 * FFFFFFFF FFFFFFFF (64 bits)
+	 * FFFFFFFF 00000000 (Shift de 32 pra esquerda)
+	 * 00000000 FFFFFFFF (Shift de 32 pra direita)
+	 * 00000000 FFFFFFFF & FFFFFFFF = FFFFFFFF (Resultado de 32 bits)
+	 */
+	
+	int32_t maior_valor = 0xFFFFFFFF;
+	maior_valor &= (resultado >> 32);
+	
+	int32_t menor_valor = 0xFFFFFFFF;
+	int64_t aux = (resultado << 32);
+	menor_valor &= (aux >> 32);
+	
+ 	empilha(pilha, maior_valor);
+ 	empilha(pilha, menor_valor);
+	
+	return;
+}
+void fmul(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+   	int32_t valor2 = desempilha(pilha);
+	int32_t para_empilhar;
+	
+	float valor1_f, valor2_f;
+	
+	float valor_float;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(int32_t));
+	memcpy(&valor2_f, &valor2, sizeof(int32_t));
+	
+	if (valor1_f == NAN || valor2_f == NAN)
+		valor_float = NAN;
+	else {
+		if ((valor1_f == INFINITY && valor2_f == -INFINITY) || (valor1_f == -INFINITY && valor2_f == INFINITY))
+			valor_float = NAN;
+		else {
+			if (valor1_f == INFINITY && valor2_f == INFINITY)
+				valor_float = INFINITY;
+			else {
+				if (valor1_f == -INFINITY && valor2_f == -INFINITY)
+					valor_float = -INFINITY;
+				else{
+					if ((valor1_f == INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+						valor_float = INFINITY;
+					else {
+						if ((valor1_f == -INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == -INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+							valor_float = INFINITY;
+						else {
+							if ((valor1_f == -0 && valor2_f == 0) || (valor1_f == 0 && valor2_f == -0))
+								valor_float = 0.0;
+							else {
+								if (valor1_f == 0 && valor2_f == 0)
+									valor_float = 0.0;
+								else {
+									if (valor1_f == -0 && valor2_f == -0){
+										valor_float = -0.0;
+									}
+									else {
+										valor_float = valor1_f*valor2_f;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int32_t));
+	
+	empilha(pilha, para_empilhar);
+	
+	return;
+}
+void dmul(Node *pilha){
+	
+	int64_t valor1_lo = desempilha(pilha);
+	int64_t valor1_hi = desempilha(pilha);
+   	int64_t valor2_lo = desempilha(pilha);
+	int64_t valor2_hi = desempilha(pilha);
+	int32_t para_empilhar_lo = 0xFFFFFFFF;
+	int32_t para_empilhar_hi = 0xFFFFFFFF;
+	int64_t para_empilhar;
+	int64_t valor1, valor2;
+	
+	double valor1_f, valor2_f;
+	double valor_float;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_lo;
+	valor1_hi <<= 32;
+	valor1 |= valor1_hi;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_lo;
+	valor2_hi <<= 32;
+	valor2 |= valor2_hi;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(double));
+	memcpy(&valor2_f, &valor2, sizeof(double));
+	
+	if (valor1_f == NAN || valor2_f == NAN)
+		valor_float = NAN;
+	else {
+		if ((valor1_f == INFINITY && valor2_f == -INFINITY) || (valor1_f == -INFINITY && valor2_f == INFINITY))
+			valor_float = NAN;
+		else {
+			if (valor1_f == INFINITY && valor2_f == INFINITY)
+				valor_float = INFINITY;
+			else {
+				if (valor1_f == -INFINITY && valor2_f == -INFINITY)
+					valor_float = -INFINITY;
+				else{
+					if ((valor1_f == INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+						valor_float = INFINITY;
+					else {
+						if ((valor1_f == -INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == -INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+							valor_float = INFINITY;
+						else {
+							if ((valor1_f == -0 && valor2_f == 0) || (valor1_f == 0 && valor2_f == -0))
+								valor_float = 0.0;
+							else {
+								if (valor1_f == 0 && valor2_f == 0)
+									valor_float = 0.0;
+								else {
+									if (valor1_f == -0 && valor2_f == -0){
+										valor_float = -0.0;
+									}
+									else {
+										valor_float = valor1_f*valor2_f;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int64_t));
+	para_empilhar_hi &= para_empilhar >> 32;
+	para_empilhar_lo &= para_empilhar;
+	
+	empilha(pilha, para_empilhar_hi);
+	empilha(pilha, para_empilhar_lo);
+	
+	return;
+}
+void idiv(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+	int32_t valor2 = desempilha(pilha);
+	
+	int64_t resultado;
+	
+	if (valor1 == 0)
+		ArithmeticException();
+	
+	resultado = (long long int) valor1 / (long long int) valor2;
+	
+//  	printf("%"PRId64"\n", resultado);
+	
+  	if (resultado < INT32_MIN){
+		printf("\n(-) ERROR! ");
+		printf("%s\n\n", strerror(34));
+  	}
+	
+	empilha(pilha, (int32_t)resultado);
+	
+	return;
+}
+void ldiv_(Node *pilha){
+	
+	int64_t valor1_primeira_parte = desempilha(pilha);
+	int64_t valor1_segunda_parte  = desempilha(pilha);
+	int64_t valor2_primeira_parte = desempilha(pilha);
+	int64_t valor2_segunda_parte  = desempilha(pilha);
+	
+	int64_t valor1, valor2;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_primeira_parte;
+	valor1_segunda_parte <<= 32;
+	valor1 |= valor1_segunda_parte;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_primeira_parte;
+	valor2_segunda_parte <<= 32;
+	valor2 |= valor2_segunda_parte;
+	
+	int64_t resultado = valor1 / valor2;
+// 	printf("\nHEXA = %016p\n", resultado);
+	
+  	if (valor1 > (LLONG_MAX - valor2)){
+		printf("\n(-) ERROR! ");
+		printf("%s\n\n", strerror(34));
+  	}
+	
+	/*
+	 * Empilhar o maior valor
+	 * FFFFFFFF FFFFFFFF (64 bits)
+	 * 00000000 FFFFFFFF (Shift de 32 pra direita)
+	 * 00000000 FFFFFFFF & FFFFFFFF = FFFFFFFF (Resultado de 32 bits)
+	 * 
+	 * Empilhar o menor valor
+	 * FFFFFFFF FFFFFFFF (64 bits)
+	 * FFFFFFFF 00000000 (Shift de 32 pra esquerda)
+	 * 00000000 FFFFFFFF (Shift de 32 pra direita)
+	 * 00000000 FFFFFFFF & FFFFFFFF = FFFFFFFF (Resultado de 32 bits)
+	 */
+	
+	int32_t maior_valor = 0xFFFFFFFF;
+	maior_valor &= (resultado >> 32);
+	
+	int32_t menor_valor = 0xFFFFFFFF;
+	int64_t aux = (resultado << 32);
+	menor_valor &= (aux >> 32);
+	
+ 	empilha(pilha, maior_valor);
+ 	empilha(pilha, menor_valor);
+	
+	return;
+}
+void fdiv(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+   	int32_t valor2 = desempilha(pilha);
+	int32_t para_empilhar;
+	
+	float valor1_f, valor2_f;
+	
+	float valor_float;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(int32_t));
+	memcpy(&valor2_f, &valor2, sizeof(int32_t));
+	
+	if (valor1_f == NAN || valor2_f == NAN)
+		valor_float = NAN;
+	else {
+		if ((valor1_f == INFINITY && valor2_f == -INFINITY) || (valor1_f == -INFINITY && valor2_f == INFINITY))
+			valor_float = NAN;
+		else {
+			if (valor1_f == INFINITY && valor2_f == INFINITY)
+				valor_float = INFINITY;
+			else {
+				if (valor1_f == -INFINITY && valor2_f == -INFINITY)
+					valor_float = -INFINITY;
+				else{
+					if ((valor1_f == INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+						valor_float = INFINITY;
+					else {
+						if (valor1_f == 0 && valor2_f == 0)
+							valor_float = NAN;
+						else {
+							if (valor2 == 0)
+								valor_float = INFINITY;
+							else {
+								valor_float = valor1_f/valor2_f;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int32_t));
+	
+	empilha(pilha, para_empilhar);
+	
+	return;
+}
+void ddiv(Node *pilha){
+	
+	int64_t valor1_lo = desempilha(pilha);
+	int64_t valor1_hi = desempilha(pilha);
+   	int64_t valor2_lo = desempilha(pilha);
+	int64_t valor2_hi = desempilha(pilha);
+	int32_t para_empilhar_lo = 0xFFFFFFFF;
+	int32_t para_empilhar_hi = 0xFFFFFFFF;
+	int64_t para_empilhar;
+	int64_t valor1, valor2;
+	
+	double valor1_f, valor2_f;
+	double valor_float;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_lo;
+	valor1_hi <<= 32;
+	valor1 |= valor1_hi;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_lo;
+	valor2_hi <<= 32;
+	valor2 |= valor2_hi;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(double));
+	memcpy(&valor2_f, &valor2, sizeof(double));
+	
+	if (valor1_f == NAN || valor2_f == NAN)
+		valor_float = NAN;
+	else {
+		if ((valor1_f == INFINITY && valor2_f == -INFINITY) || (valor1_f == -INFINITY && valor2_f == INFINITY))
+			valor_float = NAN;
+		else {
+			if (valor1_f == INFINITY && valor2_f == INFINITY)
+				valor_float = INFINITY;
+			else {
+				if (valor1_f == -INFINITY && valor2_f == -INFINITY)
+					valor_float = -INFINITY;
+				else{
+					if ((valor1_f == INFINITY && valor2_f != INFINITY && valor2_f != -INFINITY) || (valor2_f == INFINITY && valor1_f != INFINITY && valor1_f != -INFINITY))
+						valor_float = INFINITY;
+					else {
+						if (valor1_f == 0 && valor2_f == 0)
+							valor_float = NAN;
+						else {
+							if (valor2 == 0)
+								valor_float = INFINITY;
+							else {
+								valor_float = valor1_f/valor2_f;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int64_t));
+	para_empilhar_hi &= para_empilhar >> 32;
+	para_empilhar_lo &= para_empilhar;
+	
+	empilha(pilha, para_empilhar_hi);
+	empilha(pilha, para_empilhar_lo);
+	
+	return;
+}
+void irem(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+	int32_t valor2 = desempilha(pilha);
+	int32_t resultado;
+	
+	resultado = valor1%valor2;
+	
+	if (valor1 == 0)
+		ArithmeticException();
+	
+	empilha(pilha, resultado);
+	
+	return;
+}
+void lrem(Node *pilha){
+	
+	int64_t valor1_primeira_parte = desempilha(pilha);
+	int64_t valor1_segunda_parte  = desempilha(pilha);
+	int64_t valor2_primeira_parte = desempilha(pilha);
+	int64_t valor2_segunda_parte  = desempilha(pilha);
+	
+	int64_t valor1, valor2;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_primeira_parte;
+	valor1_segunda_parte <<= 32;
+	valor1 |= valor1_segunda_parte;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_primeira_parte;
+	valor2_segunda_parte <<= 32;
+	valor2 |= valor2_segunda_parte;
+	
+	int64_t resultado = valor1%valor2;
+	
+	if (valor1 == 0)
+		ArithmeticException();
+	
+	int32_t maior_valor = 0xFFFFFFFF;
+	maior_valor &= (resultado >> 32);
+	
+	int32_t menor_valor = 0xFFFFFFFF;
+	int64_t aux = (resultado << 32);
+	menor_valor &= (aux >> 32);
+	
+ 	empilha(pilha, maior_valor);
+ 	empilha(pilha, menor_valor);
+	
+	return;
+}
+void frem(Node *pilha){
+	
+	int32_t valor1 = desempilha(pilha);
+   	int32_t valor2 = desempilha(pilha);
+	int32_t para_empilhar;
+	
+	float valor1_f, valor2_f;
+	
+	float valor_float;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(int32_t));
+	memcpy(&valor2_f, &valor2, sizeof(int32_t));
+	
+	if (valor1_f == NAN || valor2_f == NAN)
+		valor_float = NAN;
+	else {
+		if (valor1 == INFINITY || valor2 == 0)
+			valor_float = NAN;
+		else {
+			if (valor2 == INFINITY)
+				valor_float = valor1;
+			else {
+				if (valor1 == 0)
+					valor_float = valor1;
+				else{
+					valor_float = valor1%valor2;
+				}
+			}
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int32_t));
+	
+	empilha(pilha, para_empilhar);
+	
+	return;
+}
+void drem_(Node *pilha){
+	
+	int64_t valor1_lo = desempilha(pilha);
+	int64_t valor1_hi = desempilha(pilha);
+   	int64_t valor2_lo = desempilha(pilha);
+	int64_t valor2_hi = desempilha(pilha);
+	int32_t para_empilhar_lo = 0xFFFFFFFF;
+	int32_t para_empilhar_hi = 0xFFFFFFFF;
+	int64_t para_empilhar;
+	int64_t valor1, valor2;
+	
+	double valor1_f, valor2_f;
+	double valor_float;
+	
+	valor1 = 0x00000000FFFFFFFF & valor1_lo;
+	valor1_hi <<= 32;
+	valor1 |= valor1_hi;
+	
+	valor2 = 0x00000000FFFFFFFF & valor2_lo;
+	valor2_hi <<= 32;
+	valor2 |= valor2_hi;
+	
+	/*
+	 * memcpy(void *str1, const void *str2, size_t n);
+	 * str1 é o valor de destino
+	 * str2 é o valor fonte
+	 * n é o número de bytes a serem copiados
+	 */
+	memcpy(&valor1_f, &valor1, sizeof(double));
+	memcpy(&valor2_f, &valor2, sizeof(double));
+	
+	if (valor1_f == NAN || valor2_f == NAN)
+		valor_float = NAN;
+	else {
+		if (valor1 == INFINITY || valor2 == 0)
+			valor_float = NAN;
+		else {
+			if (valor2 == INFINITY)
+				valor_float = valor1;
+			else {
+				if (valor1 == 0)
+					valor_float = valor1;
+				else{
+					valor_float = valor1%valor2;
+				}
+			}
+		}
+	}
+	
+	memcpy(&para_empilhar, &valor_float, sizeof(int64_t));
+	para_empilhar_hi &= para_empilhar >> 32;
+	para_empilhar_lo &= para_empilhar;
+	
+	empilha(pilha, para_empilhar_hi);
+	empilha(pilha, para_empilhar_lo);
+	
+	return;
+}
+void ineg(Node *pilha){return;}
+void lneg(Node *pilha){return;}
+void fneg(Node *pilha){return;}
+void dneg(Node *pilha){return;}
+void ishl(Node *pilha){return;}
+void lshl(Node *pilha){return;}
+void ishr(Node *pilha){return;}
+void lshr(Node *pilha){return;}
+void iushr(Node *pilha){return;}
+void lushr(Node *pilha){return;}
+void iand(Node *pilha){return;}
+void land(Node *pilha){return;}
+void ior(Node *pilha){return;}
+void lor(Node *pilha){return;}
+void ixor(Node *pilha){return;}
+void lxor(Node *pilha){return;}
+void iinc(Node *pilha){return;}
 
 //CONVERSÕES
 void i2l(){return;}
