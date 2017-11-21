@@ -1926,7 +1926,7 @@ void idiv(Node *pilha){
 	
 	int64_t resultado;
 	
-	if (valor1 == 0)
+	if (valor2 == 0)
 		ArithmeticException();
 	
 	resultado = (long long int) valor1 / (long long int) valor2;
@@ -1961,6 +1961,9 @@ void ldiv_(Node *pilha){
 	
 	int64_t resultado = valor1 / valor2;
 // 	printf("\nHEXA = %016p\n", resultado);
+	
+	if (valor2 == 0)
+		ArithmeticException();
 	
   	if (valor1 > (LLONG_MAX - valor2)){
 		printf("\n(-) ERROR! ");
@@ -2125,7 +2128,7 @@ void irem(Node *pilha){
 	
 	resultado = valor1%valor2;
 	
-	if (valor1 == 0)
+	if (valor2 == 0)
 		ArithmeticException();
 	
 	empilha(pilha, resultado);
@@ -2151,7 +2154,7 @@ void lrem(Node *pilha){
 	
 	int64_t resultado = valor1%valor2;
 	
-	if (valor1 == 0)
+	if (valor2 == 0)
 		ArithmeticException();
 	
 	int32_t maior_valor = 0xFFFFFFFF;
