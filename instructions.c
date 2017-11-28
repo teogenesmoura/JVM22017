@@ -1470,7 +1470,7 @@ void dadd(Node *pilha){
 	
 	int64_t valor1_lo = desempilha(pilha);
 	int64_t valor1_hi = desempilha(pilha);
-   	int64_t valor2_lo = desempilha(pilha);
+  int64_t valor2_lo = desempilha(pilha);
 	int64_t valor2_hi = desempilha(pilha);
 	int32_t para_empilhar_lo = 0xFFFFFFFF;
 	int32_t para_empilhar_hi = 0xFFFFFFFF;
@@ -1773,7 +1773,7 @@ void lmul(Node *pilha){
 void fmul(Node *pilha){
 	
 	int32_t valor1 = desempilha(pilha);
-   	int32_t valor2 = desempilha(pilha);
+  int32_t valor2 = desempilha(pilha);
 	int32_t para_empilhar;
 	
 	float valor1_f, valor2_f;
@@ -3534,7 +3534,46 @@ void invokestatic(){return;}
 void invokeinterface(){return;}
 // void invokedynamic(){return;}
 void new(){return;}
-void newarray(){return;}
+void newarray(Node *pilha, int atype){
+		int count = desempilha(pilha);
+		/*TODO: checar como tratar exceção NegativeArraySizeException. */
+		/*if(count < 0) {
+			return "NegativeArraySizeException.";
+		}*/
+		if(atype == 4) {
+			uint8_t resultarray[count];
+			empilha(pilha,*resultarray);
+		} 
+		if(atype == 5) {
+			char resultarray[count];
+			empilha(pilha,*resultarray);
+		}
+		if(atype == 6) {
+			float resultarray[count];
+			empilha(pilha,*resultarray);
+		}
+		if(atype == 7) {
+			double resultarray[count];
+			empilha(pilha,*resultarray);
+		}
+		/* C não tem um tipo de dados 'byte', e sizeof(char) == 1 */
+		if(atype == 8) {
+			char resultarray[count];
+			empilha(pilha,*resultarray);
+		}
+		if(atype == 9) {
+			short int resultarray[count];
+			empilha(pilha,*resultarray);
+		}
+		if(atype == 10) {
+			int resultarray[count];
+			empilha(pilha,*resultarray);
+		}
+		if(atype == 11) {
+			long resultarray[count];
+			empilha(pilha,*resultarray);
+		}
+}
 void anewarray(){return;}
 void arraylength(){return;}
 // void athrow(){return;}
