@@ -82,7 +82,6 @@ void showStackFrame(tipoStackFrame* stackFrame){
 }
 
 void executeFrame(tipoStackFrame* stackFrame){
-	tipoStackFrame *currentFrame;
 	currentFrame = stackFrame->next;
 	do{
 		/* Instanciar a instrucao referente a cada instrucao usando o vetor decode. */
@@ -92,7 +91,10 @@ void executeFrame(tipoStackFrame* stackFrame){
 
 void initStackFrame(){
 	int mainIndex;
-	tipoStackFrame* stackFrame = (tipoStackFrame*) malloc (sizeof(tipoStackFrame));
+	
+	stackFrame = (tipoStackFrame*) malloc (sizeof(tipoStackFrame));
+
+
 	if (!stackFrame){
 		printf ("Erro na alocacao de memoria");
 	}else{
