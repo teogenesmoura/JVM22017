@@ -1,9 +1,7 @@
 #define INSTRUCTIONS_SERVER
 #include "../headers/instructions.h"
-// #include "../headers/leitor.h" 
 
-
-void flush_in(){ 
+void flush_in(){
 	
 	int ch;
 	while((ch = fgetc(stdin)) != EOF && ch != '\n' ){} 
@@ -660,47 +658,47 @@ void ArithmeticException(){printf("(-) ArithmeticException\n");}
 
 //CONSTANTES
 void nop(){
-	pc++;
+// 	currentFrame->pc++;
 	return;
 }
 
 //PRECISA VER COMO FAZER PRA COLOCAR O NULL NO TOPO DA PILHA
 void aconst_null(Node *pilha){
 	empilha(pilha, 0);
-	pc++;
+// 	currentFrame->pc += 1;
 	return;
 }
 void iconst_m1(Node *pilha){
 	empilha(pilha, -1);
-	pc++;
+// 	currentFrame->pc++;
 }
 void iconst_0(Node *pilha){
  	empilha(pilha, 0);
-	pc++;
+// 	currentFrame->pc++;
 //  	return;
 }
 void iconst_1(Node *pilha){
 	empilha(pilha, 1);
-	pc++;
+// 	currentFrame->pc++;
 // 	return;
 }
 void iconst_2(Node *pilha){
 	empilha(pilha, 2);
-	pc++;
+// 	currentFrame->pc++;
 // 	return;
 }
 void iconst_3(Node *pilha){
 	empilha(pilha, 3);
-	pc++;
+// 	currentFrame->pc++;
 }
 void iconst_4(Node *pilha){
 	empilha(pilha, 4);
-	pc++;
+// 	currentFrame->pc++;
 // 	return;
 }
 void iconst_5(Node *pilha){
 	empilha(pilha, 5);
-	pc++;
+// 	currentFrame->pc++;
 // 	return;
 }
 void lconst_0(Node *pilha){
@@ -712,7 +710,7 @@ void lconst_0(Node *pilha){
 	empilha(pilha, double_alta_pilha);
 	empilha(pilha, double_baixa_pilha);
 	
-	pc++;
+// 	currentFrame->pc++;
 	
 	return;
 }
@@ -727,7 +725,7 @@ void lconst_1(Node *pilha){
 	empilha(pilha, double_alta_pilha);
 	empilha(pilha, double_baixa_pilha);
 	
-	pc++;
+// 	currentFrame->pc++;
 	
 	return;
 }
@@ -1950,7 +1948,7 @@ void dneg(Node *pilha){
 			if (valor1_f == -INFINITY)
 				valor_float = INFINITY;
 			else {
-				valor_float *= -1;
+				valor_float = valor1_f*-1;
 			}
 		}
 	}
@@ -2825,10 +2823,10 @@ void ifeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 == 0)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 == 0)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2845,10 +2843,10 @@ void ifne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 != 0)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 != 0)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2865,10 +2863,10 @@ void iflt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 < 0)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 < 0)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2885,10 +2883,10 @@ void ifge(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 >= 0)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 >= 0)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2905,10 +2903,10 @@ void ifgt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 > 0)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 > 0)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2925,10 +2923,10 @@ void ifle(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 <= 0)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 <= 0)
+//  		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2946,10 +2944,10 @@ void if_icmpeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 == valor2)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 == valor2)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2967,10 +2965,10 @@ void if_icmpne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 != valor2)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 != valor2)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2988,10 +2986,10 @@ void if_icmplt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 < valor2)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 < valor2)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3009,10 +3007,10 @@ void if_icmpge(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 >= valor2)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 >= valor2)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3030,10 +3028,10 @@ void if_icmpgt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 > valor2)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 > valor2)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3051,10 +3049,10 @@ void if_icmple(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 <= valor2)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 <= valor2)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3072,10 +3070,10 @@ void if_acmpeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 == valor2)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 == valor2)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3093,10 +3091,10 @@ void if_acmpne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor1 != valor2)
-		pc = offset;
-	else 
-		pc = 0;
+// 	if (valor1 != valor2)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3114,7 +3112,7 @@ void goto_(uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	pc = offset;
+// 	currentFrame->pc = offset;
 	
 	return;
 }
@@ -3130,7 +3128,7 @@ void jsr(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	pc = offset;
+// 	currentFrame->pc = offset;
 	
 	return;
 }
@@ -3140,7 +3138,7 @@ void ret(Node *pilha, uint32_t bytes){
 	
 	index |= bytes;
 	
-	pc = variaveis_locais[index];
+// 	currentFrame->pc = variaveis_locais[index];
 	
 	return;
 }
@@ -3160,17 +3158,25 @@ void return_(){return;}
 
 //REFERÊNCIAS
 void getstatic(uint32_t branchbytes1, uint32_t branchbytes2){
-	
-// 	int16_t offset;
-// 	
-// 	//Garante que o valor tenha 1 bytes
-// 	branchbytes1 &= 0x000000FF;
-// 	branchbytes2 &= 0x000000FF;
-// 	
-// 	branchbytes1 <<= 8;
-// 	
-// 	offset = branchbytes1 | branchbytes2;
-	
+	/*
+	* Apos resolver a referencia do field (???), inicializar a
+	* classe ou interface referente (???), caso ainda nao tenha
+	* acontecido.
+	* empilhar no operandStack o valor da classe ou interface.
+	*/
+
+	/* O codigo comeca aqui:
+	uint16_t indexbyte1 = currentFrame->code[(currentFrame->pc)+1];
+	uint16_t indexbyte2 = currentFrame->code[(currentFrame->pc)+2];
+	uint16_t indice = (indexbyte1 << 8) | indexbyte2;
+
+	cp_info teste = currentFrame.constant_pool[indice];
+	if (teste.tag != 9){
+		// Erro: Nao contem referencia para um field!
+		// exit(0)
+	}
+
+	*/
 	return;
 }
 void putstatic(){return;}
@@ -3250,10 +3256,10 @@ void ifnull(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor == 0)
-		pc = offset;
-	else 
-		pc += 3;
+// 	if (valor == 0)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc += 3;
 	
 	return;
 }
@@ -3271,10 +3277,10 @@ void ifnonnull(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	if (valor != 0)
-		pc = offset;
-	else 
-		pc += 3;
+// 	if (valor != 0)
+// 		currentFrame->pc = offset;
+// 	else 
+// 		currentFrame->pc += 3;
 	
 	return;
 }
