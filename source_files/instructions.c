@@ -1,416 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <errno.h>
-#include <limits.h>
-#include <inttypes.h>
-#include <math.h>
-#ifdef NAN
-/* NAN is supported */
-#endif
-#ifdef INFINITY
-/* INFINITY is supported */
-#endif
+#define INSTRUCTIONS_SERVER
+#include "../headers/instructions.h"
+// #include "../headers/leitor.h" 
 
-#define NULL_REF NULL
-#define MAX_LOCAL_VARIABLES 200 //Valor de u2 - int16_t
-//DEFINIR O VALOR MÁXIMO DA PILHA ATRAVÉS DO CÓDIGO DO JEAN
-
-typedef struct{ //Nome da struct = ""
-	int32_t hexa;
-	char name[20]; //Definindo com *name cria-se uma posição na memória sendo read-only
-	int8_t byte;
-	//Chamada da função
-	void (*ins)();
-}AllIns; //"Abreviação" do nome struct + ""
-
-//Definição da pilha
-typedef struct node{
- 	int32_t dado;
-	struct node *prox;
-}Node;
-
-union{
-	int32_t valor0;
-	int64_t valor1;
-	double valor2;
-	char valor3;
-	char *valor4;
-}conversor;
-
-//Variável que armazenará o tamanho da pilha
-int32_t tamanho_pilha;
-
-int32_t variaveis_locais[MAX_LOCAL_VARIABLES];
-
-void flush_in();
-
-//************Funções para tratamento da pilha************
-//Função para a inicialização da pilha
-void inicializa_pilha(Node *pilha);
-
-//Função para a alocação de um novo espaço na pilha para o empilhamento
-Node *aloca_elemento(int32_t dado);
-
-//Função que irá empilhar um elemento no topo da pilha
-void empilha(Node *pilha, int32_t dado);
-
-//Função que irá desempilhar um elemento do topo da pilha
-int32_t desempilha(Node *pilha);
-
-//Função que verifica se a pilha está vazia
-int verifica_pilha_vazia(Node *pilha);
-
-//Função para fazer o print da pilha
-void mostra_pilha(Node *pilha);
-
-//Função para zerar a pilha
-void zera_pilha(Node *pilha);
-
-//Função para destruir a pilha completamente
-void destroi_pilha(Node *pilha);
-
-int32_t pc = 0;
-
-//Funções das intruções
-
-//***********************************************
-//CONSTANTES
-
-//Incrementa o pc
-void nop();
-//Coloca uma referência null no topo da pilha
-void aconst_null(Node *pilha);
-void iconst_m1(Node *pilha);
-void iconst_0(Node *pilha);
-void iconst_1(Node *pilha);
-void iconst_2(Node *pilha);
-void iconst_3(Node *pilha);
-void iconst_4(Node *pilha);
-void iconst_5(Node *pilha);
-void lconst_0(Node *pilha);
-void lconst_1(Node *pilha);
-void fconst_0(Node *pilha);
-void fconst_1(Node *pilha);
-void fconst_2(Node *pilha);
-void dconst_0(Node *pilha);
-void dconst_1(Node *pilha);
-void bipush(Node *pilha, int32_t byte);
-void sipush(Node *pilha, uint32_t byte1, uint32_t byte2);
-void ldc();
-void ldc_w();
-void ldc2_w();
-
-//***********************************************
-//LOADS
-void iload();
-void lload();
-void fload();
-void dload();
-void aload();
-void iload_0();
-void iload_1();
-void iload_2();
-void iload_3();
-void lload_0();
-void lload_1();
-void lload_2();
-void lload_3();
-void fload_0();
-void fload_1();
-void fload_2();
-void fload_3();
-void dload_0();
-void dload_1();
-void dload_2();
-void dload_3();
-void aload_0();
-void aload_1();
-void aload_2();
-void aload_3();
-void iaload();
-void laload();
-void faload();
-void daload();
-void aaload();
-void baload();
-void caload();
-void saload();
-
-//***********************************************
-//STORES
-void istore();
-void lstore();
-void fstore();
-void dstore();
-void astore();
-void istore_0();
-void istore_1();
-void istore_2();
-void istore_3();
-void lstore_0();
-void lstore_1();
-void lstore_2();
-void lstore_3();
-void fstore_0();
-void fstore_1();
-void fstore_2();
-void fstore_3();
-void dstore_0();
-void dstore_1();
-void dstore_2();
-void dstore_3();
-void astore_0();
-void astore_1();
-void astore_2();
-void astore_3();
-void iastore();
-void lastore();
-void fastore();
-void dastore();
-void aastore();
-void bastore();
-void castore();
-void sastore();
-
-//***********************************************
-//PILHA
-// void pop();
-// void pop2();
-// void dup();
-// void dup_x1();
-// void dup_x2();
-// void dup2();
-// void dup2_x1();
-// void dup2_x2();
-// void swap();
-
-//***********************************************
-//OPERAÇÕES MATEMÁTICAS
-void iadd(Node *pilha);
-void ladd(Node *pilha);
-void fadd(Node *pilha);
-void dadd(Node *pilha); //Testar
-void isub(Node *pilha); //Testar
-void lsub(Node *pilha); //Testar
-void fsub(Node *pilha); //Testar
-void dsub(Node *pilha); //Testar
-void imul(Node *pilha); //Testar
-void lmul(Node *pilha); //Testar
-void fmul(Node *pilha); //Testar
-void dmul(Node *pilha); //Testar
-void idiv(Node *pilha); //Testar
-void ldiv_(Node *pilha);//Testar
-void fdiv(Node *pilha); //Testar
-void ddiv(Node *pilha); //Testar
-void irem(Node *pilha); //Testar
-void lrem(Node *pilha); //Testar
-void frem(Node *pilha); //Testar
-void drem_(Node *pilha); //Testar
-void ineg(Node *pilha);
-void lneg(Node *pilha);
-void fneg(Node *pilha);
-void dneg(Node *pilha);
-void ishl(Node *pilha);
-void lshl(Node *pilha);
-void ishr(Node *pilha);
-void lshr(Node *pilha);
-void iushr(Node *pilha);
-void lushr(Node *pilha);
-void iand(Node *pilha);
-void land(Node *pilha);
-void ior(Node *pilha);
-void lor(Node *pilha);
-void ixor(Node *pilha);
-void lxor(Node *pilha);
-void iinc(Node *pilha, uint32_t index, int32_t const_);
-
-//***********************************************
-//CONVERSÕES
-void i2l(Node *pilha);
-void i2f(Node *pilha);
-void i2d(Node *pilha);
-void l2i(Node *pilha);
-void l2f(Node *pilha);
-void l2d(Node *pilha); //ARRUMAR O LONG TO INT64
-void f2i(Node *pilha);
-void f2l(Node *pilha);
-void f2d(Node *pilha); //ARRUMAR O LONG TO INT64
-void d2i(Node *pilha); //ARRUMAR O LONG TO INT64
-void d2l(Node *pilha); //ARRUMAR O LONG TO INT64
-void d2f(Node *pilha); //ARRUMAR O LONG TO INT64
-void i2b(Node *pilha); //Testar
-void i2c(Node *pilha);
-void i2s(Node *pilha);
-
-//***********************************************
-//COMPARAÇÕES
-void lcmp(Node *pilha);
-void fcmpl(Node *pilha);
-void fcmpg(Node *pilha);
-void dcmpl(Node *pilha);
-void dcmpg(Node *pilha);
-void ifeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void ifne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void iflt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void ifge(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void ifgt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void ifle(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void if_icmpeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void if_icmpne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void if_icmplt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void if_icmpge(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void if_icmpgt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void if_icmple(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void if_acmpeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-void if_acmpne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-
-//***********************************************
-//CONTROLE
-void goto_();
-void jsr();
-void ret();
-void tableswitch();
-void lookupswitch();
-void ireturn();
-void lreturn();
-void freturn();
-void dreturn();
-void areturn();
-void return_();
-
-//***********************************************
-//REFERÊNCIAS
-void getstatic();
-void putstatic();
-void getfield();
-void putfield();
-void invokevirtual();
-void invokespecial();
-void invokestatic();
-void invokeinterface();
-// void invokedynamic();
-void new();
-void newarray();
-void anewarray();
-void arraylength();
-// void athrow();
-// void checkcast();
-// void instanceof();
-// void monitorenter();
-// void monitorexit();
-
-//***********************************************
-//EXTENDIDO
-void wide();
-void multianewarray();
-void ifnull();
-void ifnonnull();
-void goto_w();
-void jsr_w();
-//***********************************************
-
-//Função para criar o array de instruções
-void mount_inst_array();
-
-//Funções para mensagens de erros
-void internal_error();
-void out_of_mem();
-void stack__ovflw_error();
-void unkwn_err();
-void ArithmeticException();
-
-int main(int argc, char *argv[]){
-	
-//  	int32_t opcode;
-// 	int32_t opcode, opcode2;
-// 	float a = 12.2;
-// 	float b= 13.3;
-
-// 	char desire[20];
-	
-	system("clear");
-	
-	AllIns instructions[256];
-	
-	Node *pilha = (Node*) malloc(sizeof(Node));
-	
-	if (!pilha){
-		printf("Sem memória disponível");
-		exit(0);
-	}
-	
-	inicializa_pilha(pilha);
-	
-	mount_inst_array(instructions);
-	
-	inicializa_pilha(pilha);
-	
-// 	empilha(pilha, 0x41200000);
-	empilha(pilha, 0);
-	empilha(pilha, 0x41400000);
- 	empilha(pilha, 0);
-// 	empilha(pilha, 0x41500000);
-	
-	variaveis_locais[0] = 10;
-	variaveis_locais[1] = 11;
-	variaveis_locais[2] = 12;
-	
-  	for (int i = 0; i < 1; i++){
-		mostra_pilha(pilha);
-		instructions[153].ins(pilha, 1, 1);
-	}
-	mostra_pilha(pilha);
-	
-	/*
-	empilha(pilha,1);
-	mostra_pilha(pilha);
-	empilha(pilha,2);
-	empilha(pilha,2);
-	empilha(pilha,2);
-	empilha(pilha,2);
-	empilha(pilha,2);
-	empilha(pilha,2);
-	empilha(pilha,2);
-	mostra_pilha(pilha);
-	empilha(pilha,2);
-	empilha(pilha,3);
-	
-	mostra_pilha(pilha);
-	
-	zera_pilha(pilha);
-	
-	mostra_pilha(pilha);
-	
-	desempilha(pilha);
-	
-	mostra_pilha(pilha);
-	
-	destroi_pilha(pilha);
-	*/
-	
-// 	printf("pc = %d\n", pc);
-	
-// 	internal_error();
-// 	out_of_mem();
-// 	stack__ovflw_error();
-// 	unkwn_err();
-	
-// 	printf("*****Instructions table*****\nQual instrução deseja?: ");
-// 	scanf("%s", desire);
-// 	printf("lido = |%s|\n", desire);
-	
-	//Mostra o diretório atual
-	char cwd[1024];
-	if (getcwd(cwd, sizeof(cwd)) != NULL)
- 		fprintf(stdout, "Current working dir: %s\n", cwd);
-	else
- 		perror("getcwd() error");
-	
- 	return 0;
-}
 
 void flush_in(){ 
 	
@@ -669,244 +260,244 @@ void mount_inst_array(AllIns *instructions){
 	//******************************************************************
 	//CONSTANTES
 	
-  	instructions[0].ins = nop;		instructions[0].byte = 0;
-  	instructions[1].ins = aconst_null;	instructions[1].byte = 0;
-  	instructions[2].ins = iconst_m1;	instructions[2].byte = 0;
-  	instructions[3].ins = iconst_0;		instructions[3].byte = 0;
-  	instructions[4].ins = iconst_1;		instructions[4].byte = 0;
-  	instructions[5].ins = iconst_2;		instructions[5].byte = 0;
-	instructions[6].ins = iconst_3;		instructions[6].byte = 0;
-  	instructions[7].ins = iconst_4;		instructions[7].byte = 0;
-  	instructions[8].ins = iconst_5;		instructions[8].byte = 0;
-  	instructions[9].ins = lconst_0;		instructions[9].byte = 0;
-  	instructions[10].ins = lconst_1;	instructions[10].byte = 0;
-  	instructions[11].ins = fconst_0;	instructions[11].byte = 0;
-  	instructions[12].ins = fconst_1;	instructions[12].byte = 0;
-  	instructions[13].ins = fconst_2;	instructions[13].byte = 0;
-  	instructions[14].ins = dconst_0;	instructions[14].byte = 0;
-  	instructions[15].ins = dconst_1;	instructions[15].byte = 0;
-  	instructions[16].ins = bipush;		instructions[16].byte = 1;
-  	instructions[17].ins = sipush;		instructions[17].byte = 2;
-  	instructions[18].ins = ldc;		instructions[18].byte = 1;
-  	instructions[19].ins = ldc_w;		instructions[19].byte = 2;
-  	instructions[20].ins = ldc2_w;		instructions[20].byte = 2;
+  	instructions[0].ins = nop;		instructions[0].bytes = 0;
+  	instructions[1].ins = aconst_null;	instructions[1].bytes = 0;
+  	instructions[2].ins = iconst_m1;	instructions[2].bytes = 0;
+  	instructions[3].ins = iconst_0;		instructions[3].bytes = 0;
+  	instructions[4].ins = iconst_1;		instructions[4].bytes = 0;
+  	instructions[5].ins = iconst_2;		instructions[5].bytes = 0;
+	instructions[6].ins = iconst_3;		instructions[6].bytes = 0;
+  	instructions[7].ins = iconst_4;		instructions[7].bytes = 0;
+  	instructions[8].ins = iconst_5;		instructions[8].bytes = 0;
+  	instructions[9].ins = lconst_0;		instructions[9].bytes = 0;
+  	instructions[10].ins = lconst_1;	instructions[10].bytes = 0;
+  	instructions[11].ins = fconst_0;	instructions[11].bytes = 0;
+  	instructions[12].ins = fconst_1;	instructions[12].bytes = 0;
+  	instructions[13].ins = fconst_2;	instructions[13].bytes = 0;
+  	instructions[14].ins = dconst_0;	instructions[14].bytes = 0;
+  	instructions[15].ins = dconst_1;	instructions[15].bytes = 0;
+  	instructions[16].ins = bipush;		instructions[16].bytes = 1;
+  	instructions[17].ins = sipush;		instructions[17].bytes = 2;
+  	instructions[18].ins = ldc;		instructions[18].bytes = 1;
+  	instructions[19].ins = ldc_w;		instructions[19].bytes = 2;
+  	instructions[20].ins = ldc2_w;		instructions[20].bytes = 2;
 	
 	//******************************************************************
 	//LOADS
 	
-	instructions[21].ins = iload;		instructions[21].byte = 1;
-	instructions[22].ins = lload;		instructions[22].byte = 1;
-	instructions[23].ins = fload;		instructions[23].byte = 1;
-	instructions[24].ins = dload;		instructions[24].byte = 1;
-	instructions[25].ins = aload;		instructions[25].byte = 1;
-	instructions[26].ins = iload_0;		instructions[26].byte = 0;
-	instructions[27].ins = iload_1;		instructions[27].byte = 0;
-	instructions[28].ins = iload_2;		instructions[28].byte = 0;
-	instructions[29].ins = iload_3;		instructions[29].byte = 0;
-	instructions[30].ins = lload_0;		instructions[30].byte = 0;
-	instructions[31].ins = lload_1;		instructions[31].byte = 0;
-	instructions[32].ins = lload_2;		instructions[32].byte = 0;
-	instructions[33].ins = lload_3;		instructions[33].byte = 0;
-	instructions[34].ins = fload_0;		instructions[34].byte = 0;
-	instructions[35].ins = fload_1;		instructions[35].byte = 0;
-	instructions[36].ins = fload_2;		instructions[36].byte = 0;
-	instructions[37].ins = fload_3;		instructions[37].byte = 0;
-	instructions[38].ins = dload_0;		instructions[38].byte = 0;
-	instructions[39].ins = dload_1;		instructions[39].byte = 0;
-	instructions[40].ins = dload_2;		instructions[40].byte = 0;
-	instructions[41].ins = dload_3;		instructions[41].byte = 0;
-	instructions[42].ins = aload_0;		instructions[42].byte = 0;
-	instructions[43].ins = aload_1;		instructions[43].byte = 0;
-	instructions[44].ins = aload_2;		instructions[44].byte = 0;
-	instructions[45].ins = aload_3;		instructions[45].byte = 0;
-	instructions[46].ins = iaload;		instructions[46].byte = 0;
-	instructions[47].ins = laload;		instructions[47].byte = 0;
-	instructions[48].ins = faload;		instructions[48].byte = 0;
-	instructions[49].ins = daload;		instructions[49].byte = 0;
-	instructions[50].ins = aaload;		instructions[50].byte = 0;
-	instructions[51].ins = baload;		instructions[51].byte = 0;
-	instructions[52].ins = caload;		instructions[52].byte = 0;
-	instructions[53].ins = saload;		instructions[53].byte = 0;
+	instructions[21].ins = iload;		instructions[21].bytes = 1;
+	instructions[22].ins = lload;		instructions[22].bytes = 1;
+	instructions[23].ins = fload;		instructions[23].bytes = 1;
+	instructions[24].ins = dload;		instructions[24].bytes = 1;
+	instructions[25].ins = aload;		instructions[25].bytes = 1;
+	instructions[26].ins = iload_0;		instructions[26].bytes = 0;
+	instructions[27].ins = iload_1;		instructions[27].bytes = 0;
+	instructions[28].ins = iload_2;		instructions[28].bytes = 0;
+	instructions[29].ins = iload_3;		instructions[29].bytes = 0;
+	instructions[30].ins = lload_0;		instructions[30].bytes = 0;
+	instructions[31].ins = lload_1;		instructions[31].bytes = 0;
+	instructions[32].ins = lload_2;		instructions[32].bytes = 0;
+	instructions[33].ins = lload_3;		instructions[33].bytes = 0;
+	instructions[34].ins = fload_0;		instructions[34].bytes = 0;
+	instructions[35].ins = fload_1;		instructions[35].bytes = 0;
+	instructions[36].ins = fload_2;		instructions[36].bytes = 0;
+	instructions[37].ins = fload_3;		instructions[37].bytes = 0;
+	instructions[38].ins = dload_0;		instructions[38].bytes = 0;
+	instructions[39].ins = dload_1;		instructions[39].bytes = 0;
+	instructions[40].ins = dload_2;		instructions[40].bytes = 0;
+	instructions[41].ins = dload_3;		instructions[41].bytes = 0;
+	instructions[42].ins = aload_0;		instructions[42].bytes = 0;
+	instructions[43].ins = aload_1;		instructions[43].bytes = 0;
+	instructions[44].ins = aload_2;		instructions[44].bytes = 0;
+	instructions[45].ins = aload_3;		instructions[45].bytes = 0;
+	instructions[46].ins = iaload;		instructions[46].bytes = 0;
+	instructions[47].ins = laload;		instructions[47].bytes = 0;
+	instructions[48].ins = faload;		instructions[48].bytes = 0;
+	instructions[49].ins = daload;		instructions[49].bytes = 0;
+	instructions[50].ins = aaload;		instructions[50].bytes = 0;
+	instructions[51].ins = baload;		instructions[51].bytes = 0;
+	instructions[52].ins = caload;		instructions[52].bytes = 0;
+	instructions[53].ins = saload;		instructions[53].bytes = 0;
 	
 	//******************************************************************
 	//STORES
 	
-	instructions[54].ins = istore;		instructions[54].byte = 1;
-	instructions[55].ins = lstore;		instructions[55].byte = 1;
-	instructions[56].ins = fstore;		instructions[56].byte = 1;
-	instructions[57].ins = dstore;		instructions[57].byte = 1;
-	instructions[58].ins = astore;		instructions[58].byte = 1;
-	instructions[59].ins = istore_0;	instructions[59].byte = 0;
-	instructions[60].ins = istore_1;	instructions[60].byte = 0;
-	instructions[61].ins = istore_2;	instructions[61].byte = 0;
-	instructions[62].ins = istore_3;	instructions[62].byte = 0;
-	instructions[63].ins = lstore_0;	instructions[63].byte = 0;
-	instructions[64].ins = lstore_1;	instructions[64].byte = 0;
-	instructions[65].ins = lstore_2;	instructions[65].byte = 0;
-	instructions[66].ins = lstore_3;	instructions[66].byte = 0;
-	instructions[67].ins = fstore_0;	instructions[67].byte = 0;
-	instructions[68].ins = fstore_1;	instructions[68].byte = 0;
-	instructions[69].ins = fstore_2;	instructions[69].byte = 0;
-	instructions[70].ins = fstore_3;	instructions[70].byte = 0;
-	instructions[71].ins = dstore_0;	instructions[71].byte = 0;
-	instructions[72].ins = dstore_1;	instructions[72].byte = 0;
-	instructions[73].ins = dstore_2;	instructions[73].byte = 0;
-	instructions[74].ins = dstore_3;	instructions[74].byte = 0;
-	instructions[75].ins = astore_0;	instructions[75].byte = 0;
-	instructions[76].ins = astore_1;	instructions[76].byte = 0;
-	instructions[77].ins = astore_2;	instructions[77].byte = 0;
-	instructions[78].ins = astore_3;	instructions[78].byte = 0;
-	instructions[79].ins = iastore;		instructions[79].byte = 0;
-	instructions[80].ins = lastore;		instructions[80].byte = 0;
-	instructions[81].ins = fastore;		instructions[81].byte = 0;
-	instructions[82].ins = dastore;		instructions[82].byte = 0;
-	instructions[83].ins = aastore;		instructions[83].byte = 0;
-	instructions[84].ins = bastore;		instructions[84].byte = 0;
-	instructions[85].ins = castore;		instructions[85].byte = 0;
-	instructions[86].ins = sastore;		instructions[86].byte = 0;
+	instructions[54].ins = istore;		instructions[54].bytes = 1;
+	instructions[55].ins = lstore;		instructions[55].bytes = 1;
+	instructions[56].ins = fstore;		instructions[56].bytes = 1;
+	instructions[57].ins = dstore;		instructions[57].bytes = 1;
+	instructions[58].ins = astore;		instructions[58].bytes = 1;
+	instructions[59].ins = istore_0;	instructions[59].bytes = 0;
+	instructions[60].ins = istore_1;	instructions[60].bytes = 0;
+	instructions[61].ins = istore_2;	instructions[61].bytes = 0;
+	instructions[62].ins = istore_3;	instructions[62].bytes = 0;
+	instructions[63].ins = lstore_0;	instructions[63].bytes = 0;
+	instructions[64].ins = lstore_1;	instructions[64].bytes = 0;
+	instructions[65].ins = lstore_2;	instructions[65].bytes = 0;
+	instructions[66].ins = lstore_3;	instructions[66].bytes = 0;
+	instructions[67].ins = fstore_0;	instructions[67].bytes = 0;
+	instructions[68].ins = fstore_1;	instructions[68].bytes = 0;
+	instructions[69].ins = fstore_2;	instructions[69].bytes = 0;
+	instructions[70].ins = fstore_3;	instructions[70].bytes = 0;
+	instructions[71].ins = dstore_0;	instructions[71].bytes = 0;
+	instructions[72].ins = dstore_1;	instructions[72].bytes = 0;
+	instructions[73].ins = dstore_2;	instructions[73].bytes = 0;
+	instructions[74].ins = dstore_3;	instructions[74].bytes = 0;
+	instructions[75].ins = astore_0;	instructions[75].bytes = 0;
+	instructions[76].ins = astore_1;	instructions[76].bytes = 0;
+	instructions[77].ins = astore_2;	instructions[77].bytes = 0;
+	instructions[78].ins = astore_3;	instructions[78].bytes = 0;
+	instructions[79].ins = iastore;		instructions[79].bytes = 0;
+	instructions[80].ins = lastore;		instructions[80].bytes = 0;
+	instructions[81].ins = fastore;		instructions[81].bytes = 0;
+	instructions[82].ins = dastore;		instructions[82].bytes = 0;
+	instructions[83].ins = aastore;		instructions[83].bytes = 0;
+	instructions[84].ins = bastore;		instructions[84].bytes = 0;
+	instructions[85].ins = castore;		instructions[85].bytes = 0;
+	instructions[86].ins = sastore;		instructions[86].bytes = 0;
 	
 	//******************************************************************
 	//PILHA
 	
-// 	instructions[87].ins = pop;		instructions[87].byte = 0;
-// 	instructions[88].ins = pop2;		instructions[88].byte = 0;
-// 	instructions[89].ins = dup;		instructions[89].byte = 0;
-// 	instructions[90].ins = dup_x1;		instructions[90].byte = 0;
-// 	instructions[91].ins = dup_x2;		instructions[91].byte = 0;
-// 	instructions[92].ins = dup2;		instructions[92].byte = 0;
-// 	instructions[93].ins = dup2_x1;		instructions[93].byte = 0;
-// 	instructions[94].ins = dup2_x2;		instructions[94].byte = 0;
-// 	instructions[95].ins = swap;		instructions[95].byte = 0;
+// 	instructions[87].ins = pop;		instructions[87].bytes = 0;
+// 	instructions[88].ins = pop2;		instructions[88].bytes = 0;
+// 	instructions[89].ins = dup;		instructions[89].bytes = 0;
+// 	instructions[90].ins = dup_x1;		instructions[90].bytes = 0;
+// 	instructions[91].ins = dup_x2;		instructions[91].bytes = 0;
+// 	instructions[92].ins = dup2;		instructions[92].bytes = 0;
+// 	instructions[93].ins = dup2_x1;		instructions[93].bytes = 0;
+// 	instructions[94].ins = dup2_x2;		instructions[94].bytes = 0;
+// 	instructions[95].ins = swap;		instructions[95].bytes = 0;
 	
 	//******************************************************************
 	//OPERAÇÕES MATEMÁTICAS	
 	
-	instructions[96].ins = iadd;		instructions[96].byte = 0;
-	instructions[97].ins = ladd;		instructions[97].byte = 0;
-	instructions[98].ins = fadd;		instructions[98].byte = 0;
-	instructions[99].ins = dadd;		instructions[99].byte = 0;
-	instructions[100].ins = isub;		instructions[100].byte = 0;
-	instructions[101].ins = lsub;		instructions[101].byte = 0;
-	instructions[102].ins = fsub;		instructions[102].byte = 0;
-	instructions[103].ins = dsub;		instructions[103].byte = 0;
-	instructions[104].ins = imul;		instructions[104].byte = 0;
-	instructions[105].ins = lmul;		instructions[105].byte = 0;
-	instructions[106].ins = fmul;		instructions[106].byte = 0;
-	instructions[107].ins = dmul;		instructions[107].byte = 0;
-	instructions[108].ins = idiv;		instructions[108].byte = 0;
-	instructions[109].ins = ldiv_;		instructions[109].byte = 0;
-	instructions[110].ins = fdiv;		instructions[110].byte = 0;
-	instructions[111].ins = ddiv;		instructions[111].byte = 0;
-	instructions[112].ins = irem;		instructions[112].byte = 0;
-	instructions[113].ins = lrem;		instructions[111].byte = 0;
-	instructions[114].ins = frem;		instructions[114].byte = 0;
-	instructions[115].ins = drem_;		instructions[115].byte = 0;
-	instructions[116].ins = ineg;		instructions[116].byte = 0;
-	instructions[117].ins = lneg;		instructions[117].byte = 0;
-	instructions[118].ins = fneg;		instructions[118].byte = 0;
-	instructions[119].ins = dneg;		instructions[119].byte = 0;
-	instructions[120].ins = ishl;		instructions[120].byte = 0;
-	instructions[121].ins = lshl;		instructions[121].byte = 0;
-	instructions[122].ins = ishr;		instructions[122].byte = 0;
-	instructions[123].ins = lshr;		instructions[123].byte = 0;
-	instructions[124].ins = iushr;		instructions[124].byte = 0;
-	instructions[125].ins = lushr;		instructions[125].byte = 0;
-	instructions[126].ins = iand;		instructions[126].byte = 0;
-	instructions[127].ins = land;		instructions[127].byte = 0;
-	instructions[128].ins = ior;		instructions[128].byte = 0;
-	instructions[129].ins = lor;		instructions[129].byte = 0;
-	instructions[130].ins = ixor;		instructions[130].byte = 0;
-	instructions[131].ins = lxor;		instructions[131].byte = 0;
-	instructions[132].ins = iinc;		instructions[132].byte = 2;
+	instructions[96].ins = iadd;		instructions[96].bytes = 0;
+	instructions[97].ins = ladd;		instructions[97].bytes = 0;
+	instructions[98].ins = fadd;		instructions[98].bytes = 0;
+	instructions[99].ins = dadd;		instructions[99].bytes = 0;
+	instructions[100].ins = isub;		instructions[100].bytes = 0;
+	instructions[101].ins = lsub;		instructions[101].bytes = 0;
+	instructions[102].ins = fsub;		instructions[102].bytes = 0;
+	instructions[103].ins = dsub;		instructions[103].bytes = 0;
+	instructions[104].ins = imul;		instructions[104].bytes = 0;
+	instructions[105].ins = lmul;		instructions[105].bytes = 0;
+	instructions[106].ins = fmul;		instructions[106].bytes = 0;
+	instructions[107].ins = dmul;		instructions[107].bytes = 0;
+	instructions[108].ins = idiv;		instructions[108].bytes = 0;
+	instructions[109].ins = ldiv_;		instructions[109].bytes = 0;
+	instructions[110].ins = fdiv;		instructions[110].bytes = 0;
+	instructions[111].ins = ddiv;		instructions[111].bytes = 0;
+	instructions[112].ins = irem;		instructions[112].bytes = 0;
+	instructions[113].ins = lrem;		instructions[111].bytes = 0;
+	instructions[114].ins = frem;		instructions[114].bytes = 0;
+	instructions[115].ins = drem_;		instructions[115].bytes = 0;
+	instructions[116].ins = ineg;		instructions[116].bytes = 0;
+	instructions[117].ins = lneg;		instructions[117].bytes = 0;
+	instructions[118].ins = fneg;		instructions[118].bytes = 0;
+	instructions[119].ins = dneg;		instructions[119].bytes = 0;
+	instructions[120].ins = ishl;		instructions[120].bytes = 0;
+	instructions[121].ins = lshl;		instructions[121].bytes = 0;
+	instructions[122].ins = ishr;		instructions[122].bytes = 0;
+	instructions[123].ins = lshr;		instructions[123].bytes = 0;
+	instructions[124].ins = iushr;		instructions[124].bytes = 0;
+	instructions[125].ins = lushr;		instructions[125].bytes = 0;
+	instructions[126].ins = iand;		instructions[126].bytes = 0;
+	instructions[127].ins = land;		instructions[127].bytes = 0;
+	instructions[128].ins = ior;		instructions[128].bytes = 0;
+	instructions[129].ins = lor;		instructions[129].bytes = 0;
+	instructions[130].ins = ixor;		instructions[130].bytes = 0;
+	instructions[131].ins = lxor;		instructions[131].bytes = 0;
+	instructions[132].ins = iinc;		instructions[132].bytes = 2;
 	
 	//******************************************************************
 	//CONVERSÕES
 	
-	instructions[133].ins = i2l;		instructions[133].byte = 0;
-	instructions[134].ins = i2f;		instructions[134].byte = 0;
-	instructions[135].ins = i2d;		instructions[135].byte = 0;
-	instructions[136].ins = l2i;		instructions[136].byte = 0;
-	instructions[137].ins = l2f;		instructions[137].byte = 0;
-	instructions[138].ins = l2d;		instructions[138].byte = 0;
-	instructions[139].ins = f2i;		instructions[139].byte = 0;
-	instructions[140].ins = f2l;		instructions[140].byte = 0;
-	instructions[141].ins = f2d;		instructions[141].byte = 0;
-	instructions[142].ins = d2i;		instructions[142].byte = 0;
-	instructions[143].ins = d2l;		instructions[143].byte = 0;
-	instructions[144].ins = d2f;		instructions[144].byte = 0;
-	instructions[145].ins = i2b;		instructions[145].byte = 0;
-	instructions[146].ins = i2c;		instructions[146].byte = 0;
-	instructions[147].ins = i2s;		instructions[147].byte = 0;
+	instructions[133].ins = i2l;		instructions[133].bytes = 0;
+	instructions[134].ins = i2f;		instructions[134].bytes = 0;
+	instructions[135].ins = i2d;		instructions[135].bytes = 0;
+	instructions[136].ins = l2i;		instructions[136].bytes = 0;
+	instructions[137].ins = l2f;		instructions[137].bytes = 0;
+	instructions[138].ins = l2d;		instructions[138].bytes = 0;
+	instructions[139].ins = f2i;		instructions[139].bytes = 0;
+	instructions[140].ins = f2l;		instructions[140].bytes = 0;
+	instructions[141].ins = f2d;		instructions[141].bytes = 0;
+	instructions[142].ins = d2i;		instructions[142].bytes = 0;
+	instructions[143].ins = d2l;		instructions[143].bytes = 0;
+	instructions[144].ins = d2f;		instructions[144].bytes = 0;
+	instructions[145].ins = i2b;		instructions[145].bytes = 0;
+	instructions[146].ins = i2c;		instructions[146].bytes = 0;
+	instructions[147].ins = i2s;		instructions[147].bytes = 0;
 	
 	//******************************************************************
 	//COMPARAÇÕES
 		
-	instructions[148].ins = lcmp;		instructions[148].byte = 0;
-	instructions[149].ins = fcmpl;		instructions[149].byte = 0;
-	instructions[150].ins = fcmpg;		instructions[148].byte = 0;
-	instructions[151].ins = dcmpl;		instructions[151].byte = 0;
-	instructions[152].ins = dcmpg;		instructions[152].byte = 0;
-	instructions[153].ins = ifeq;		instructions[153].byte = 2;
-	instructions[154].ins = ifne;		instructions[154].byte = 2;
-	instructions[155].ins = iflt;		instructions[155].byte = 2;
-	instructions[156].ins = ifge;		instructions[156].byte = 2;
-	instructions[157].ins = ifgt;		instructions[157].byte = 2;
-	instructions[158].ins = ifle;		instructions[158].byte = 2;
-	instructions[159].ins = if_icmpeq;	instructions[159].byte = 2;
-	instructions[160].ins = if_icmpne;	instructions[160].byte = 2;
-	instructions[161].ins = if_icmplt;	instructions[161].byte = 2;
-	instructions[162].ins = if_icmpge;	instructions[162].byte = 2;
-	instructions[163].ins = if_icmpgt;	instructions[163].byte = 2;
-	instructions[164].ins = if_icmple;	instructions[164].byte = 2;
-	instructions[165].ins = if_acmpeq;	instructions[165].byte = 2;
-	instructions[166].ins = if_acmpne;	instructions[166].byte = 2;
+	instructions[148].ins = lcmp;		instructions[148].bytes = 0;
+	instructions[149].ins = fcmpl;		instructions[149].bytes = 0;
+	instructions[150].ins = fcmpg;		instructions[148].bytes = 0;
+	instructions[151].ins = dcmpl;		instructions[151].bytes = 0;
+	instructions[152].ins = dcmpg;		instructions[152].bytes = 0;
+	instructions[153].ins = ifeq;		instructions[153].bytes = 2;
+	instructions[154].ins = ifne;		instructions[154].bytes = 2;
+	instructions[155].ins = iflt;		instructions[155].bytes = 2;
+	instructions[156].ins = ifge;		instructions[156].bytes = 2;
+	instructions[157].ins = ifgt;		instructions[157].bytes = 2;
+	instructions[158].ins = ifle;		instructions[158].bytes = 2;
+	instructions[159].ins = if_icmpeq;	instructions[159].bytes = 2;
+	instructions[160].ins = if_icmpne;	instructions[160].bytes = 2;
+	instructions[161].ins = if_icmplt;	instructions[161].bytes = 2;
+	instructions[162].ins = if_icmpge;	instructions[162].bytes = 2;
+	instructions[163].ins = if_icmpgt;	instructions[163].bytes = 2;
+	instructions[164].ins = if_icmple;	instructions[164].bytes = 2;
+	instructions[165].ins = if_acmpeq;	instructions[165].bytes = 2;
+	instructions[166].ins = if_acmpne;	instructions[166].bytes = 2;
 	
 	//******************************************************************
 	//CONTROLE
 	
-	instructions[167].ins = goto_;		instructions[167].byte = 2;
-	instructions[168].ins = jsr;		instructions[168].byte = 2;
-	instructions[169].ins = ret;		instructions[169].byte = 1;
-	instructions[170].ins = tableswitch;	instructions[170].byte = 14; //CONFIRMAR
-	instructions[171].ins = lookupswitch;	instructions[171].byte = 10; //CONFIRMAR
-	instructions[172].ins = ireturn;	instructions[172].byte = 0;
-	instructions[173].ins = lreturn;	instructions[173].byte = 0;
-	instructions[174].ins = freturn;	instructions[174].byte = 0;
-	instructions[175].ins = dreturn;	instructions[175].byte = 0;
-	instructions[176].ins = areturn;	instructions[176].byte = 0;
-	instructions[177].ins = return_;	instructions[177].byte = 0;
+	instructions[167].ins = goto_;		instructions[167].bytes = 2;
+	instructions[168].ins = jsr;		instructions[168].bytes = 2;
+	instructions[169].ins = ret;		instructions[169].bytes = 1;
+	instructions[170].ins = tableswitch;	instructions[170].bytes = 14; //CONFIRMAR
+	instructions[171].ins = lookupswitch;	instructions[171].bytes = 10; //CONFIRMAR
+	instructions[172].ins = ireturn;	instructions[172].bytes = 0;
+	instructions[173].ins = lreturn;	instructions[173].bytes = 0;
+	instructions[174].ins = freturn;	instructions[174].bytes = 0;
+	instructions[175].ins = dreturn;	instructions[175].bytes = 0;
+	instructions[176].ins = areturn;	instructions[176].bytes = 0;
+	instructions[177].ins = return_;	instructions[177].bytes = 0;
 	
 	//******************************************************************
 	//REFERÊNCIAS
 	
-	instructions[178].ins = getstatic;	instructions[178].byte = 2;
-	instructions[179].ins = putstatic;	instructions[179].byte = 2;
-	instructions[180].ins = getfield;	instructions[180].byte = 2;
-	instructions[181].ins = putfield;	instructions[181].byte = 2;
-	instructions[182].ins = invokevirtual;	instructions[182].byte = 2;
-	instructions[183].ins = invokespecial;	instructions[183].byte = 2;
-	instructions[184].ins = invokestatic;	instructions[184].byte = 2;
-	instructions[185].ins = invokeinterface;instructions[185].byte = 4;
-// 	instructions[186].ins = invokedynamic;	instructions[186].byte = 4;
-	instructions[187].ins = new;		instructions[187].byte = 2;
-	instructions[188].ins = newarray;	instructions[188].byte = 1;
-	instructions[189].ins = anewarray;	instructions[189].byte = 2;
-	instructions[190].ins = arraylength;	instructions[190].byte = 0;
-// 	instructions[191].ins = athrow;		instructions[191].byte = 0;
-// 	instructions[192].ins = checkcast;	instructions[192].byte = 2;
-// 	instructions[193].ins = instanceof;	instructions[193].byte = 2;
-// 	instructions[194].ins = monitorenter;	instructions[194].byte = 0;
-// 	instructions[195].ins = monitorexit;	instructions[195].byte = 0;
+	instructions[178].ins = getstatic;	instructions[178].bytes = 2;
+	instructions[179].ins = putstatic;	instructions[179].bytes = 2;
+	instructions[180].ins = getfield;	instructions[180].bytes = 2;
+	instructions[181].ins = putfield;	instructions[181].bytes = 2;
+	instructions[182].ins = invokevirtual;	instructions[182].bytes = 2;
+	instructions[183].ins = invokespecial;	instructions[183].bytes = 2;
+	instructions[184].ins = invokestatic;	instructions[184].bytes = 2;
+	instructions[185].ins = invokeinterface;instructions[185].bytes = 4;
+// 	instructions[186].ins = invokedynamic;	instructions[186].bytes = 4;
+	instructions[187].ins = new;		instructions[187].bytes = 2;
+	instructions[188].ins = newarray;	instructions[188].bytes = 1;
+	instructions[189].ins = anewarray;	instructions[189].bytes = 2;
+	instructions[190].ins = arraylength;	instructions[190].bytes = 0;
+// 	instructions[191].ins = athrow;		instructions[191].bytes = 0;
+// 	instructions[192].ins = checkcast;	instructions[192].bytes = 2;
+// 	instructions[193].ins = instanceof;	instructions[193].bytes = 2;
+// 	instructions[194].ins = monitorenter;	instructions[194].bytes = 0;
+// 	instructions[195].ins = monitorexit;	instructions[195].bytes = 0;
 	
 	//******************************************************************
 	//EXTENDIDO
 	
-	instructions[196].ins = wide;		instructions[196].byte = 3; //PODE SER 5 TAMBÉM DEPENDENDO DO OPCODE, FAZER A EXCESSÃO DEPOIS
-	instructions[197].ins = multianewarray;	instructions[197].byte = 3;
-	instructions[198].ins = ifnull;		instructions[198].byte = 2;
-	instructions[199].ins = ifnonnull;	instructions[199].byte = 2;
-	instructions[200].ins = goto_w;		instructions[200].byte = 4;
-	instructions[201].ins = jsr_w;		instructions[201].byte = 4;
+	instructions[196].ins = wide;		instructions[196].bytes = 3; //PODE SER 5 TAMBÉM DEPENDENDO DO OPCODE, FAZER A EXCESSÃO DEPOIS
+	instructions[197].ins = multianewarray;	instructions[197].bytes = 3;
+	instructions[198].ins = ifnull;		instructions[198].bytes = 2;
+	instructions[199].ins = ifnonnull;	instructions[199].bytes = 2;
+	instructions[200].ins = goto_w;		instructions[200].bytes = 4;
+	instructions[201].ins = jsr_w;		instructions[201].bytes = 4;
 
  	for (int i=0; i < 202; i++){
   		instructions[i].hexa = i;
@@ -1150,7 +741,7 @@ void fconst_0(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&para_empilhar, &valor, sizeof(int32_t));
 	
@@ -1168,7 +759,7 @@ void fconst_1(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&para_empilhar, &valor, sizeof(int32_t));
 	
@@ -1186,7 +777,7 @@ void fconst_2(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&para_empilhar, &valor, sizeof(int32_t));
 	
@@ -1224,32 +815,32 @@ void dconst_1(Node *pilha){
 	
 	return;
 }
-void bipush(Node *pilha, int32_t byte){
+void bipush(Node *pilha, int32_t bytes){
 	
 	int8_t converte_para_8bits = 0x00;
 	
-	converte_para_8bits |= byte;
+	converte_para_8bits |= bytes;
 	
 	int32_t completa_bits = 0x00000000;
 	
-	completa_bits |= byte;
+	completa_bits |= bytes;
 	
  	empilha(pilha, completa_bits);
 	return;
 }
-void sipush(Node *pilha, uint32_t byte1, uint32_t byte2){
+void sipush(Node *pilha, uint32_t bytes1, uint32_t bytes2){
 	
-	uint8_t valor_convertido_byte1 = 0x00, valor_convertido_byte2 = 0x00;
+	uint8_t valor_convertido_bytes1 = 0x00, valor_convertido_bytes2 = 0x00;
 	
-	valor_convertido_byte1 |= byte1;
-	valor_convertido_byte2 |= byte2;
+	valor_convertido_bytes1 |= bytes1;
+	valor_convertido_bytes2 |= bytes2;
 	
 	uint16_t valor = 0x0000;
 	int32_t para_empilhar = 0x00000000;
 	
-	valor |= valor_convertido_byte1;
+	valor |= valor_convertido_bytes1;
 	valor <<= 8;
-	valor |= valor_convertido_byte2;
+	valor |= valor_convertido_bytes2;
 	
 	para_empilhar |= valor;
 	
@@ -1416,7 +1007,7 @@ void fadd(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(int32_t));
 	memcpy(&valor2_f, &valor2, sizeof(int32_t));
@@ -1470,7 +1061,7 @@ void dadd(Node *pilha){
 	
 	int64_t valor1_lo = desempilha(pilha);
 	int64_t valor1_hi = desempilha(pilha);
-  int64_t valor2_lo = desempilha(pilha);
+   	int64_t valor2_lo = desempilha(pilha);
 	int64_t valor2_hi = desempilha(pilha);
 	int32_t para_empilhar_lo = 0xFFFFFFFF;
 	int32_t para_empilhar_hi = 0xFFFFFFFF;
@@ -1492,7 +1083,7 @@ void dadd(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(double));
 	memcpy(&valor2_f, &valor2, sizeof(double));
@@ -1628,7 +1219,7 @@ void fsub(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(int32_t));
 	memcpy(&valor2_f, &valor2, sizeof(int32_t));
@@ -1676,7 +1267,7 @@ void dsub(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(double));
 	memcpy(&valor2_f, &valor2, sizeof(double));
@@ -1773,7 +1364,7 @@ void lmul(Node *pilha){
 void fmul(Node *pilha){
 	
 	int32_t valor1 = desempilha(pilha);
-  int32_t valor2 = desempilha(pilha);
+   	int32_t valor2 = desempilha(pilha);
 	int32_t para_empilhar;
 	
 	float valor1_f, valor2_f;
@@ -1784,7 +1375,7 @@ void fmul(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(int32_t));
 	memcpy(&valor2_f, &valor2, sizeof(int32_t));
@@ -1860,7 +1451,7 @@ void dmul(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(double));
 	memcpy(&valor2_f, &valor2, sizeof(double));
@@ -2003,7 +1594,7 @@ void fdiv(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(int32_t));
 	memcpy(&valor2_f, &valor2, sizeof(int32_t));
@@ -2070,7 +1661,7 @@ void ddiv(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(double));
 	memcpy(&valor2_f, &valor2, sizeof(double));
@@ -2177,7 +1768,7 @@ void frem(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(int32_t));
 	memcpy(&valor2_f, &valor2, sizeof(int32_t));
@@ -2232,7 +1823,7 @@ void drem_(Node *pilha){
 	 * memcpy(void *str1, const void *str2, size_t n);
 	 * str1 é o valor de destino
 	 * str2 é o valor fonte
-	 * n é o número de bytes a serem copiados
+	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&valor1_f, &valor1, sizeof(double));
 	memcpy(&valor2_f, &valor2, sizeof(double));
@@ -3221,18 +2812,18 @@ void dcmpg(Node *pilha){
 	
 	return;
 }
-void ifeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void ifeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 == 0)
 		pc = offset;
@@ -3241,18 +2832,18 @@ void ifeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void ifne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void ifne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 != 0)
 		pc = offset;
@@ -3261,18 +2852,18 @@ void ifne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void iflt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void iflt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 < 0)
 		pc = offset;
@@ -3281,18 +2872,18 @@ void iflt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void ifge(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void ifge(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 >= 0)
 		pc = offset;
@@ -3301,18 +2892,18 @@ void ifge(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void ifgt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void ifgt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 > 0)
 		pc = offset;
@@ -3321,18 +2912,18 @@ void ifgt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void ifle(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void ifle(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 <= 0)
 		pc = offset;
@@ -3341,19 +2932,19 @@ void ifle(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void if_icmpeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void if_icmpeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int32_t valor2 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 == valor2)
 		pc = offset;
@@ -3362,19 +2953,19 @@ void if_icmpeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void if_icmpne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void if_icmpne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int32_t valor2 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 != valor2)
 		pc = offset;
@@ -3383,19 +2974,19 @@ void if_icmpne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void if_icmplt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void if_icmplt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int32_t valor2 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 < valor2)
 		pc = offset;
@@ -3404,19 +2995,19 @@ void if_icmplt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void if_icmpge(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void if_icmpge(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int32_t valor2 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 >= valor2)
 		pc = offset;
@@ -3425,19 +3016,19 @@ void if_icmpge(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void if_icmpgt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void if_icmpgt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int32_t valor2 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 > valor2)
 		pc = offset;
@@ -3446,19 +3037,19 @@ void if_icmpgt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void if_icmple(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void if_icmple(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int32_t valor2 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 <= valor2)
 		pc = offset;
@@ -3467,19 +3058,19 @@ void if_icmple(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void if_acmpeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void if_acmpeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int32_t valor2 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 == valor2)
 		pc = offset;
@@ -3488,19 +3079,19 @@ void if_acmpeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 	
 	return;
 }
-void if_acmpne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
+void if_acmpne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	int32_t valor1 = desempilha(pilha);
 	int32_t valor2 = desempilha(pilha);
 	int16_t offset;
 	
-	//Garante que o valor tenha 1 byte
-	branchbyte1 &= 0x000000FF;
-	branchbyte2 &= 0x000000FF;
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
 	
-	branchbyte1 <<= 8;
+	branchbytes1 <<= 8;
 	
-	offset = branchbyte1 | branchbyte2;
+	offset = branchbytes1 | branchbytes2;
 	
 	if (valor1 != valor2)
 		pc = offset;
@@ -3511,10 +3102,54 @@ void if_acmpne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2){
 }
 
 //CONTROLES
-void goto_(){return;}
-void jsr(){return;}
-void ret(){return;}
-void tableswitch(){return;}
+void goto_(uint32_t branchbytes1, uint32_t branchbytes2){
+	
+	int16_t offset;
+	
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
+	
+	branchbytes1 <<= 8;
+	
+	offset = branchbytes1 | branchbytes2;
+	
+	pc = offset;
+	
+	return;
+}
+void jsr(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
+	
+	int16_t offset;
+	
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
+	
+	branchbytes1 <<= 8;
+	
+	offset = branchbytes1 | branchbytes2;
+	
+	pc = offset;
+	
+	return;
+}
+void ret(Node *pilha, uint32_t bytes){
+	
+	uint8_t index = 0x00;
+	
+	index |= bytes;
+	
+	pc = variaveis_locais[index];
+	
+	return;
+}
+void tableswitch(Node *pilha){
+	
+	
+	
+	return;
+}
 void lookupswitch(){return;}
 void ireturn(){return;}
 void lreturn(){return;}
@@ -3524,7 +3159,20 @@ void areturn(){return;}
 void return_(){return;}
 
 //REFERÊNCIAS
-void getstatic(){return;}
+void getstatic(uint32_t branchbytes1, uint32_t branchbytes2){
+	
+// 	int16_t offset;
+// 	
+// 	//Garante que o valor tenha 1 bytes
+// 	branchbytes1 &= 0x000000FF;
+// 	branchbytes2 &= 0x000000FF;
+// 	
+// 	branchbytes1 <<= 8;
+// 	
+// 	offset = branchbytes1 | branchbytes2;
+	
+	return;
+}
 void putstatic(){return;}
 void getfield(){return;}
 void putfield(){return;}
@@ -3534,46 +3182,7 @@ void invokestatic(){return;}
 void invokeinterface(){return;}
 // void invokedynamic(){return;}
 void new(){return;}
-void newarray(Node *pilha, int atype){
-		int count = desempilha(pilha);
-		/*TODO: checar como tratar exceção NegativeArraySizeException. */
-		/*if(count < 0) {
-			return "NegativeArraySizeException.";
-		}*/
-		if(atype == 4) {
-			uint8_t resultarray[count];
-			empilha(pilha,*resultarray);
-		} 
-		if(atype == 5) {
-			char resultarray[count];
-			empilha(pilha,*resultarray);
-		}
-		if(atype == 6) {
-			float resultarray[count];
-			empilha(pilha,*resultarray);
-		}
-		if(atype == 7) {
-			double resultarray[count];
-			empilha(pilha,*resultarray);
-		}
-		/* C não tem um tipo de dados 'byte', e sizeof(char) == 1 */
-		if(atype == 8) {
-			char resultarray[count];
-			empilha(pilha,*resultarray);
-		}
-		if(atype == 9) {
-			short int resultarray[count];
-			empilha(pilha,*resultarray);
-		}
-		if(atype == 10) {
-			int resultarray[count];
-			empilha(pilha,*resultarray);
-		}
-		if(atype == 11) {
-			long resultarray[count];
-			empilha(pilha,*resultarray);
-		}
-}
+void newarray(){return;}
 void anewarray(){return;}
 void arraylength(){return;}
 // void athrow(){return;}
@@ -3583,9 +3192,91 @@ void arraylength(){return;}
 // void monitorexit(){return;}
 
 //EXTENDIDO
-void wide(){return;}
+void wide(int32_t escolha, uint32_t opcode, uint32_t indexbytes1, uint32_t indexbytes2, uint32_t constbytes1, uint32_t constbytes2){return;}
+void wide1(char *opcode, uint32_t indexbytes1, uint32_t indexbytes2){
+	
+	//Pode modificar iload, fload, aload, lload, dload, istore, fstore, astore, lstore, dstore, or ret
+	
+	int16_t index;
+	
+	//Garante que o valor tenha 1 bytes
+	indexbytes1 &= 0x000000FF;
+	indexbytes2 &= 0x000000FF;
+	
+	indexbytes1 <<= 8;
+	index = indexbytes1 | indexbytes2;
+	
+ 	if ((strcmp(opcode, instructions[22].name) == 0) || (strcmp(opcode, instructions[24].name) == 0) || (strcmp(opcode, instructions[55].name) == 0) || (strcmp(opcode, instructions[57].name) == 0))
+		variaveis_locais[index + 1] = index;
+		
+	variaveis_locais[index] = index;
+	
+	return;
+}
+void wide2(uint32_t indexbytes1, uint32_t indexbytes2, uint32_t constbytes1, uint32_t constbytes2){
+	
+	int16_t index, offset;
+	
+	//Garante que o valor tenha 1 bytes
+	indexbytes1 &= 0x000000FF;
+	indexbytes2 &= 0x000000FF;
+	constbytes1 &= 0x000000FF;
+	constbytes2 &= 0x000000FF;
+	
+	indexbytes1 <<= 8;
+	index = indexbytes1 | indexbytes2;	
+	
+	//Após o index no code
+	constbytes1 <<= 8;
+	offset = constbytes1 | constbytes2;
+	
+	variaveis_locais[index] = index;
+	variaveis_locais[index+1] = offset;
+	
+	return;
+}
 void multianewarray(){return;}
-void ifnull(){return;}
-void ifnonnull(){return;}
-void goto_w(){return;}
+void ifnull(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
+	
+	int32_t valor = desempilha(pilha);
+	
+	int16_t offset;
+	
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
+	
+	branchbytes1 <<= 8;
+	
+	offset = branchbytes1 | branchbytes2;
+	
+	if (valor == 0)
+		pc = offset;
+	else 
+		pc += 3;
+	
+	return;
+}
+void ifnonnull(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
+	
+	int32_t valor = desempilha(pilha);
+	
+	int16_t offset;
+	
+	//Garante que o valor tenha 1 bytes
+	branchbytes1 &= 0x000000FF;
+	branchbytes2 &= 0x000000FF;
+	
+	branchbytes1 <<= 8;
+	
+	offset = branchbytes1 | branchbytes2;
+	
+	if (valor != 0)
+		pc = offset;
+	else 
+		pc += 3;
+	
+	return;
+}
+void goto_w(){}
 void jsr_w(){return;}

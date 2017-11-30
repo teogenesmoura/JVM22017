@@ -1,10 +1,11 @@
 #define INTERFACE_SERVER
-
+#include "../headers/interface.h"
+#include "../headers/frame.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include "leitor.h"
+#include "../headers/leitor.h"
 
 int menu_interface(){
 	
@@ -35,9 +36,10 @@ bool callFunc(FILE *fp){
 	int type = menu_interface();
 	switch (type){
 		case 1:
-			init_leitor(fp);
+			show_info();
 			break;
 		case 2:
+			initStackFrame();
 			//roda jvm
 			break;
 		case 3:

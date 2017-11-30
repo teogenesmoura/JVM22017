@@ -1,3 +1,12 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <stdbool.h>
+#include <string.h>
+#include <stdint.h>
+
+#include "../headers/leitor.h"
+
 #ifndef EXIBIDOR
 	#define EXIBIDOR
 
@@ -23,15 +32,23 @@
 
 	EXT_EXIBIDOR void infoBasic(cFile classFile);
 	EXT_EXIBIDOR char* show_method_flags(unsigned short flags);
-	EXT_EXIBIDOR char* show_UTF8 (int size, unsigned char *str);
 	EXT_EXIBIDOR void showConstPool(int const_pool_cont, cp_info *constPool);
 	//EXT_EXIBIDOR void show_flags(uint16_t access_flags, bool *flags);
 	EXT_EXIBIDOR char* show_flags(cFile classFile);
 	EXT_EXIBIDOR void show_methods(cFile classFile);
 	EXT_EXIBIDOR void show_field_flags(unsigned short flags);
-	EXT_EXIBIDOR void show_field_attribute(cp_info *cp, attribute_info attribute);
 	EXT_EXIBIDOR void show_fields(cp_info *cp, field_info field);
 	EXT_EXIBIDOR void show_cFile_attributes(cFile classFile);
 	EXT_EXIBIDOR void show_method_attributes(cFile classFile, int method_index);
+	EXT_EXIBIDOR void show_UTF8 (int size, unsigned char *str);
+	EXT_EXIBIDOR void showConstPool(int const_pool_cont, cp_info *constPool);
+	EXT_EXIBIDOR char* show_cFile_flags(cFile classFile);
+	EXT_EXIBIDOR void show_methods(cFile classFile);
+	EXT_EXIBIDOR void show_field_flags(unsigned short flags);
+	EXT_EXIBIDOR void show_method_attribute(cp_info *cp, AT_Code att_code);
+	EXT_EXIBIDOR void show_field_attribute(cp_info *cp, AT_ConstantValue att_cvt);
+	EXT_EXIBIDOR void show_field(cp_info *cp, field_info field);
+	EXT_EXIBIDOR void show_info();
+	EXT_EXIBIDOR void dereference_index_UTF8 (int index, cp_info *cp);
 
 #endif

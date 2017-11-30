@@ -1,13 +1,15 @@
 #include <stdbool.h>
 #include <stdio.h>
-#include "interface.h"
-#include "leitor.h"
 #include <stdlib.h>
+#include "../headers/interface.h"
+#include "../headers/leitor.h"
+#include "../headers/instructions.h"
 
 int main (int argc, char *argv[]){
 
 	bool True = true;
 	int ret;
+	// extern cFile class_file;
 	/*Verifica se o arquivo foi passado*/
 	if(argc != 2)
 		ret = error_missingFile();
@@ -17,21 +19,17 @@ int main (int argc, char *argv[]){
 	if(fp == NULL){
 		ret = error_openFile();
 		exit(0);
+		return ret;
 	}
 
-	//FILE *cruzeiro = fopen("cruzeiro.txt", "r");
-
-	/*Verifica se o arquivo recebido foi aberto com sucesso*/
-
-
-	//if(cruzeiro == NULL){
-	//	printf("ERRO: não foi possivel abrir o arquivo [cruzeiro.txt].\n");
-	//}
+	/* Configuracoes iniciais para a inicializacao do programa... */
+	mount_inst_array(decode);
+	init_leitor(fp);
 	
-	while(True)
+	while(True) 
 		True = callFunc(fp);
 
-	fclose(fp);
+	// fclose(fp);
 	printf("\n\n");
 	return 0;
 
