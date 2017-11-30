@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <inttypes.h>
 #include <math.h>
+
 #ifdef NAN
 /* NAN is supported */
 #endif
@@ -39,6 +40,8 @@
 	
 	AllIns instructions[256];
 	
+	extern struct frame *currentFrame;
+	
 	//Definição da pilha
 	typedef struct node{
 		int32_t dado;
@@ -58,7 +61,7 @@
 
 	int32_t variaveis_locais[MAX_LOCAL_VARIABLES];
 	
-	int32_t pc = 0;
+// 	int32_t pc = 0;
 	
 	//função que irá inicializar o vetor de instruções
 	//EXT_INSTRUCTIONS void init_decoder(decoder decode[]);

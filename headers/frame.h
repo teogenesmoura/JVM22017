@@ -12,7 +12,7 @@
 
 	#ifdef FRAME_SERVER
 		#define EXT_FRAME
-	#else
+	#else 
 		#define EXT_FRAME extern
 	#endif
 	
@@ -26,11 +26,13 @@
 		int32_t *operandStack;		/* Talvez isso precise de uma estrutura propria, mas acredito que nao. */
 		cp_info *constant_pool;		/* Referencia para a constant pool, que nesse escopo provavelmente nem precisa ter, mas pra atender melhor a especificacao... */
 		int ownIndex;				/* EXTRA: Indice (constant_pool) do metodo relativo a esse frame */
-		int pc;						/* EXTRA: Program counter pra manter controle de qual instrucao esta sendo executada */
+ 		int pc;					/* EXTRA: Program counter pra manter controle de qual instrucao esta sendo executada */
 		int code_length;				/* EXTRA: Code Length desse frame. Eh possivel pegar ele pelo 'ownIndex' usando a variavel classFile, mas eh mais simples ter essa variavel aqui.*/
 		struct frame *next;
 	}tipoStackFrame;
 
+	struct frame *stackFrame;
+	struct frame *currentFrame;
 
 	EXT_FRAME int findMain();
 	EXT_FRAME int isEmpty(tipoStackFrame* stackFrame);
