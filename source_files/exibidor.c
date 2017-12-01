@@ -431,7 +431,8 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 void show_methods(cFile classFile){
 	for (int i=0;i<classFile.methods_count;i++){
 		printf ("\tMethod[%d]\n", i);
-		printf ("\t\tName: <%s>\n", classFile.constant_pool[classFile.methods[i].name_index].info[1].array);
+		if(classFile.methods[i].name_index != 0)
+			printf ("\t\tName: <%s>\n", classFile.constant_pool[classFile.methods[i].name_index].info[1].array);
 		printf ("\t\tDescriptor: <%s>\n", classFile.constant_pool[classFile.methods[i].descriptor_index].info[1].array);
 		printf ("\t\tAccess flags: 0x%04x %s\n", classFile.methods[i].access_flags, show_method_flags(classFile.methods[i].access_flags));
 

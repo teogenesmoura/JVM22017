@@ -1,5 +1,9 @@
 #define INSTRUCTIONS_SERVER
 #include "../headers/instructions.h"
+#include "../headers/leitor.h"
+#include "../headers/frame.h"
+
+extern tipoStackFrame *currentFrame;
 
 void flush_in(){
 	
@@ -2823,10 +2827,10 @@ void ifeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 == 0)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+	if (valor1 == 0)
+		currentFrame->pc = offset;
+	else 
+		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2843,10 +2847,10 @@ void ifne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 != 0)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+	if (valor1 != 0)
+		currentFrame->pc = offset;
+	else 
+		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2863,10 +2867,10 @@ void iflt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 < 0)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 < 0)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2883,10 +2887,10 @@ void ifge(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 >= 0)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 >= 0)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2903,10 +2907,10 @@ void ifgt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 > 0)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 > 0)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2923,10 +2927,10 @@ void ifle(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 <= 0)
-//  		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 <= 0)
+  		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2944,10 +2948,10 @@ void if_icmpeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 == valor2)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 == valor2)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2965,10 +2969,10 @@ void if_icmpne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 != valor2)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 != valor2)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -2986,10 +2990,10 @@ void if_icmplt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 < valor2)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 < valor2)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3007,10 +3011,10 @@ void if_icmpge(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 >= valor2)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 >= valor2)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3028,10 +3032,10 @@ void if_icmpgt(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 > valor2)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 > valor2)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3049,10 +3053,10 @@ void if_icmple(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 <= valor2)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 <= valor2)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3070,10 +3074,10 @@ void if_acmpeq(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 == valor2)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 == valor2)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3091,10 +3095,10 @@ void if_acmpne(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor1 != valor2)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc = 0;
+ 	if (valor1 != valor2)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc = 0;
 	
 	return;
 }
@@ -3112,7 +3116,7 @@ void goto_(uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	currentFrame->pc = offset;
+ 	currentFrame->pc = offset;
 	
 	return;
 }
@@ -3128,7 +3132,7 @@ void jsr(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	currentFrame->pc = offset;
+ 	currentFrame->pc = offset;
 	
 	return;
 }
@@ -3138,7 +3142,7 @@ void ret(Node *pilha, uint32_t bytes){
 	
 	index |= bytes;
 	
-// 	currentFrame->pc = variaveis_locais[index];
+ 	currentFrame->pc = variaveis_locais[index];
 	
 	return;
 }
@@ -3169,7 +3173,6 @@ void getstatic(uint32_t branchbytes1, uint32_t branchbytes2){
 	uint16_t indexbyte1 = currentFrame->code[(currentFrame->pc)+1];
 	uint16_t indexbyte2 = currentFrame->code[(currentFrame->pc)+2];
 	uint16_t indice = (indexbyte1 << 8) | indexbyte2;
-
 	cp_info teste = currentFrame.constant_pool[indice];
 	if (teste.tag != 9){
 		// Erro: Nao contem referencia para um field!
@@ -3190,15 +3193,12 @@ void putstatic(){
 	uint16_t indexbyte1 = currentFrame->code[(currentFrame->pc)+1];
 	uint16_t indexbyte2 = currentFrame->code[(currentFrame->pc)+2];
 	uint16_t indice = (indexbyte1 << 8) | indexbyte2;
-
 	cp_info teste = currentFrame.constant_pool[indice];
 	if (teste.tag != 9){
 		// Erro: Nao contem referencia para um field!
 		// exit(0)
 	}
-
 	// RESOLVER REFERENCIA PARA FIELD (?????)
-
 	*/
 	return;
 }
@@ -3278,10 +3278,10 @@ void ifnull(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor == 0)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc += 3;
+	if (valor != 0)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc += 3;
 	
 	return;
 }
@@ -3299,10 +3299,13 @@ void ifnonnull(Node *pilha, uint32_t branchbytes1, uint32_t branchbytes2){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-// 	if (valor != 0)
-// 		currentFrame->pc = offset;
-// 	else 
-// 		currentFrame->pc += 3;
+	conversor.valor5 = offset;
+	offset = conversor.valor1;
+	
+ 	if (valor != 0)
+ 		currentFrame->pc = offset;
+ 	else 
+ 		currentFrame->pc += 3;
 	
 	return;
 }

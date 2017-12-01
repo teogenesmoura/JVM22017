@@ -157,6 +157,7 @@
 	/*********************/
 	/* Variaveis globais */
 	cFile classFile;
+	cFile classFileObject;
 	AllIns decode[NUM_INSTRUC];
 	/*********************/
 	/*********************/

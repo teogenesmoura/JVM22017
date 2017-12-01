@@ -6,29 +6,27 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "../headers/leitor.h"
+// #include "../headers/carregador.h"
 
 int menu_interface(){
 	
-	bool erro = true;
-	int type;
+	char type[100] = "0";
+
 	printf("\n\n\n");
 	printf("\t++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 	printf("\t+ [1] - Exibir informações                             +\n");
 	printf("\t+ [2] - Executar JVM                                   +\n");
-	printf("\t+ [3] - Sair.                                          +\n");
+	printf("\t+ [3] - Teste Carregador.                              +\n");
+	printf("\t+ [4] - Sair.                                          +\n");
 	printf("\t++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-	do{
+	
+	while ((strcmp(type,"1") != 0) && (strcmp(type,"2") != 0) && (strcmp(type,"3") != 0) && (strcmp(type,"4") != 0)){
 		printf("\n\t\t>> Escolha uma das opções acima.<<: ");
-		scanf("%d%*c", &type);
-		if(type < 1 || type > 3){
-			erro = false;
-			printf("Tente novamente.\n");
-		}
-		else
-			erro = true;
-	}while(!erro);
+		scanf("%[^\n]s", type);
+		getchar();
+	}
 
-	return type;
+	return atoi(type);
 }
 
 bool callFunc(FILE *fp){
@@ -43,6 +41,9 @@ bool callFunc(FILE *fp){
 			//roda jvm
 			break;
 		case 3:
+			printf("AINDA NÃO PRONTO...CALMAAEE.\n");
+			return false;
+		case 4:
 			return false;
 		default:
 			printf("Erro na escolha da opçao.\n");

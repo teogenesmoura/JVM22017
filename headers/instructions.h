@@ -49,6 +49,7 @@
 	}Node;
 
 	union{
+		int16_t valor5;
 		int32_t valor0;
 		int64_t valor1;
 		double valor2;
