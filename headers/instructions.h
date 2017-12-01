@@ -40,8 +40,6 @@
 	
 	AllIns instructions[256];
 	
-	extern struct frame *currentFrame;
-	
 	//Definição da pilha
 	typedef struct node{
 		int32_t dado;

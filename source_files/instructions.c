@@ -1,5 +1,6 @@
 #define INSTRUCTIONS_SERVER
 #include "../headers/instructions.h"
+#include "../headers/frame.h"
 
 void flush_in(){
 	
@@ -518,6 +519,7 @@ void mount_inst_array(AllIns *instructions){
 void inicializa_pilha(Node *pilha){
 	
 	//Inicializa a pilha com o primeiro elemento em NULL
+	pilha = (Node*)malloc(sizeof(Node));
 	pilha->prox = NULL;
 	
 	//Define o tamanho da pilha em 0
@@ -605,25 +607,12 @@ void mostra_pilha(Node *pilha){
 		ponteiro_tmp = ponteiro_tmp->prox;
 		i++;
 	}
-	
-// 	printf("\n        ");
-// 	
-// 	for(int count=0; count<tamanho_pilha; count++)
-//   		printf("  ^  ");
-	
-// 	printf("\nOrdem:");
-// 	
-//  	for(int count=0; count<tamanho_pilha; count++){
-//   		if (tamanho_pilha-1 != count)
-//   			printf("%5d", count+1);
-//  		else 
-//   			printf("   topo\n");
-//  	}
+}
 
-  	printf("\n");
-  	free(ponteiro_tmp);
-	
-	return;
+void mostra_locais(){
+		
+	for(int i = 0; i < currentFrame->max_locals; i++)
+		printf("%d ", currentFrame->variables[i]);
 }
 
 void zera_pilha(Node *pilha){
@@ -659,14 +648,13 @@ void ArithmeticException(){printf("(-) ArithmeticException\n");}
 //CONSTANTES
 void nop(){
 // 	currentFrame->pc++;
-	return;
+	printf("algo");
 }
 
 //PRECISA VER COMO FAZER PRA COLOCAR O NULL NO TOPO DA PILHA
 void aconst_null(Node *pilha){
 	empilha(pilha, 0);
 // 	currentFrame->pc += 1;
-	return;
 }
 void iconst_m1(Node *pilha){
 	empilha(pilha, -1);
@@ -851,31 +839,115 @@ void ldc_w(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
 void ldc2_w(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
 
 //LOADS
-void iload(){return;} //IMPLEMENTAR - PEGA O VALOR DA VARIÁVEL LOCAL E COLOCA NA PILHA
-void lload(){return;} 
-void fload(){return;}
-void dload(){return;}
-void aload(){return;}
-void iload_0(){return;}
-void iload_1(){return;}
-void iload_2(){return;}
-void iload_3(){return;}
-void lload_0(){return;}
-void lload_1(){return;}
-void lload_2(){return;}
-void lload_3(){return;}
-void fload_0(){return;}
-void fload_1(){return;}
-void fload_2(){return;}
-void fload_3(){return;}
-void dload_0(){return;}
-void dload_1(){return;}
-void dload_2(){return;}
-void dload_3(){return;}
-void aload_0(){return;}
-void aload_1(){return;}
-void aload_2(){return;}
-void aload_3(){return;}
+void iload(){
+	empilha(currentFrame->operandStack, currentFrame->variables[currentFrame->code[currentFrame->pc+1]]);
+	return;
+}
+void lload(){
+	empilha(currentFrame->operandStack, currentFrame->variables[currentFrame->code[currentFrame->pc+1]]);
+	empilha(currentFrame->operandStack, currentFrame->variables[currentFrame->code[currentFrame->pc+1]+1]);
+	return;
+} 
+void fload(){
+	empilha(currentFrame->operandStack, currentFrame->variables[currentFrame->code[currentFrame->pc+1]]);
+	return;
+}
+void dload(){
+	empilha(currentFrame->operandStack, currentFrame->variables[currentFrame->code[currentFrame->pc+1]]);
+	empilha(currentFrame->operandStack, currentFrame->variables[currentFrame->code[currentFrame->pc+1]+1]);
+	return;
+}
+void aload(){
+	empilha(currentFrame->operandStack, currentFrame->variables[currentFrame->code[currentFrame->pc+1]]);
+	return;}
+void iload_0(){
+	empilha(currentFrame->operandStack, currentFrame->variables[0]);
+	return;
+}
+void iload_1(){
+	empilha(currentFrame->operandStack, currentFrame->variables[1]);
+	return;
+}
+void iload_2(){
+	empilha(currentFrame->operandStack, currentFrame->variables[2]);
+	return;
+}
+void iload_3(){
+	empilha(currentFrame->operandStack, currentFrame->variables[3]);
+	return;
+}
+void lload_0(){
+	empilha(currentFrame->operandStack, currentFrame->variables[0]);
+	empilha(currentFrame->operandStack, currentFrame->variables[1]);
+	return;
+}
+void lload_1(){
+	empilha(currentFrame->operandStack, currentFrame->variables[1]);
+	empilha(currentFrame->operandStack, currentFrame->variables[2]);
+	return;
+}
+void lload_2(){
+	empilha(currentFrame->operandStack, currentFrame->variables[2]);
+	empilha(currentFrame->operandStack, currentFrame->variables[3]);
+	return;
+}
+void lload_3(){
+	empilha(currentFrame->operandStack, currentFrame->variables[3]);
+	empilha(currentFrame->operandStack, currentFrame->variables[4]);
+	return;
+}
+void fload_0(){
+	empilha(currentFrame->operandStack, currentFrame->variables[0]);
+	return;
+}
+void fload_1(){
+	empilha(currentFrame->operandStack, currentFrame->variables[1]);
+	return;
+}
+void fload_2(){
+	empilha(currentFrame->operandStack, currentFrame->variables[2]);
+	return;
+}
+void fload_3(){
+	empilha(currentFrame->operandStack, currentFrame->variables[3]);
+	return;
+}
+void dload_0(){
+	empilha(currentFrame->operandStack, currentFrame->variables[0]);
+	empilha(currentFrame->operandStack, currentFrame->variables[1]);
+	return;
+}
+void dload_1(){
+	empilha(currentFrame->operandStack, currentFrame->variables[1]);
+	empilha(currentFrame->operandStack, currentFrame->variables[2]);
+	return;
+}
+void dload_2(){
+	empilha(currentFrame->operandStack, currentFrame->variables[2]);
+	empilha(currentFrame->operandStack, currentFrame->variables[3]);
+	return;
+}
+void dload_3(){
+	empilha(currentFrame->operandStack, currentFrame->variables[3]);
+	empilha(currentFrame->operandStack, currentFrame->variables[4]);
+	return;
+}
+void aload_0(){
+	empilha(currentFrame->operandStack, currentFrame->variables[0]);
+	return;
+}
+void aload_1(){
+	empilha(currentFrame->operandStack, currentFrame->variables[1]);
+	return;
+}
+void aload_2(){
+	empilha(currentFrame->operandStack, currentFrame->variables[2]);
+	return;
+}
+void aload_3(){
+	empilha(currentFrame->operandStack, currentFrame->variables[3]);
+	return;
+}
 void iaload(){return;}
 void laload(){return;}
 void faload(){return;}
