@@ -520,6 +520,11 @@ void inicializa_pilha(Node *pilha){
 	
 	//Inicializa a pilha com o primeiro elemento em NULL
 	pilha = (Node*)malloc(sizeof(Node));
+
+	if (!pilha){
+		printf ("Pilha nao inicializada!!! \n");
+		exit(1);
+	}
 	pilha->prox = NULL;
 	
 	//Define o tamanho da pilha em 0
@@ -550,10 +555,8 @@ void empilha(Node *pilha, int32_t dado){
 		pilha->prox=novo_elemento;
 	else{
 		Node *tmp = pilha->prox;
-		
 		while(tmp->prox != NULL)
 			tmp = tmp->prox;
-		
 		tmp->prox = novo_elemento;
 	}
 	
@@ -648,7 +651,7 @@ void ArithmeticException(){printf("(-) ArithmeticException\n");}
 //CONSTANTES
 void nop(){
 // 	currentFrame->pc++;
-	printf("algo");
+	printf("\nChamou nop!!!!");
 }
 
 //PRECISA VER COMO FAZER PRA COLOCAR O NULL NO TOPO DA PILHA
@@ -672,6 +675,7 @@ void iconst_1(Node *pilha){
 }
 void iconst_2(Node *pilha){
 	empilha(pilha, 2);
+	printf("Oi\n");
 // 	currentFrame->pc++;
 // 	return;
 }
@@ -834,7 +838,10 @@ void sipush(Node *pilha, uint32_t bytes1, uint32_t bytes2){
 	
 	return;
 }
-void ldc(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
+void ldc(){
+	printf ("\nChamou ldc!!!!");
+	return;
+} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
 void ldc_w(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
 void ldc2_w(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
 
@@ -3226,7 +3233,10 @@ void lreturn(){return;}
 void freturn(){return;}
 void dreturn(){return;}
 void areturn(){return;}
-void return_(){return;}
+void return_(){
+	printf ("\nChamou a return!!!");
+	return;
+}
 
 //REFERÊNCIAS
 void getstatic(uint32_t branchbytes1, uint32_t branchbytes2){
@@ -3251,6 +3261,8 @@ void getstatic(uint32_t branchbytes1, uint32_t branchbytes2){
 	// RESOLVER REFERENCIA PARA FIELD (?????)
 	
 	*/
+	printf ("\nChamou a getstatic!!!");
+
 	return;
 }
 void putstatic(){
@@ -3276,7 +3288,10 @@ void putstatic(){
 }
 void getfield(){return;}
 void putfield(){return;}
-void invokevirtual(){return;}
+void invokevirtual(){
+	printf ("\nChamou a invokevirtual!!!!");
+	return;
+}
 void invokespecial(){return;}
 void invokestatic(){return;}
 void invokeinterface(){return;}
