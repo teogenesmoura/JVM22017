@@ -65,6 +65,7 @@
 	//EXT_INSTRUCTIONS void init_decoder(decoder decode[]);
 	
 	EXT_INSTRUCTIONS void flush_in();
+	
 	//************Funções para tratamento da pilha************
 	//Função para a inicialização da pilha
 	EXT_INSTRUCTIONS void inicializa_pilha(Node *pilha);
