@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "../headers/leitor.h"
+#include "../headers/instructions.h"
 
 #ifndef FRAME
 	#define FRAME
@@ -23,11 +24,18 @@
 		*/
 
 		int32_t *variables;			/* Array de variaveis locais */
-		int32_t *operandStack;		/* Talvez isso precise de uma estrutura propria, mas acredito que nao. */
+		Node *operandStack;			/* Pilha de operandos, tipo 'Node' */
+		int32_t *operandArray; 		/* Array de operandos, como uma alternativa p/ arrumar os erros da pilha. */
+		int tamanhoArray;			/* Variavel que controla qual a posicao atual do array. */
 		cp_info *constant_pool;		/* Referencia para a constant pool, que nesse escopo provavelmente nem precisa ter, mas pra atender melhor a especificacao... */
+
 		int ownIndex;				/* EXTRA: Indice (constant_pool) do metodo relativo a esse frame */
- 		int pc;					/* EXTRA: Program counter pra manter controle de qual instrucao esta sendo executada */
-		int code_length;				/* EXTRA: Code Length desse frame. Eh possivel pegar ele pelo 'ownIndex' usando a variavel classFile, mas eh mais simples ter essa variavel aqui.*/
+ 		int pc;						/* EXTRA: Program counter pra manter controle de qual instrucao esta sendo executada */
+		int code_length;			/* EXTRA: Code Length desse frame. Eh possivel pegar ele pelo 'ownIndex' usando a variavel classFile, mas eh mais simples ter essa variavel aqui.*/
+		uint8_t *code;				/* EXTRA: Conteúdo do atributo code do metodo */
+		uint16_t max_stack;			/* EXTRA: Quantidade maxima de elementos na pilha de operandos */
+		uint16_t max_locals;		/* EXTRA: Quantidade maxima de elementos do vetor de variaveis locais */
+
 		struct frame *next;
 	}tipoStackFrame;
 

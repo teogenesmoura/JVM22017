@@ -40,8 +40,6 @@
 	
 	AllIns instructions[256];
 	
-	extern struct frame *currentFrame;
-	
 	//Definição da pilha
 	typedef struct node{
 		int32_t dado;
@@ -95,14 +93,14 @@
 	//***********************************************
 	//CONSTANTES
 	EXT_INSTRUCTIONS void nop();
-	EXT_INSTRUCTIONS void aconst_null(Node *pilha);
-	EXT_INSTRUCTIONS void iconst_m1(Node *pilha);
-	EXT_INSTRUCTIONS void iconst_0(Node *pilha);
-	EXT_INSTRUCTIONS void iconst_1(Node *pilha);
-	EXT_INSTRUCTIONS void iconst_2(Node *pilha);
-	EXT_INSTRUCTIONS void iconst_3(Node *pilha);
-	EXT_INSTRUCTIONS void iconst_4(Node *pilha);
-	EXT_INSTRUCTIONS void iconst_5(Node *pilha);
+	EXT_INSTRUCTIONS void aconst_null();
+	EXT_INSTRUCTIONS void iconst_m1();
+	EXT_INSTRUCTIONS void iconst_0();
+	EXT_INSTRUCTIONS void iconst_1();
+	EXT_INSTRUCTIONS void iconst_2();
+	EXT_INSTRUCTIONS void iconst_3();
+	EXT_INSTRUCTIONS void iconst_4();
+	EXT_INSTRUCTIONS void iconst_5();
 	EXT_INSTRUCTIONS void lconst_0(Node *pilha);
 	EXT_INSTRUCTIONS void lconst_1(Node *pilha);
 	EXT_INSTRUCTIONS void fconst_0(Node *pilha);
@@ -293,7 +291,7 @@
 	EXT_INSTRUCTIONS void invokestatic();
 	EXT_INSTRUCTIONS void invokeinterface();
 	//EXT_INSTRUCTIONS  void invokedynamic();
-	EXT_INSTRUCTIONS void new();
+	EXT_INSTRUCTIONS void new_();
 	EXT_INSTRUCTIONS void newarray();
 	EXT_INSTRUCTIONS void anewarray();
 	EXT_INSTRUCTIONS void arraylength();
