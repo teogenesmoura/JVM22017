@@ -2,7 +2,9 @@
 #define FRAME_SERVER
 #include "../headers/frame.h"
 #include "../headers/leitor.h"
+#include "../headers/instructions.h"
 
+extern tipoStackFrame *currentFrame;
 
 int findMain (){
 	int i=0;
@@ -26,15 +28,24 @@ void pushFrame(tipoStackFrame* stackFrame, int methodIndex){
 	}else{
 		/* Inicializacao dos tres componentes principais do frame: local variables, operandStack e constantPool... */
 		/* Vetor de variaveis locais alocado pelo max_locals do CODE do metodo em questao. */
-		newFrame->variables = 	(int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex].att_code->max_locals);
+		newFrame->variables = (int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex].att_code->max_locals);
 		/* Pilha de operandos alocada pelo max_stack do atributo CODE do metodo especificado. */
-		newFrame->operandStack = (int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex].att_code->max_stack);
+		//newFrame->operandStack = (int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex].att_code->max_stack);
+
+		inicializa_pilha(newFrame->operandStack);
+		newFrame->operandArray = (int32_t*) malloc (sizeof(int32_t)*classFile.methods[methodIndex].att_code->max_stack);
+		newFrame->tamanhoArray = 0;
 		newFrame->constant_pool = classFile.constant_pool;
 
 		/* Inicializacao dos componentes EXTRAS do frame, que foram inseridos para facilitar a implementacao da JVM*/
 		newFrame->ownIndex = methodIndex;
 		newFrame->pc = 0;
 		newFrame->code_length = classFile.methods[methodIndex].att_code->code_length;
+
+		newFrame->code = classFile.methods[methodIndex].att_code->code;
+		newFrame->max_stack = classFile.methods[methodIndex].att_code->max_stack;
+		newFrame->max_locals = classFile.methods[methodIndex].att_code->max_locals;
+
 		if (isEmpty(stackFrame)){
 			newFrame->next = NULL;
 		}else{
@@ -81,19 +92,23 @@ void showStackFrame(tipoStackFrame* stackFrame){
 	}
 }
 
-void executeFrame(tipoStackFrame* stackFrame){
+void executeFrame(tipoStackFrame *stackFrame){
 	currentFrame = stackFrame->next;
-	do{
-		/* Instanciar a instrucao referente a cada instrucao usando o vetor decode. */
-	}while (currentFrame->pc < currentFrame->code_length);
-	/*Talvez seja bom colocar esse ponteiro currentFrame como uma variavel global.*/
+
+	int index=0;
+	
+	while (currentFrame->pc <= currentFrame->code_length){
+		index = currentFrame->pc;
+		printf ("[%d-%s]\n", currentFrame->code[index], decode[currentFrame->code[index]].name);
+		decode[currentFrame->code[index]].ins(currentFrame->operandStack);
+		currentFrame->pc += 1 + decode[currentFrame->code[currentFrame->pc]].bytes;
+	}
 }
 
 void initStackFrame(){
 	int mainIndex;
 	
 	stackFrame = (tipoStackFrame*) malloc (sizeof(tipoStackFrame));
-
 
 	if (!stackFrame){
 		printf ("Erro na alocacao de memoria");
@@ -107,6 +122,9 @@ void initStackFrame(){
 			pushFrame(stackFrame, mainIndex);	// get main index from other function
 		}
 	}
+
 	/* Uma vez que o stackFrame foi inicializado, ele pode ser exibido e entao, executado.*/
 	showStackFrame(stackFrame);
+
+	executeFrame(stackFrame);
 }

@@ -32,5 +32,4 @@ int main (int argc, char *argv[]){
 	// fclose(fp);
 	printf("\n\n");
 	return 0;
-
 }
