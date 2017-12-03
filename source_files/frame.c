@@ -96,7 +96,7 @@ void executeFrame(tipoStackFrame *stackFrame){
 	
 	while (currentFrame->pc <= currentFrame->code_length){
 		index = currentFrame->pc;
-		printf ("[%d-%s]\n", currentFrame->code[index], decode[currentFrame->code[index]].name);
+		printf ("[%d-%s]\t", currentFrame->code[index], decode[currentFrame->code[index]].name);
 		decode[currentFrame->code[index]].ins(currentFrame->operandStack);
 		currentFrame->pc += 1 + decode[currentFrame->code[currentFrame->pc]].bytes;
 	}

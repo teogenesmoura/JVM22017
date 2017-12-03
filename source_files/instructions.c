@@ -651,7 +651,7 @@ void ArithmeticException(){printf("(-) ArithmeticException\n");}
 //CONSTANTES
 void nop(){
 // 	currentFrame->pc++;
-	printf("\nChamou nop!!!!");
+	printf("Chamou nop!!!!\n");
 }
 
 //PRECISA VER COMO FAZER PRA COLOCAR O NULL NO TOPO DA PILHA
@@ -675,7 +675,7 @@ void iconst_1(Node *pilha){
 }
 void iconst_2(Node *pilha){
 	empilha(pilha, 2);
-	printf("Oi\n");
+	printf("Chamou iconst_2\n");
 // 	currentFrame->pc++;
 // 	return;
 }
@@ -839,7 +839,7 @@ void sipush(Node *pilha, uint32_t bytes1, uint32_t bytes2){
 	return;
 }
 void ldc(){
-	printf ("\nChamou ldc!!!!");
+	printf ("Chamou ldc!!!!\n");
 	return;
 } //IMPLEMENTAR - PRECISA DA CONSTANT POOL
 void ldc_w(){return;} //IMPLEMENTAR - PRECISA DA CONSTANT POOL
@@ -3234,7 +3234,7 @@ void freturn(){return;}
 void dreturn(){return;}
 void areturn(){return;}
 void return_(){
-	printf ("\nChamou a return!!!");
+	printf ("Chamou a return!!!\n");
 	return;
 }
 
@@ -3261,7 +3261,7 @@ void getstatic(uint32_t branchbytes1, uint32_t branchbytes2){
 	// RESOLVER REFERENCIA PARA FIELD (?????)
 	
 	*/
-	printf ("\nChamou a getstatic!!!");
+	printf ("Chamou a getstatic!!!\n");
 
 	return;
 }
@@ -3289,7 +3289,7 @@ void putstatic(){
 void getfield(){return;}
 void putfield(){return;}
 void invokevirtual(){
-	printf ("\nChamou a invokevirtual!!!!");
+	printf ("Chamou a invokevirtual!!!!\n");
 	return;
 }
 void invokespecial(){return;}
