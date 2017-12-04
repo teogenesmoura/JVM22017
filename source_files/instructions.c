@@ -599,7 +599,7 @@ int verifica_pilha_vazia(Node *pilha){
 	else
 		return 0;
 }
-
+/*
 void mostra_pilha(Node *pilha){
 	
 	int i = 1;
@@ -621,11 +621,20 @@ void mostra_pilha(Node *pilha){
 		i++;
 	}
 }
+*/
 
+void mostra_pilha(){
+	printf ("OperandStack: ");
+	for (int i=0;i<(currentFrame->tamanhoArray);i++){
+		printf ("%x ",currentFrame->operandArray[i]);
+	}
+	printf ("\n");
+}
 void mostra_locais(){
-		
+	printf ("LocalVariables: ");
 	for(int i = 0; i < currentFrame->max_locals; i++)
-		printf("%d ", currentFrame->variables[i]);
+		printf("%x ", currentFrame->variables[i]);
+	printf("\n");
 }
 
 void zera_pilha(Node *pilha){
@@ -728,7 +737,6 @@ void fconst_0(){
 	 * n é o número de bytess a serem copiados
 	 */
 	memcpy(&para_empilhar, &valor, sizeof(int32_t));
-	
 	empilha(para_empilhar);
 		
 	return;
@@ -873,7 +881,7 @@ void ldc_w(){
 			/* Implementar. Consultar especificacao. */
 			break;
 		default:
-			printf("Erro!\n");
+			printf("Erro!\n Tag [%d]", aux.tag);
 			exit(1);
 	}
 	return;
@@ -889,12 +897,12 @@ void ldc2_w(){
 			empilha(aux.info[0].u4);	//empilha a parte alta
 			empilha(aux.info[1].u4);	//empilha a parte baixa
 			break;
-		case 4: //CONSTANT_Double
+		case 6: //CONSTANT_Double
 			empilha(aux.info[0].u4);	//empilha a parte alta
 			empilha(aux.info[0].u4);	//empilha a parte baixa
 			break;
 		default:
-			printf("Erro!\n");
+			printf("Erro!\t Tag [%d]", aux.tag);
 			exit(1);
 	}
 	return;
@@ -1012,21 +1020,26 @@ void aload_3(){
 	return;
 }
 void iaload(){
+	/*
 	int32_t* arrayref;
 	int32_t index = desempilha();
 	arrayref = (int32_t*) desempilha();
 	empilha(arrayref[index]);
 	return;
+	*/
 }
 void laload(){
+	/*
 	int32_t* arrayref;
 	int32_t index = desempilha();
 	arrayref = (int32_t*) desempilha();
 	empilha(arrayref[index+1]);	// empilha high
 	empilha(arrayref[index]);	// empilha low
 	return;
+	*/
 }
 void faload(){
+	/*
 	int32_t* arrayref;
 	int32_t index = desempilha();
 	// int32_t valor1;
@@ -1039,23 +1052,28 @@ void faload(){
 
 	empilha(valor2);
 	return;
+	*/
 }
 void daload(){
-	int32_t* arrayref;
+	/*
+	int64_t* arrayref;
 	int32_t index = desempilha();
-	arrayref = (int32_t*) desempilha();
+	arrayref = (int64_t*) desempilha();
 
 	empilha(arrayref[index+1]);
 	empilha(arrayref[index]);
 	return;
+	*/
 }
 void aaload(){
+	/*
 	int32_t* arrayref;
 	int32_t index = desempilha();
 	arrayref = (int32_t*)desempilha();
 
 	empilha(arrayref[index]);
 	return;
+	*/
 }
 void baload(){return;}
 void caload(){return;}
@@ -1333,8 +1351,7 @@ void fadd(){
 	
 	return;
 }
-void dadd(){
-	
+void dadd(){	
 	int64_t valor1_lo = desempilha();
 	int64_t valor1_hi = desempilha();
    	int64_t valor2_lo = desempilha();
@@ -2086,7 +2103,7 @@ void drem_(){
 	
 	double valor1_f, valor2_f;
 	double valor_float;
-	
+
 	valor1 = 0x00000000FFFFFFFF & valor1_lo;
 	valor1_hi <<= 32;
 	valor1 |= valor1_hi;
@@ -2121,7 +2138,6 @@ void drem_(){
 			}
 		}
 	}
-	
 	memcpy(&para_empilhar, &valor_float, sizeof(int64_t));
 	para_empilhar_hi &= para_empilhar >> 32;
 	para_empilhar_lo &= para_empilhar;
@@ -3499,18 +3515,45 @@ void getfield(){
 }
 void putfield(){return;}
 void invokevirtual(){
-	method_info* invokedMethod;
 	uint32_t indexbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t indexbytes2 = currentFrame->code[(currentFrame->pc)+2];
 	uint32_t index = (indexbytes1<<8) | indexbytes2;
-	uint32_t nameIndex = currentFrame->constant_pool[index].info[1].u2;	// recebe a referencia do nameAndType do metodo  (NameAndType)
-	nameIndex = currentFrame->constant_pool[nameIndex].info[0].u2;			// recebe a referencia do name do metodo (String)
-	char nameAndType[150];
-	sprintf (nameAndType, "%s", currentFrame->constant_pool[nameIndex].info[1].array);
-	if (strcmp(nameAndType, "println")==0){
-		/*Desempilhar o valor do indice da string referenciada no constant pool e printar isso.*/
-		index = desempilha();
-		printf ("%s", currentFrame->constant_pool[index].info[1].array);
+	uint32_t nameAndTypeIndex = currentFrame->constant_pool[index].info[1].u2;	// recebe a referencia do nameAndType do metodo  (CONSTANT_NameAndType)
+	
+
+	uint32_t nameIndex = currentFrame->constant_pool[nameAndTypeIndex].info[0].u2;			// recebe a referencia do name do metodo (CONSTANT_String)
+	uint32_t typeIndex = currentFrame->constant_pool[nameAndTypeIndex].info[1].u2;			// recebe a referencia do descriptor do metodo (CONSTANT_String)
+	char name[150];
+	char type[150];
+	sprintf (name, "%s", currentFrame->constant_pool[nameIndex].info[1].array);
+	sprintf (type, "%s", currentFrame->constant_pool[typeIndex].info[1].array);
+	
+	double dout;
+	int64_t aux, aux2;
+	if (strcmp(name, "println")==0){
+
+		if (strcmp(type, "(Ljava/lang/String;)V")==0){
+			/*Desempilhar o valor do indice da string referenciada no constant pool e printar isso.*/
+			index = desempilha();
+			printf ("%s", currentFrame->constant_pool[index].info[1].array);
+		}else if (strcmp(type, "(D)V")==0){
+			/*
+			Desempilhar e concatenar os dois elementos superiores da pilha, transformar em um double e printar.
+			*/
+			//printf ("Desempilhando low...\n");
+			aux = desempilha();
+			aux2 = desempilha();
+			aux2 <<= 32;
+			//printf ("Desempilhando high e concatenando...\n");
+			aux |= aux2;
+			//printf ("Convertendo para double...\n");
+			memcpy(&dout, &aux, sizeof(int64_t));
+			//printf ("Exibindo double...\n");
+			printf ("%g.\n",  dout);
+			// printf ("\nCheckpoint\n");
+		}else{
+			printf ("Nao implementado printar %s\n", type);
+		}
 	}
 	return;
 }

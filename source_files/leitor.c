@@ -551,19 +551,33 @@ method_info ler_methods(FILE *fp, cp_info *constPool){
 	ret.name_index = ler_u2(fp);			//pega index de referencia para tabeal constPool que referencia o nome do metodo
 	ret.descriptor_index = ler_u2(fp);		//pega index de referencia para tabeal constPool que referencia um descritor do metodo
 	ret.attributes_count = ler_u2(fp);		//pega o número de atributos do metodo
+
 	
-	
+	if(ret.access_flags == 0x010a || ret.access_flags == 0x0101 || ret.access_flags == 0x0111){
+		for(int i = 0; i < ret.attributes_count; i++){
+			ler_u2(fp);
+			int64_t temp;
+			temp = ler_u4(fp);
+			for(int k = 0; k < temp; k++)
+				ler_u1(fp);
+		}
+		return ret;
+	}
+
 	for (int i = 0; i < ret.attributes_count; i++){
 
 		name_ind = ler_u2(fp);
+
+		// printf("FLAGS CONHECIDOS. %x\n", name_ind);
+		// printf("%s\n", (char *) constPool[name_ind].info[1].array);
 		// checa o tipo de attribute do method
 		if(strcmp((char *) constPool[name_ind].info[1].array, "Code") == 0){
+			printf("%s\n", (char *) constPool[name_ind].info[1].array);
 			ret.att_code = (AT_Code *) malloc(sizeof(AT_Code));	//aloca memoria para o atributo Code
 			ler_Att_code(&(ret.att_code), fp, name_ind);		//le o Code
 
-		}else if(strcmp((char *) constPool[name_ind].info[1].array, "Exception") == 0){
-			//aloca espaço adequado
-			//chama função para tratar exceptions
+		}else if(strcmp((char *) constPool[name_ind].info[1].array, "Exceptions") == 0){
+			printf("%s\n", (char *) constPool[name_ind].info[1].array);
 			ret.att_excp = (AT_Exceptions *) malloc(sizeof(AT_Exceptions));
 			ler_att_excp(&(ret.att_excp), fp, name_ind);
 		}
@@ -601,6 +615,7 @@ int init_leitor(FILE *fp){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
+
 	classFile.minor_version = ler_u2(fp);		/* lê a minor version */
 	classFile.major_version = ler_u2(fp);		/* lê a major version */
 	classFile.constant_pool_count = ler_u2(fp);	/* lê quantidade de constates no pool de constantes */
@@ -640,6 +655,7 @@ int init_leitor(FILE *fp){
 
 
 	classFile.methods_count = ler_u2(fp);
+	printf("methods_count = %d\n", classFile.methods_count);
 	if(classFile.methods_count != 0){
 		classFile.methods = (method_info*) malloc (sizeof(method_info)*classFile.methods_count);
 
@@ -648,6 +664,7 @@ int init_leitor(FILE *fp){
 	}
 
 	classFile.attributes_count = ler_u2(fp);
+
 	if(classFile.attributes_count != 0){
 		classFile.attributes = (attribute_info *) malloc (sizeof(attribute_info) * classFile.attributes_count);
 		for (int i = 0; i < classFile.attributes_count; i++){
