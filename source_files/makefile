@@ -1,8 +1,8 @@
 all: build clean
 
-build: leitor.o exibidor.o interface.o decoder.o instructions.o frame.o main.o
+build: leitor.o exibidor.o interface.o decoder.o instructions.o frame.o main.o carregador.o
 	@echo "Criando executavel...Pronto!"
-	@gcc leitor.o exibidor.o interface.o main.o instructions.o frame.o -ansi -std=c99  -o jvm -Wall -g -lm
+	@gcc leitor.o exibidor.o interface.o main.o instructions.o frame.o carregador.o -ansi -std=c99  -o jvm -Wall -g -lm
 
 main.o: main.c
 	@echo "Compilando..."
@@ -10,6 +10,9 @@ main.o: main.c
 
 instructions.o: instructions.c
 	@gcc -c -ansi -Wall -std=c99 instructions.c -g
+
+carregador.o: carregador.c
+	@gcc -c -ansi -Wall -std=c99 carregador.c -g
 
 decoder.o: decoder.c
 	@gcc -c -ansi -Wall -std=c99 decoder.c  -g

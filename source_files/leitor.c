@@ -556,7 +556,6 @@ method_info ler_methods(FILE *fp, cp_info *constPool){
 	for (int i = 0; i < ret.attributes_count; i++){
 
 		name_ind = ler_u2(fp);
-
 		// checa o tipo de attribute do method
 		if(strcmp((char *) constPool[name_ind].info[1].array, "Code") == 0){
 			ret.att_code = (AT_Code *) malloc(sizeof(AT_Code));	//aloca memoria para o atributo Code
@@ -602,7 +601,6 @@ int init_leitor(FILE *fp){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
-
 	classFile.minor_version = ler_u2(fp);		/* lê a minor version */
 	classFile.major_version = ler_u2(fp);		/* lê a major version */
 	classFile.constant_pool_count = ler_u2(fp);	/* lê quantidade de constates no pool de constantes */

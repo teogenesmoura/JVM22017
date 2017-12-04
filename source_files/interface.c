@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "../headers/leitor.h"
+#include "../headers/instructions.h"
 
 int menu_interface(){
 	
