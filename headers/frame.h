@@ -39,6 +39,14 @@
 		struct frame *next;
 	}tipoStackFrame;
 
+	typedef struct objeto{
+		cFile* classe;
+		//uint32_t* campos;
+		//uint32_t* indiceCampos;
+		struct objeto* superClasse;
+	}objeto;
+
+
 	struct frame *stackFrame;
 	struct frame *currentFrame;
 

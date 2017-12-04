@@ -73,11 +73,11 @@
 	EXT_INSTRUCTIONS Node *aloca_elemento(int32_t dado);
 	
 	//Função que irá empilhar um elemento no topo da pilha
-	EXT_INSTRUCTIONS void empilha(Node *pilha, int32_t dado);
-
+	// EXT_INSTRUCTIONS void empilha(Node *pilha, int32_t dado);
+	EXT_INSTRUCTIONS void empilha(int32_t dado);
 	//Função que irá desempilhar um elemento do topo da pilha
-	EXT_INSTRUCTIONS int32_t desempilha(Node *pilha);
-
+	// EXT_INSTRUCTIONS int32_t desempilha(Node *pilha);
+	EXT_INSTRUCTIONS int32_t desempilha();
 	//Função que verifica se a pilha está vazia
 	EXT_INSTRUCTIONS int verifica_pilha_vazia(Node *pilha);
 
@@ -101,15 +101,15 @@
 	EXT_INSTRUCTIONS void iconst_3();
 	EXT_INSTRUCTIONS void iconst_4();
 	EXT_INSTRUCTIONS void iconst_5();
-	EXT_INSTRUCTIONS void lconst_0(Node *pilha);
-	EXT_INSTRUCTIONS void lconst_1(Node *pilha);
-	EXT_INSTRUCTIONS void fconst_0(Node *pilha);
-	EXT_INSTRUCTIONS void fconst_1(Node *pilha);
-	EXT_INSTRUCTIONS void fconst_2(Node *pilha);
-	EXT_INSTRUCTIONS void dconst_0(Node *pilha);
-	EXT_INSTRUCTIONS void dconst_1(Node *pilha);
-	EXT_INSTRUCTIONS void bipush(Node *pilha, int32_t byte);
-	EXT_INSTRUCTIONS void sipush(Node *pilha, uint32_t byte1, uint32_t byte2);
+	EXT_INSTRUCTIONS void lconst_0();
+	EXT_INSTRUCTIONS void lconst_1();
+	EXT_INSTRUCTIONS void fconst_0();
+	EXT_INSTRUCTIONS void fconst_1();
+	EXT_INSTRUCTIONS void fconst_2();
+	EXT_INSTRUCTIONS void dconst_0();
+	EXT_INSTRUCTIONS void dconst_1();
+	EXT_INSTRUCTIONS void bipush();
+	EXT_INSTRUCTIONS void sipush();
 	EXT_INSTRUCTIONS void ldc();
 	EXT_INSTRUCTIONS void ldc_w();
 	EXT_INSTRUCTIONS void ldc2_w();
@@ -188,90 +188,90 @@
 
 	//***********************************************
 	//OPERAÇÕES MATEMÁTICAS
-	EXT_INSTRUCTIONS void iadd(Node *pilha);
-	EXT_INSTRUCTIONS void ladd(Node *pilha);
-	EXT_INSTRUCTIONS void fadd(Node *pilha);
-	EXT_INSTRUCTIONS void dadd(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void isub(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void lsub(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void fsub(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void dsub(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void imul(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void lmul(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void fmul(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void dmul(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void idiv(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void ldiv_(Node *pilha);//Testar
-	EXT_INSTRUCTIONS void fdiv(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void ddiv(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void irem(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void lrem(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void frem(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void drem_(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void ineg(Node *pilha);
-	EXT_INSTRUCTIONS void lneg(Node *pilha);
-	EXT_INSTRUCTIONS void fneg(Node *pilha);
-	EXT_INSTRUCTIONS void dneg(Node *pilha);
-	EXT_INSTRUCTIONS void ishl(Node *pilha);
-	EXT_INSTRUCTIONS void lshl(Node *pilha);
-	EXT_INSTRUCTIONS void ishr(Node *pilha);
-	EXT_INSTRUCTIONS void lshr(Node *pilha);
-	EXT_INSTRUCTIONS void iushr(Node *pilha);
-	EXT_INSTRUCTIONS void lushr(Node *pilha);
-	EXT_INSTRUCTIONS void iand(Node *pilha);
-	EXT_INSTRUCTIONS void land(Node *pilha);
-	EXT_INSTRUCTIONS void ior(Node *pilha);
-	EXT_INSTRUCTIONS void lor(Node *pilha);
-	EXT_INSTRUCTIONS void ixor(Node *pilha);
-	EXT_INSTRUCTIONS void lxor(Node *pilha);
-	EXT_INSTRUCTIONS void iinc(Node *pilha, uint32_t index, int32_t const_);
+	EXT_INSTRUCTIONS void iadd();
+	EXT_INSTRUCTIONS void ladd();
+	EXT_INSTRUCTIONS void fadd();
+	EXT_INSTRUCTIONS void dadd(); //Testar
+	EXT_INSTRUCTIONS void isub(); //Testar
+	EXT_INSTRUCTIONS void lsub(); //Testar
+	EXT_INSTRUCTIONS void fsub(); //Testar
+	EXT_INSTRUCTIONS void dsub(); //Testar
+	EXT_INSTRUCTIONS void imul(); //Testar
+	EXT_INSTRUCTIONS void lmul(); //Testar
+	EXT_INSTRUCTIONS void fmul(); //Testar
+	EXT_INSTRUCTIONS void dmul(); //Testar
+	EXT_INSTRUCTIONS void idiv(); //Testar
+	EXT_INSTRUCTIONS void ldiv_();//Testar
+	EXT_INSTRUCTIONS void fdiv(); //Testar
+	EXT_INSTRUCTIONS void ddiv(); //Testar
+	EXT_INSTRUCTIONS void irem(); //Testar
+	EXT_INSTRUCTIONS void lrem(); //Testar
+	EXT_INSTRUCTIONS void frem(); //Testar
+	EXT_INSTRUCTIONS void drem_(); //Testar
+	EXT_INSTRUCTIONS void ineg();
+	EXT_INSTRUCTIONS void lneg();
+	EXT_INSTRUCTIONS void fneg();
+	EXT_INSTRUCTIONS void dneg();
+	EXT_INSTRUCTIONS void ishl();
+	EXT_INSTRUCTIONS void lshl();
+	EXT_INSTRUCTIONS void ishr();
+	EXT_INSTRUCTIONS void lshr();
+	EXT_INSTRUCTIONS void iushr();
+	EXT_INSTRUCTIONS void lushr();
+	EXT_INSTRUCTIONS void iand();
+	EXT_INSTRUCTIONS void land();
+	EXT_INSTRUCTIONS void ior();
+	EXT_INSTRUCTIONS void lor();
+	EXT_INSTRUCTIONS void ixor();
+	EXT_INSTRUCTIONS void lxor();
+	EXT_INSTRUCTIONS void iinc();
 
 	//***********************************************
 	//CONVERSÕES
-	EXT_INSTRUCTIONS void i2l(Node *pilha);
-	EXT_INSTRUCTIONS void i2f(Node *pilha);
-	EXT_INSTRUCTIONS void i2d(Node *pilha);
-	EXT_INSTRUCTIONS void l2i(Node *pilha);
-	EXT_INSTRUCTIONS void l2f(Node *pilha);
-	EXT_INSTRUCTIONS void l2d(Node *pilha); //ARRUMAR O LONG TO INT64
-	EXT_INSTRUCTIONS void f2i(Node *pilha);
-	EXT_INSTRUCTIONS void f2l(Node *pilha);
-	EXT_INSTRUCTIONS void f2d(Node *pilha); //ARRUMAR O LONG TO INT64
-	EXT_INSTRUCTIONS void d2i(Node *pilha); //ARRUMAR O LONG TO INT64
-	EXT_INSTRUCTIONS void d2l(Node *pilha); //ARRUMAR O LONG TO INT64
-	EXT_INSTRUCTIONS void d2f(Node *pilha); //ARRUMAR O LONG TO INT64
-	EXT_INSTRUCTIONS void i2b(Node *pilha); //Testar
-	EXT_INSTRUCTIONS void i2c(Node *pilha);
-	EXT_INSTRUCTIONS void i2s(Node *pilha);
+	EXT_INSTRUCTIONS void i2l();
+	EXT_INSTRUCTIONS void i2f();
+	EXT_INSTRUCTIONS void i2d();
+	EXT_INSTRUCTIONS void l2i();
+	EXT_INSTRUCTIONS void l2f();
+	EXT_INSTRUCTIONS void l2d(); //ARRUMAR O LONG TO INT64
+	EXT_INSTRUCTIONS void f2i();
+	EXT_INSTRUCTIONS void f2l();
+	EXT_INSTRUCTIONS void f2d(); //ARRUMAR O LONG TO INT64
+	EXT_INSTRUCTIONS void d2i(); //ARRUMAR O LONG TO INT64
+	EXT_INSTRUCTIONS void d2l(); //ARRUMAR O LONG TO INT64
+	EXT_INSTRUCTIONS void d2f(); //ARRUMAR O LONG TO INT64
+	EXT_INSTRUCTIONS void i2b(); //Testar
+	EXT_INSTRUCTIONS void i2c();
+	EXT_INSTRUCTIONS void i2s();
 
 	//***********************************************
 	//COMPARAÇÕES
-	EXT_INSTRUCTIONS void lcmp(Node *pilha);
-	EXT_INSTRUCTIONS void fcmpl(Node *pilha);
-	EXT_INSTRUCTIONS void fcmpg(Node *pilha);
-	EXT_INSTRUCTIONS void dcmpl(Node *pilha);
-	EXT_INSTRUCTIONS void dcmpg(Node *pilha);
-	EXT_INSTRUCTIONS void ifeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void ifne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void iflt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void ifge(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void ifgt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void ifle(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void if_icmpeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void if_icmpne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void if_icmplt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void if_icmpge(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void if_icmpgt(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void if_icmple(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void if_acmpeq(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void if_acmpne(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
+	EXT_INSTRUCTIONS void lcmp();
+	EXT_INSTRUCTIONS void fcmpl();
+	EXT_INSTRUCTIONS void fcmpg();
+	EXT_INSTRUCTIONS void dcmpl();
+	EXT_INSTRUCTIONS void dcmpg();
+	EXT_INSTRUCTIONS void ifeq();
+	EXT_INSTRUCTIONS void ifne();
+	EXT_INSTRUCTIONS void iflt();
+	EXT_INSTRUCTIONS void ifge();
+	EXT_INSTRUCTIONS void ifgt();
+	EXT_INSTRUCTIONS void ifle();
+	EXT_INSTRUCTIONS void if_icmpeq();
+	EXT_INSTRUCTIONS void if_icmpne();
+	EXT_INSTRUCTIONS void if_icmplt();
+	EXT_INSTRUCTIONS void if_icmpge();
+	EXT_INSTRUCTIONS void if_icmpgt();
+	EXT_INSTRUCTIONS void if_icmple();
+	EXT_INSTRUCTIONS void if_acmpeq();
+	EXT_INSTRUCTIONS void if_acmpne();
 
 	//***********************************************
 	//CONTROLE
-	EXT_INSTRUCTIONS void goto_(uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void jsr(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void ret(Node *pilha, uint32_t byte);
-	EXT_INSTRUCTIONS void tableswitch(Node *pilha); //VER COM MAIS CALMA COMO FAZER
+	EXT_INSTRUCTIONS void goto_();
+	EXT_INSTRUCTIONS void jsr();
+	EXT_INSTRUCTIONS void ret();
+	EXT_INSTRUCTIONS void tableswitch(); //VER COM MAIS CALMA COMO FAZER
 	EXT_INSTRUCTIONS void lookupswitch(); //VER COM MAIS CALMA COMO FAZER
 	EXT_INSTRUCTIONS void ireturn(); //PRECISA DO FRAME
 	EXT_INSTRUCTIONS void lreturn(); //PRECISA DO FRAME
@@ -304,11 +304,11 @@
 	//***********************************************
 	//EXTENDIDO
 	EXT_INSTRUCTIONS void wide(int32_t escolha, uint32_t opcode, uint32_t indexbyte1, uint32_t indexbyte2, uint32_t constbyte1, uint32_t constbyte2); //JUNTAR AS DUAS FUNÇÕES DO WIDE, PASSAR OS ARGUMENTOS QUE NÃO PRECISAR COM 0 E PASSAR O PRIMEIRO ARGUMENTO SENDO O DE ESCOLHA DO WIDE, DEPENDENDO DO OPCODE -> FAZER IFS DENTRO DA FUNÇÃO WIDE PARA PODER ESCOLHER QUAL INSTRUÇÃO EXECUTAR E QUAL FORMA
-	EXT_INSTRUCTIONS void wide1(char *opcode, uint32_t indexbyte1, uint32_t indexbyte2); //Confirmar o funcionamento do wide
+	EXT_INSTRUCTIONS void wide1(char *opcode); //Confirmar o funcionamento do wide
 	EXT_INSTRUCTIONS void wide2(uint32_t indexbyte1, uint32_t indexbyte2, uint32_t constbyte1, uint32_t constbyte2); //Confirmar o funcionamento do wide
 	EXT_INSTRUCTIONS void multianewarray(); //PRECISA DA CONSTANT POOL
-	EXT_INSTRUCTIONS void ifnull(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
-	EXT_INSTRUCTIONS void ifnonnull(Node *pilha, uint32_t branchbyte1, uint32_t branchbyte2);
+	EXT_INSTRUCTIONS void ifnull();
+	EXT_INSTRUCTIONS void ifnonnull();
 	EXT_INSTRUCTIONS void goto_w();
 	EXT_INSTRUCTIONS void jsr_w();
 	//***********************************************
