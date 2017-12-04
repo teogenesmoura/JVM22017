@@ -828,10 +828,9 @@ void sipush(){
 	
 	return;
 }
-
 void ldc(){
 	int32_t index=currentFrame->code[(currentFrame->pc)+1];
-	cp_info aux = currentFrame->constant_pool[index-1];
+	cp_info aux = currentFrame->constant_pool[index];
 	switch (aux.tag){
 		case 3:		//CONSTANT_Integer
 			empilha (aux.info[0].u4);
@@ -841,19 +840,65 @@ void ldc(){
 			break;
 		case 8:		//CONSTANT_String:
 			/* Implementar. Eh preciso empilhar no operandArray o indice da constantpool que eh um StringUtf com o nome da string*/
-			empilha(0);
+			/*printf("%s\n", currentFrame->constant_pool[(aux.info[0].u2)].info[1].array);*/
+			empilha(aux.info[0].u2); 
+			/* empilha(0); */
 			break;
 		case 7:		//CONSTANT_Class:
 			/* Implementar. Consultar especificacao. */
 			break;
 		default:
-			printf("Erro!");
+			printf("Erro!\n");
 			exit(1);
 	}
 	return;
-} 	//IMPLEMENTAR - PRECISA DA CONSTANT POOL
-void ldc_w(){return;} 	//IMPLEMENTAR - PRECISA DA CONSTANT POOL
-void ldc2_w(){return;}	//IMPLEMENTAR - PRECISA DA CONSTANT POOL
+}
+void ldc_w(){
+	int32_t indexbyte1=currentFrame->code[(currentFrame->pc)+1];
+	int32_t indexbyte2=currentFrame->code[(currentFrame->pc)+2];
+	uint32_t indice = (indexbyte1 << 8) | indexbyte2;
+	cp_info aux = currentFrame->constant_pool[indice];
+	switch(aux.tag){
+		case 3:	//CONSTANT_Integer
+			empilha(aux.info[0].u4);
+			break;
+		case 4: //CONSTANT_Float
+			empilha(aux.info[0].u4);
+			break;
+		case 8:	//CONSTANT_String
+			// o u2 da string aponta p/ um indice da constant pool do tipo Utf8. essa referencia eh empilhada
+			empilha(aux.info[0].u2); 
+			break;
+		case 7:	//CONSTANT_Class
+			/* Implementar. Consultar especificacao. */
+			break;
+		default:
+			printf("Erro!\n");
+			exit(1);
+	}
+	return;
+}
+void ldc2_w(){
+	int32_t indexbyte1=currentFrame->code[(currentFrame->pc)+1];
+	int32_t indexbyte2=currentFrame->code[(currentFrame->pc)+2];
+	uint32_t indice = (indexbyte1 << 8) | indexbyte2;
+	cp_info aux = currentFrame->constant_pool[indice];
+
+	switch(aux.tag){
+		case 5:	//CONSTANT_Long
+			empilha(aux.info[0].u4);	//empilha a parte alta
+			empilha(aux.info[1].u4);	//empilha a parte baixa
+			break;
+		case 4: //CONSTANT_Double
+			empilha(aux.info[0].u4);	//empilha a parte alta
+			empilha(aux.info[0].u4);	//empilha a parte baixa
+			break;
+		default:
+			printf("Erro!\n");
+			exit(1);
+	}
+	return;
+}
 
 //LOADS
 void iload(){
@@ -861,8 +906,8 @@ void iload(){
 	return;
 }
 void lload(){
-	empilha(currentFrame->variables[currentFrame->code[(currentFrame->pc)+1]]);	// Empilha variable[index] como low
 	empilha(currentFrame->variables[currentFrame->code[(currentFrame->pc)+1]+1]);	// Empilha variable[index+1] como high
+	empilha(currentFrame->variables[currentFrame->code[(currentFrame->pc)+1]]);	// Empilha variable[index] como low
 	return;
 } 
 void fload(){
@@ -870,8 +915,8 @@ void fload(){
 	return;
 }
 void dload(){
-	empilha(currentFrame->variables[currentFrame->code[(currentFrame->pc)+1]]);
 	empilha(currentFrame->variables[currentFrame->code[(currentFrame->pc)+1]+1]);
+	empilha(currentFrame->variables[currentFrame->code[(currentFrame->pc)+1]]);
 	return;
 }
 void aload(){
@@ -895,23 +940,23 @@ void iload_3(){
 	return;
 }
 void lload_0(){
-	empilha(currentFrame->variables[0]);
-	empilha(currentFrame->variables[1]);
+	empilha(currentFrame->variables[1]);	// index+1: high (empilha primeiro)
+	empilha(currentFrame->variables[0]);	// index:   low  (empilha depois)
 	return;
 }
 void lload_1(){
-	empilha(currentFrame->variables[1]);
 	empilha(currentFrame->variables[2]);
+	empilha(currentFrame->variables[1]);
 	return;
 }
 void lload_2(){
-	empilha(currentFrame->variables[2]);
 	empilha(currentFrame->variables[3]);
+	empilha(currentFrame->variables[2]);
 	return;
 }
 void lload_3(){
-	empilha(currentFrame->variables[3]);
 	empilha(currentFrame->variables[4]);
+	empilha(currentFrame->variables[3]);
 	return;
 }
 void fload_0(){
@@ -931,23 +976,23 @@ void fload_3(){
 	return;
 }
 void dload_0(){
-	empilha(currentFrame->variables[0]);
 	empilha(currentFrame->variables[1]);
+	empilha(currentFrame->variables[0]);
 	return;
 }
 void dload_1(){
-	empilha(currentFrame->variables[1]);
 	empilha(currentFrame->variables[2]);
+	empilha(currentFrame->variables[1]);
 	return;
 }
 void dload_2(){
-	empilha(currentFrame->variables[2]);
 	empilha(currentFrame->variables[3]);
+	empilha(currentFrame->variables[2]);
 	return;
 }
 void dload_3(){
-	empilha(currentFrame->variables[3]);
 	empilha(currentFrame->variables[4]);
+	empilha(currentFrame->variables[3]);
 	return;
 }
 void aload_0(){
@@ -966,11 +1011,52 @@ void aload_3(){
 	empilha(currentFrame->variables[3]);
 	return;
 }
-void iaload(){return;}
-void laload(){return;}
-void faload(){return;}
-void daload(){return;}
-void aaload(){return;}
+void iaload(){
+	int32_t* arrayref;
+	int32_t index = desempilha();
+	arrayref = (int32_t*) desempilha();
+	empilha(arrayref[index]);
+	return;
+}
+void laload(){
+	int32_t* arrayref;
+	int32_t index = desempilha();
+	arrayref = (int32_t*) desempilha();
+	empilha(arrayref[index+1]);	// empilha high
+	empilha(arrayref[index]);	// empilha low
+	return;
+}
+void faload(){
+	int32_t* arrayref;
+	int32_t index = desempilha();
+	// int32_t valor1;
+	float valor2;
+
+	arrayref = (float*) desempilha();	//tentativa de desempilhar a referencia direto como um vetor de floats
+	valor2 = (float) arrayref[index];
+	// num = arrayref[index];
+	// memcpy(&num)
+
+	empilha(valor2);
+	return;
+}
+void daload(){
+	int32_t* arrayref;
+	int32_t index = desempilha();
+	arrayref = (int32_t*) desempilha();
+
+	empilha(arrayref[index+1]);
+	empilha(arrayref[index]);
+	return;
+}
+void aaload(){
+	int32_t* arrayref;
+	int32_t index = desempilha();
+	arrayref = (int32_t*)desempilha();
+
+	empilha(arrayref[index]);
+	return;
+}
 void baload(){return;}
 void caload(){return;}
 void saload(){return;}
@@ -989,7 +1075,7 @@ void lstore(){
 	int32_t value_high=desempilha(); // valor imediatamente abaixo do topo: high
 
 	currentFrame->variables[index]=value_low;	// [index] recebe low
-	currentFrame->variables[index+1]=value_high;// [index] recebe high
+	currentFrame->variables[index+1]=value_high;// [index+1] recebe high
 	return;
 }
 void fstore(){
@@ -1032,8 +1118,8 @@ void istore_3(){
 	return;
 }
 void lstore_0(){
-	currentFrame->variables[0]=desempilha();
-	currentFrame->variables[1]=desempilha();
+	currentFrame->variables[0]=desempilha();	// index:   low
+	currentFrame->variables[1]=desempilha();	// index+1: high
 	return;
 }
 void lstore_1(){
@@ -1068,8 +1154,8 @@ void fstore_3(){
 	return;
 }
 void dstore_0(){
-	currentFrame->variables[0]=desempilha();
-	currentFrame->variables[1]=desempilha();
+	currentFrame->variables[0]=desempilha();	// index:   low
+	currentFrame->variables[1]=desempilha();	// index+1: high
 	return;
 }
 void dstore_1(){
@@ -3362,10 +3448,7 @@ void lreturn(){return;}
 void freturn(){return;}
 void dreturn(){return;}
 void areturn(){return;}
-void return_(){
-	printf ("\nChamou a return!!!");
-	return;
-}
+void return_(){return;}
 
 //REFERÊNCIAS
 void getstatic(){
@@ -3406,8 +3489,8 @@ void getfield(){
 	int16_t classNameIndex;
 	char name[100];
 	//indice deve conter uma referencia para um Fieldref na constant_pool
-	if (currentFrame->constant_pool[indice-1].tag == 9){
-		classNameIndex = currentFrame->constant_pool[indice-1].info[0];	//deve armazenar o indice da classe em que o field esta
+	if (currentFrame->constant_pool[indice].tag == 9){
+		classNameIndex = currentFrame->constant_pool[indice].info[0];	//deve armazenar o indice da classe em que o field esta
 		classNameIndex = currentFrame->constant_pool[classNameIndex].info[0]; //deve armazenar o indice do nome na classe na constant pool
 		sprintf (name, currentFrame->constant_pool[classNameIndex].info[1].array); //deve armazenar o nome da classe que contem o fiel.
 	}
@@ -3416,10 +3499,25 @@ void getfield(){
 }
 void putfield(){return;}
 void invokevirtual(){
-	printf ("\nChamou a invokevirtual!!!!");
+	method_info* invokedMethod;
+	uint32_t indexbytes1 = currentFrame->code[(currentFrame->pc)+1];
+	uint32_t indexbytes2 = currentFrame->code[(currentFrame->pc)+2];
+	uint32_t index = (indexbytes1<<8) | indexbytes2;
+	uint32_t nameIndex = currentFrame->constant_pool[index].info[1].u2;	// recebe a referencia do nameAndType do metodo  (NameAndType)
+	nameIndex = currentFrame->constant_pool[nameIndex].info[0].u2;			// recebe a referencia do name do metodo (String)
+	char nameAndType[150];
+	sprintf (nameAndType, "%s", currentFrame->constant_pool[nameIndex].info[1].array);
+	if (strcmp(nameAndType, "println")==0){
+		/*Desempilhar o valor do indice da string referenciada no constant pool e printar isso.*/
+		index = desempilha();
+		printf ("%s", currentFrame->constant_pool[index].info[1].array);
+	}
 	return;
 }
-void invokespecial(){return;}
+void invokespecial(){
+
+	return;
+}
 void invokestatic(){return;}
 void invokeinterface(){return;}
 // void invokedynamic(){return;}
