@@ -82,7 +82,9 @@
 	EXT_INSTRUCTIONS int verifica_pilha_vazia(Node *pilha);
 
 	//Função para fazer o print da pilha
-	EXT_INSTRUCTIONS void mostra_pilha(Node *pilha);
+	//EXT_INSTRUCTIONS void mostra_pilha(Node *pilha);
+	EXT_INSTRUCTIONS void mostra_pilha();
+	EXT_INSTRUCTIONS void mostra_locais();
 
 	//Função para zerar a pilha
 	EXT_INSTRUCTIONS void zera_pilha(Node *pilha);
