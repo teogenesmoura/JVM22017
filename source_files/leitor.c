@@ -1,14 +1,13 @@
-
 /****************************************************************************
 ** MEMBROS:                                                                **
-**		Aluno 1: Jean Pierre Sissé                                         **
-**		Aluno 2: Samuel Sousa Almeida                                       **
-**		Aluno 3: Raphael Rodrigues                                         **
-**		Aluno 4: Teogenes Moura                                            **
-**		Aluno 5: Michel Melo                                               **
+**		Aluno 1: Jean Pierre Sissé                                 **
+**		Aluno 2: Samuel Sousa Almeida                              **
+**		Aluno 3: Raphael Rodrigues                                 **
+**		Aluno 4: Teogenes Moura                                    **
+**		Aluno 5: Michel Melo                                       **
 **                                                                         **
 ** Descrição: Leitor de arquivo .class                                     **
-** compile com: make													   **
+** compile com: make							   **
 *****************************************************************************/
 
 #define LEITOR_SERVER
@@ -669,6 +668,81 @@ int init_leitor(FILE *fp){
 		classFile.attributes = (attribute_info *) malloc (sizeof(attribute_info) * classFile.attributes_count);
 		for (int i = 0; i < classFile.attributes_count; i++){
 			classFile.attributes[i] = ler_attribute(fp, classFile.constant_pool, classFile);
+		}
+	}
+
+	fclose(fp);
+	return 0;
+}
+
+int leitor_object(FILE *fp){
+
+	// cFile classFile;
+	int checkCP;
+
+	// vetor booleano para controle de flags presentes.
+	// bool splitFlags[5];
+
+
+	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
+	if((classFileObject.magic = ler_u4(fp)) != 0xcafebabe){
+		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
+		return INVALID_FILE;
+	}
+
+	classFileObject.minor_version = ler_u2(fp);		/* lê a minor version */
+	classFileObject.major_version = ler_u2(fp);		/* lê a major version */
+	classFileObject.constant_pool_count = ler_u2(fp);	/* lê quantidade de constates no pool de constantes */
+	/* aloca a memoria (tabela) do tamanho da quantidade de const na entrada no CP */
+	classFileObject.constant_pool = (cp_info *) malloc(sizeof(cp_info) * classFileObject.constant_pool_count);
+	checkCP = loadInfConstPool(classFileObject.constant_pool, classFileObject.constant_pool_count, fp);
+
+
+
+	/*Verifica se todos os elementos da entrada do CP foram lidos*/
+	if(classFileObject.constant_pool_count != checkCP){
+		printf("ERRO: Tipo desconhecido para pool de constante.\n");
+		printf("Nao foi possivel carregar todas as entradas do CP.\n");
+		printf("Elementos #%d\n", checkCP+1);
+		return UNKNOWN_TYPE;
+	}
+	
+	/* access_flags, this_class, super_class, interfaces_count */
+	classFileObject.access_flags = ler_u2(fp);
+
+	classFileObject.this_class = ler_u2(fp);
+	classFileObject.super_class = ler_u2(fp);
+	classFileObject.interfaces_count = ler_u2(fp);
+	
+	classFileObject.interfaces = (uint16_t*) (malloc (sizeof(uint16_t) * classFileObject.interfaces_count));
+	/*Carregando e mostrando todas as interfaces que estão presentes*/
+	loadInterfaces(classFileObject.interfaces, classFileObject.interfaces_count, classFileObject.constant_pool, fp);
+
+	classFileObject.fields_count = ler_u2(fp);
+	if(classFileObject.fields_count != 0){
+		classFileObject.fields = (field_info *) malloc(sizeof(field_info) * classFileObject.fields_count);
+		/*Carrega e mostra os fields existentes */
+
+		for (int i = 0; i < classFileObject.fields_count; ++i)
+			classFileObject.fields[i] = ler_fields(fp, classFileObject.constant_pool);
+	}
+
+
+	classFileObject.methods_count = ler_u2(fp);
+	printf("methods_count = %d\n", classFileObject.methods_count);
+	if(classFileObject.methods_count != 0){
+		classFileObject.methods = (method_info*) malloc (sizeof(method_info) * classFileObject.methods_count);
+
+		for (int j = 0; j < classFileObject.methods_count; j++)
+			classFileObject.methods[j] = ler_methods(fp, classFileObject.constant_pool);
+	}
+
+	classFileObject.attributes_count = ler_u2(fp);
+
+	if(classFileObject.attributes_count != 0){
+		classFileObject.attributes = (attribute_info *) malloc (sizeof(attribute_info) * classFileObject.attributes_count);
+		for (int i = 0; i < classFileObject.attributes_count; i++){
+			classFileObject.attributes[i] = ler_attribute(fp, classFileObject.constant_pool, classFileObject);
 		}
 	}
 
