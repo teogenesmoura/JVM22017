@@ -164,7 +164,7 @@ void mount_inst_array(AllIns *instructions){
 	strcpy(vec_strings[129], "lor");
 	strcpy(vec_strings[130], "ixor");
 	strcpy(vec_strings[131], "lxor");
-	strcpy(vec_strings[132], "iin");
+	strcpy(vec_strings[132], "iinc");
 	
 	//******************************************************************
 	//CONVERSÕES
@@ -626,14 +626,14 @@ void mostra_pilha(Node *pilha){
 void mostra_pilha(){
 	printf ("OperandStack: ");
 	for (int i=0;i<(currentFrame->tamanhoArray);i++){
-		printf ("%x ",currentFrame->operandArray[i]);
+		printf ("0x%x ",currentFrame->operandArray[i]);
 	}
 	printf ("\n");
 }
 void mostra_locais(){
 	printf ("LocalVariables: ");
 	for(int i = 0; i < currentFrame->max_locals; i++)
-		printf("%x ", currentFrame->variables[i]);
+		printf("0x%x ", currentFrame->variables[i]);
 	printf("\n");
 }
 
@@ -774,13 +774,6 @@ void fconst_2(){
 	memcpy(&para_empilhar, &valor, sizeof(int32_t));
 	empilha (para_empilhar);
 	
-	/*
-	valor = 0;
-	para_empilhar = 0;
-	
-	para_empilhar = desempilha(pilha);
-	
-	memcpy(&valor, &para_empilhar, sizeof(int32_t));*/
 	
 	return;
 }
@@ -810,8 +803,12 @@ void bipush(){
 
 	converte_para_8bits |= bytes;
 	completa_bits |= bytes;
-
+	printf ("bytes: %d\ncompleta_bits: %d\n", bytes, completa_bits);
 	empilha(completa_bits);
+	for (int i=0;i<3;i++){
+		printf ("{%d}", currentFrame->operandArray[i]);
+	}
+	printf("\n");
 	return;
 }
 void sipush(){
@@ -899,7 +896,7 @@ void ldc2_w(){
 			break;
 		case 6: //CONSTANT_Double
 			empilha(aux.info[0].u4);	//empilha a parte alta
-			empilha(aux.info[0].u4);	//empilha a parte baixa
+			empilha(aux.info[1].u4);	//empilha a parte baixa
 			break;
 		default:
 			printf("Erro!\t Tag [%d]", aux.tag);
@@ -2590,10 +2587,7 @@ void iinc(){
 	
 	valor1 &= const_8;
 	
-	// 	variaveis_locais[0] = 0;
-	// 	printf("variaveis_locais[0] = %d\n", variaveis_locais[0]);
-	variaveis_locais[index_8] = variaveis_locais[index_8] + valor1;
-	// 	printf("variaveis_locais[0] = %d\n", variaveis_locais[0]);
+	currentFrame->variables[index_8] = currentFrame->variables[index_8] + valor1;
 	
 	return;
 }
@@ -2822,7 +2816,6 @@ void f2d(){
 	return;
 }
 void d2i(){
-	
 	int64_t valor1_lo = desempilha();
 	int64_t valor1_hi = desempilha();
 	int32_t para_empilhar;
@@ -2859,8 +2852,56 @@ void d2i(){
 	empilha(para_empilhar);
 	return;
 }
-void d2l(){return;}
-void d2f(){return;}
+void d2l(){
+	int64_t valor1_lo = desempilha();
+	int64_t valor1_hi = desempilha();
+	int32_t maior_valor, menor_valor;
+
+	int64_t valor1, aux;
+	long vl;	//value long
+
+	valor1 = 0x00000000FFFFFFFF & valor1_lo;
+	valor1_hi <<= 32;
+	valor1 |= valor1_hi;
+	
+	// 	printf("%lx\n", valor1);
+	
+	conversor.valor1 = valor1;
+	vl = (long) conversor.valor2;
+
+	maior_valor = 0xFFFFFFFF;
+	maior_valor &= (vl >> 32);
+	
+	menor_valor = 0xFFFFFFFF;
+	aux = (vl << 32);
+	menor_valor &= (aux >> 32);
+	
+ 	empilha(maior_valor);
+ 	empilha(menor_valor);
+
+	return;
+
+	return;
+}
+void d2f(){
+	int64_t valor1_lo = desempilha();
+	int64_t valor1_hi = desempilha();
+	int32_t para_empilhar;
+	int64_t valor1;
+	float vf;
+
+	// Pegando o double e colocando ele em uma notacao de 64 bits;
+	valor1 = 0x00000000FFFFFFFF & valor1_lo;
+	valor1_hi <<= 32;
+	valor1 |= valor1_hi;
+
+	conversor.valor1=valor1;
+
+	vf = (float) conversor.valor2;
+	//printf ("%f", vf);	
+	memcpy(&para_empilhar, &vf, sizeof(float));
+	empilha(para_empilhar);	
+}
 void i2b(){
 	
 	int32_t valor1 = desempilha();
@@ -3110,7 +3151,7 @@ void dcmpg(){
 void ifeq(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
+	int32_t valor1 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3121,17 +3162,17 @@ void ifeq(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 == 0)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 == 0)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void ifne(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
+	int32_t valor1 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3142,17 +3183,17 @@ void ifne(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 != 0)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 != 0)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void iflt(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
+	int32_t valor1 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3163,17 +3204,17 @@ void iflt(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 < 0)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 < 0)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void ifge(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
+	int32_t valor1 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3184,17 +3225,17 @@ void ifge(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 >= 0)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 >= 0)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void ifgt(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
+	int32_t valor1 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3205,17 +3246,17 @@ void ifgt(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 > 0)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 > 0)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void ifle(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
+	int32_t valor1 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3226,18 +3267,18 @@ void ifle(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 <= 0)
-	//  		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 <= 0)
+ 		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void if_icmpeq(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
-	//int32_t valor2 = desempilha(pilha);
+	int32_t valor1 = desempilha();
+	int32_t valor2 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3248,18 +3289,18 @@ void if_icmpeq(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 == valor2)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 == valor2)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void if_icmpne(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
-	//int32_t valor2 = desempilha(pilha);
+	int32_t valor1 = desempilha();
+	int32_t valor2 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3270,18 +3311,18 @@ void if_icmpne(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 != valor2)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 != valor2)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void if_icmplt(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
-	//int32_t valor2 = desempilha(pilha);
+	int32_t valor1 = desempilha();
+	int32_t valor2 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3292,18 +3333,18 @@ void if_icmplt(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 < valor2)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 < valor2)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void if_icmpge(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
-	//int32_t valor2 = desempilha(pilha);
+	int32_t valor1 = desempilha();
+	int32_t valor2 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3314,18 +3355,18 @@ void if_icmpge(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 >= valor2)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 >= valor2)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
 void if_icmpgt(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
-	//int32_t valor2 = desempilha(pilha);
+	int32_t valor1 = desempilha();
+	int32_t valor2 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3336,18 +3377,18 @@ void if_icmpgt(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 > valor2)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+ 	if (valor1 > valor2)
+ 		currentFrame->pc += offset;
+ 	else 
+ 		currentFrame->pc += 0;
 	
 	return;
 }
 void if_icmple(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
-	//int32_t valor2 = desempilha(pilha);
+	int32_t valor1 = desempilha();
+	int32_t valor2 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3358,18 +3399,18 @@ void if_icmple(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 <= valor2)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+ 	if (valor1 <= valor2)
+ 		currentFrame->pc += offset;
+ 	else 
+ 		currentFrame->pc += 0;
 	
 	return;
 }
 void if_acmpeq(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
-	//int32_t valor2 = desempilha(pilha);
+	int32_t valor1 = desempilha();
+	int32_t valor2 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3380,18 +3421,18 @@ void if_acmpeq(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 == valor2)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 == valor2)
+ 		currentFrame->pc += offset;
+ 	else 
+ 		currentFrame->pc += 0;
 	
 	return;
 }
 void if_acmpne(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor1 = desempilha(pilha);
-	//int32_t valor2 = desempilha(pilha);
+	int32_t valor1 = desempilha();
+	int32_t valor2 = desempilha();
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3402,10 +3443,10 @@ void if_acmpne(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor1 != valor2)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc = 0;
+	if (valor1 != valor2)
+		currentFrame->pc += offset;
+	else 
+		currentFrame->pc += 0;
 	
 	return;
 }
@@ -3414,7 +3455,7 @@ void if_acmpne(){
 void goto_(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	
+	//printf ("brbytes1 = %d\nbrbytes2 = %d\n", branchbytes1, branchbytes2);
 	int16_t offset;
 	
 	//Garante que o valor tenha 1 bytes
@@ -3424,8 +3465,8 @@ void goto_(){
 	branchbytes1 <<= 8;
 	
 	offset = branchbytes1 | branchbytes2;
-	
-	// 	currentFrame->pc = offset;
+	//printf ("brbytes1 = %d\nbrbytes2 = %d\noffset = %d", branchbytes1, branchbytes2, offset);
+	currentFrame->pc += offset;
 	return;
 }
 void jsr(){
@@ -3442,7 +3483,7 @@ void jsr(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	currentFrame->pc = offset;
+	currentFrame->pc += offset;
 	
 	return;
 }
@@ -3453,7 +3494,7 @@ void ret(){
 	
 	index |= bytes;
 	
-	// 	currentFrame->pc = variaveis_locais[index];
+	currentFrame->pc = currentFrame->variables[index];
 	
 	return;
 }
@@ -3479,7 +3520,7 @@ void getstatic(){
 		// exit(0)
 	}
 	*/
-	currentFrame->tamanhoArray += 1;	// inspiracao????
+	// currentFrame->tamanhoArray += 1;
 	return;
 }
 void putstatic(){
@@ -3514,6 +3555,7 @@ void getfield(){
 	return;
 }
 void putfield(){return;}
+
 void invokevirtual(){
 	uint32_t indexbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t indexbytes2 = currentFrame->code[(currentFrame->pc)+2];
@@ -3527,9 +3569,11 @@ void invokevirtual(){
 	char type[150];
 	sprintf (name, "%s", currentFrame->constant_pool[nameIndex].info[1].array);
 	sprintf (type, "%s", currentFrame->constant_pool[typeIndex].info[1].array);
-	
+
 	double dout;
-	int64_t aux, aux2;
+	int64_t laux, laux2;
+	int32_t iaux;
+
 	if (strcmp(name, "println")==0){
 
 		if (strcmp(type, "(Ljava/lang/String;)V")==0){
@@ -3541,30 +3585,66 @@ void invokevirtual(){
 			Desempilhar e concatenar os dois elementos superiores da pilha, transformar em um double e printar.
 			*/
 			//printf ("Desempilhando low...\n");
-			aux = desempilha();
-			aux2 = desempilha();
-			aux2 <<= 32;
+			laux = desempilha();
+			laux2 = desempilha();
+			laux2 <<= 32;
 			//printf ("Desempilhando high e concatenando...\n");
-			aux |= aux2;
+			laux |= laux2;
 			//printf ("Convertendo para double...\n");
-			memcpy(&dout, &aux, sizeof(int64_t));
+			memcpy(&dout, &laux, sizeof(int64_t));
 			//printf ("Exibindo double...\n");
 			printf ("%g.\n",  dout);
 			// printf ("\nCheckpoint\n");
+		}else if (strcmp(type, "(I)V")==0){
+			iaux = desempilha();
+			printf ("%d\n", iaux);
+		}else if (strcmp(type, "()V")==0){
+			printf("\n");
+		}else if(strcmp(type, "(F)V")==0){
+			conversor.valor0 = desempilha();
+			printf ("%f\n", conversor.valor5);;
+		}else if(strcmp(type, "(J)V")==0){
+			laux = desempilha();
+			printf ("%lld", laux);
 		}else{
-			printf ("Nao implementado printar %s\n", type);
+			printf ("Nao implementado printar type \"%s\"\n", type);
 		}
 	}
 	return;
 }
 void invokespecial(){
+	/*
+	method_info* invoked;
 
+	uint32_t indexbytes1 = currentFrame->code[(currentFrame->pc)+1];
+	uint32_t indexbytes2 = currentFrame->code[(currentFrame->pc)+2];
+	uint32_t index = (indexbytes1 << 8) | indexbytes2;
+
+	printf ("%d", index);
+	getchar();
+
+	*/
 	return;
 }
 void invokestatic(){return;}
 void invokeinterface(){return;}
 // void invokedynamic(){return;}
-void new_(){return;}
+void new_(){
+	/*
+	uint32_t indexbytes1 = currentFrame->code[(currentFrame->pc)+1];
+	uint32_t indexbytes2 = currentFrame->code[(currentFrame->pc)+2];
+	uint32_t index = (indexbytes1 << 8) | indexbytes2;
+
+	// printf ("Tag('7'): %d\n", currentFrame->constant_pool[index]);
+	uint32_t classNameIndex = currentFrame->constant_pool[index].info[0].u2;
+	// printf ("%s\n", currentFrame->constant_pool[classNameIndex].info[1].array);
+
+	if ((strcmp(currentFrame->constant_pool[classNameIndex].info[1].array, "java/util/Scanner") !=0) && (strcmp(currentFrame->constant_pool[classNameIndex].info[1].array,"java/lang/StringBuffer") != 0)){
+		// push (???);
+	}
+	return;
+	*/
+}
 void newarray(){return;}
 void anewarray(){return;}
 void arraylength(){return;}
@@ -3592,9 +3672,9 @@ void wide1(char *opcode){
 	index = indexbytes1 | indexbytes2;
 	
  	if ((strcmp(opcode, instructions[22].name) == 0) || (strcmp(opcode, instructions[24].name) == 0) || (strcmp(opcode, instructions[55].name) == 0) || (strcmp(opcode, instructions[57].name) == 0))
-		variaveis_locais[index + 1] = index;
+		currentFrame->variables[index + 1] = index;
 		
-	variaveis_locais[index] = index;
+	currentFrame->variables[index] = index;
 	
 	return;
 }
@@ -3615,8 +3695,8 @@ void wide2(uint32_t indexbytes1, uint32_t indexbytes2, uint32_t constbytes1, uin
 	constbytes1 <<= 8;
 	offset = constbytes1 | constbytes2;
 	
-	variaveis_locais[index] = index;
-	variaveis_locais[index+1] = offset;
+	currentFrame->variables[index] = index;
+	currentFrame->variables[index+1] = offset;
 	
 	return;
 }
@@ -3625,7 +3705,7 @@ void ifnull(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
 	
-	//int32_t valor = desempilha(pilha);
+	int32_t valor = desempilha();
 	
 	int16_t offset;
 	
@@ -3637,17 +3717,17 @@ void ifnull(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor == 0)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc += 3;
+	if (valor == 0)
+		currentFrame->pc = offset;
+	else 
+		currentFrame->pc += 3;
 	
 	return;
 }
 void ifnonnull(){
 	uint32_t branchbytes1 = currentFrame->code[(currentFrame->pc)+1];
 	uint32_t branchbytes2 = currentFrame->code[(currentFrame->pc)+2];
-	//int32_t valor = desempilha(pilha);
+	int32_t valor = desempilha();
 	
 	int16_t offset;
 	
@@ -3659,10 +3739,10 @@ void ifnonnull(){
 	
 	offset = branchbytes1 | branchbytes2;
 	
-	// 	if (valor != 0)
-	// 		currentFrame->pc = offset;
-	// 	else 
-	// 		currentFrame->pc += 3;
+	if (valor != 0)
+		currentFrame->pc = offset;
+	else 
+		currentFrame->pc += 3;
 	
 	return;
 }

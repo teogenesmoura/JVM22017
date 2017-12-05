@@ -102,10 +102,12 @@ void executeFrame(tipoStackFrame *stackFrame){
 		decode[currentFrame->code[index]].ins();
 		
 		// debug
-		//printf ("Funcao executada: (%d) %s \n", currentFrame->code[index], decode[currentFrame->code[index]].name);
-		//mostra_pilha();
-		//mostra_locais();
-		//getchar();
+		/*
+		printf ("Funcao executada: (%d) %s <%d>\n", currentFrame->code[index], decode[currentFrame->code[index]].name, currentFrame->code[index+1]);
+		mostra_pilha();
+		mostra_locais();
+		getchar();
+		*/
 		
 		currentFrame->pc += 1 + decode[currentFrame->code[currentFrame->pc]].bytes;
 	}
