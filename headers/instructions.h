@@ -52,12 +52,11 @@
 		double valor2;
 		char valor3;
 		char *valor4;
+		float valor5;
 	}conversor;
 	
 	//Variável que armazenará o tamanho da pilha
 	int32_t tamanho_pilha;
-
-	int32_t variaveis_locais[MAX_LOCAL_VARIABLES];
 	
 // 	int32_t pc = 0;
 	
@@ -91,6 +90,7 @@
 
 	//Função para destruir a pilha completamente
 	EXT_INSTRUCTIONS void destroi_pilha(Node *pilha);
+	
 	
 	//***********************************************
 	//CONSTANTES
@@ -273,8 +273,8 @@
 	EXT_INSTRUCTIONS void goto_();
 	EXT_INSTRUCTIONS void jsr();
 	EXT_INSTRUCTIONS void ret();
-	EXT_INSTRUCTIONS void tableswitch(); //VER COM MAIS CALMA COMO FAZER
-	EXT_INSTRUCTIONS void lookupswitch(); //VER COM MAIS CALMA COMO FAZER
+	EXT_INSTRUCTIONS void tableswitch(); 	//VER COM MAIS CALMA COMO FAZER
+	EXT_INSTRUCTIONS void lookupswitch(); 	//VER COM MAIS CALMA COMO FAZER
 	EXT_INSTRUCTIONS void ireturn(); //PRECISA DO FRAME
 	EXT_INSTRUCTIONS void lreturn(); //PRECISA DO FRAME
 	EXT_INSTRUCTIONS void freturn(); //PRECISA DO FRAME
@@ -285,7 +285,7 @@
 	//***********************************************
 	//REFERÊNCIAS
 	EXT_INSTRUCTIONS void getstatic(); //PRECISA DA CONSTANT POOL
-	EXT_INSTRUCTIONS void putstatic();
+	EXT_INSTRUCTIONS void putstatic(); 
 	EXT_INSTRUCTIONS void getfield();
 	EXT_INSTRUCTIONS void putfield();
 	EXT_INSTRUCTIONS void invokevirtual();
