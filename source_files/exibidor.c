@@ -90,7 +90,7 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 				break;
 
 			case LONG:
-				printf("\t\t%ld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
+				printf("\t\t%lld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
 				break;
 			
 			case DOUBLE:
@@ -324,18 +324,16 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 	printf("\n");
 	printf(" \tAttribute length: %d\n", att_code.attribute_length);
 
-	/*Completar a função para diferente tipos de atributo*/
+	/*Completar a funcao para diferente tipos de atributo*/
 	if(strcmp((char *) cp[att_code.attribute_name_index].info[1].array, "Code") == 0){
 		printf("\tmax_stack = %d\n", att_code.max_stack);
 		printf("\tmax_locals = %d\n", att_code.max_locals);
 		printf("\tcode_length = %d\n", att_code.code_length);
 		printf("\topcde = %x\n", att_code.code[i]);
-		printf("\tInstrução: %s\n", decode[att_code.code[i]].name);
+		printf("\t%d %s", i, decode[att_code.code[i]].name);
 		
 		if(decode[att_code.code[i]].bytes != 0){
 			aux = i;
-			for(int x = 0; x < decode[att_code.code[i]].bytes; x++)
-				aux++;
 		}
 
 		for(int i = (aux+1); i < att_code.code_length; ){
@@ -416,15 +414,45 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 					i++;
 				}
 			}else{
-				printf("\tInstrução %s\n", decode[att_code.code[i]].name);
+				printf("\n\t%d %s", i, decode[att_code.code[i]].name);
 				if(decode[att_code.code[i]].bytes != 0){
 					int aux = i;
-					for(int x = 0; x < decode[att_code.code[aux]].bytes; x++)
+					for(int x = 0; x < decode[att_code.code[aux]].bytes; x++){
+						printf(" %d", att_code.code[i+1]);
 						i++;
+					}
+					//printf("\n");
 				}
 				i++;
 			}
 		}
+		if(att_code.attributes_count > 0){
+            
+            for(int r = 0; r < att_code.attributes_count; r++){
+                   // printf("lalalalala: %s\n", (char *) cp[att_code.attributes[r].attribute_name_index].info[1].array);
+              if((r >= 0) && (r < 1)){
+                if(strcmp((char *) cp[att_code.attributes[r].attribute_name_index].info[1].array, "LineNumberTable") == 0){
+                    printf("\n\tAttribute name:");
+                    dereference_index_UTF8(att_code.attributes[r].attribute_name_index, cp);
+                    printf("\n");
+                    printf("\tAttribute length: %d\n", att_code.attributes[r].attribute_length);
+                    printf("\tAttribute line number: %d\n", att_code.attributes[r].line_number_table_length);
+                    printf("\tEspecific info:\n");
+                    printf("\tNr.    start_pc     line_number\n");
+                    printf("\t--------------------------------\n");
+                    for(int p = 0; p < att_code.attributes[r].line_number_table_length; p++){
+                        printf("\t%d\t%d\t\t%d\n", p, att_code.attributes[r].L_numberTable[p].start_pc, att_code.attributes[r].L_numberTable[p].line_number);
+                    }
+                }else if(strcmp((char *) cp[att_code.attributes[r].attribute_name_index].info[1].array, "StackMapTable") == 0){
+                    printf("\n\tAttribute name: ");
+                    dereference_index_UTF8(att_code.attributes[r].attribute_name_index, cp);
+                    printf("\n\tAttribute length: %d\n", att_code.attributes[r].attribute_length);
+                    //TODO: ARRUMAR O VALOR DE LENGTH QUE TA ERRADO.
+                }
+             }
+                //printf("DEPOIS r: %d\n",r);
+            }
+        }
 	}
 }
 
@@ -494,7 +522,7 @@ void show_cFile_attributes(cFile classFile){
 
 void infoBasic(cFile classFile){
 	printf("--------------------\n");
-	printf("|Informações gerais|\n");
+	printf("|Informacoes gerais|\n");
 	printf("--------------------\n\n");
 
 	printf ("Magic number: 0x%x\n", classFile.magic);
@@ -528,7 +556,7 @@ void show_info(){
 	infoBasic(classFile);
 	
 	/*Exibe informações de Pool de constante*/
-	/*showConstPool(classFile.constant_pool_count, classFile.constant_pool);*/
+	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
 	
 	/*Exibe os metodos*/
 	show_methods(classFile);

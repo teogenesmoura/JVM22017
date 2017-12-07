@@ -22,6 +22,7 @@ uint32_t ler_u4(FILE *fp){
 	uint32_t ret = 0;
 
 	for(int i = 0; i <= 3; i++){ /*for para ler os 4 bytes do .class*/
+    	//aux = getc(fp);
 		fread(&aux, 1, 1, fp); 	/*lê um byte*/
 		ret = ret << 8;			/*Deslocamento de 8 bits a esquerda*/
 		ret = ret | aux;		/*Faz um or bit a bit*/
@@ -33,9 +34,12 @@ uint32_t ler_u4(FILE *fp){
 
 /*ler_u2: a partir do arquivo recebido, lê 2 bytes e inverte-os*/
 uint16_t ler_u2 (FILE *fp){
+
 	uint8_t aux;
 	uint16_t ret = 0;
-
+	
+    //ret = getc(fp);
+    //aux = getc(fp);
 	fread(&ret, 1, 1, fp);
 	fread(&aux, 1, 1, fp);
 
@@ -50,8 +54,9 @@ uint16_t ler_u2 (FILE *fp){
 uint8_t ler_u1 (FILE *fp){
 	uint8_t ret;
 
+    //ret = getc(fp);
 	fread(&ret, 1, 1, fp);
-	/*printf("%02x\n", ret);*/
+	//printf("%02x\n", ret);
 	//printf("ret_u1 = %x\n", ret);
 	return ret;
 }
@@ -61,11 +66,11 @@ uint8_t ler_u1 (FILE *fp){
 ** faz um loop com a qtd de byte no array lendo byte a byte e armazenando 
 ** na memoria alocada.*/
 uint8_t * ler_UTF8 (int size, FILE *fp){
-	uint8_t *ret = (uint8_t *) malloc(sizeof(uint8_t) * size);
+	uint8_t *ret = (uint8_t *) malloc((sizeof(uint8_t) * size)+1);
 
 	for(int i = 0; i < size; i++)
 		ret[i] = ler_u1(fp);
-	
+	ret[size] = '\0';
 	return ret;
 }
 
@@ -83,18 +88,19 @@ float convert_u4_toFloat(classLoadrType ent){
 }
 
 /*Converte o valor em u4 para long.*/
-long convert_u4_toLong (classLoadrType entHigh, classLoadrType entLow){
-	long out;
+int64_t convert_u4_toLong (classLoadrType entHigh, classLoadrType entLow){
+	int64_t out;
 
-	out = (((long) entHigh.u4) << 32) | entLow.u4;
+	out = (((int64_t) entHigh.u4) << 32) | entLow.u4;
 	return out;
 }
 
 /*Converte o valor em u4 para double.*/
 double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow){
 	double out=0;
-
-	long check_boundaries = convert_u4_toLong(entHigh, entLow);
+	int s, e;
+	int64_t m;
+	int64_t check_boundaries = convert_u4_toLong(entHigh, entLow);
 
 	if(check_boundaries == 0x7ff0000000000000L){
 		/*verifica se retorna +infinito*/
@@ -105,9 +111,9 @@ double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow){
 	}else if((check_boundaries >= 0xfff0000000000001L) && (check_boundaries <= 0xffffffffffffffffL)){
 		/*verifica se retorna NaN*/
 	}else{
-		int s = ((check_boundaries >> 63) == 0) ? 1 : -1;
-		int e = ((check_boundaries >> 52) & 0x7ffL);
-		long m = (e == 0) ? (check_boundaries & 0xfffffffffffffL) << 1 : (check_boundaries & 0xfffffffffffffL) | 0x10000000000000L;
+		s = ((check_boundaries >> 63) == 0) ? 1 : -1;
+		e = ((check_boundaries >> 52) & 0x7ffL);
+		m = (e == 0) ? (check_boundaries & 0xfffffffffffffL) << 1 : (check_boundaries & 0xfffffffffffffL) | 0x10000000000000L;
 		out = s * m * (pow(2,(e-1075)));
 	}
 
@@ -352,12 +358,12 @@ void if_wide(uint32_t *i, FILE *fp, AT_Code **att_code, int *opcode){
 	}else{
 		//se ler opcode relacionado ao wide e não for nenhuma dessas instruções, então o 
 		//arquivo .class não é valido
-		printf("Arquivo .class invalido para instrução winde.\n");
+		printf("Arquivo .class invalido para instrucao winde.\n");
 		exit(1);
 	}
 }
 
-void pega_operandos(AllIns /*decoder*/ *decode, FILE *fp, int opcode, AT_Code **att_code, uint32_t *i){
+void pega_operandos(AllIns *decode, FILE *fp, int opcode, AT_Code **att_code, uint32_t *i){
 
 	// mount_inst_array(decode);
 	//init_decoder(decode);
@@ -420,8 +426,10 @@ AT_Code ler_Att_code(AT_Code **code_att, FILE *fp, uint16_t name_ind){
 
 	//pega o indice do nome do atributo e comprimento
 	out->attribute_name_index = name_ind;
+	
 	// out->attribute_length = att_len;
 	out->attribute_length = ler_u4(fp);
+	//printf("attribute_length: %d", out->attribute_length);
 
 	int pos_init = ftell(fp);	//pega a posição atual do ponteiro no arquivo fp
 
@@ -444,14 +452,81 @@ AT_Code ler_Att_code(AT_Code **code_att, FILE *fp, uint16_t name_ind){
 		out->EXC_table[i].handler_pc = ler_u2(fp);
 		out->EXC_table[i].catch_type = ler_u2(fp);		//
 	}
-
+	
 	out->attributes_count = ler_u2(fp);
 
-	out->attributes = (attribute_info *) malloc(sizeof(attribute_info) * (out)->attributes_count);
-	//começa a partir da posição atual do arquivo e lê o restante dos operandos
-	for (int i = (ftell(fp) - pos_init); i < out->attribute_length; i++)
-		/*out->attributes.info[i] =*/ ler_u1(fp);
-
+	//out->attributes = (attribute_info *) malloc(sizeof(attribute_info) * (out)->attributes_count);
+	//printf("QTD. de atributos: %d\n", out->attributes_count);
+	uint16_t t;
+	
+	for (int i = (ftell(fp) - pos_init); i < out->attribute_length; i++){
+		if(out->attributes_count != 0){
+            for(int x = 0; x < out->attributes_count; x++){
+               t = ler_u2(fp);
+               i += 2;
+               //printf("PRINT ATRIBUTOS\n");
+              // printf("%d\n", t);
+               //dereference_index_UTF8(t, classFile.constant_pool);
+               //printf("\n");
+               //uint32_t b = ler_u4(fp);
+               //i += 4;
+               //printf("iii = %d\n", i);
+               //printf("ATTRIBUTOOOOOOO %d\n", t);
+               if(strcmp((char *) classFile.constant_pool[t].info[1].array, "LineNumberTable") == 0){
+                  //printf("PRINT ATRIBUTOS\n");
+                  out->attributes = (LineNumberTable_Attribute *) malloc(sizeof(LineNumberTable_Attribute));
+                  out->attributes[x].attribute_name_index = t;
+                  //dereference_index_UTF8(t, classFile.constant_pool);
+                  //printf("\nx = %d\n", x);
+                  out->attributes[x].attribute_length = ler_u4(fp);
+                  i += 4;
+                  //t = ler_u2(fp);
+                  out->attributes[x].line_number_table_length = ler_u2(fp);
+                  i += 2;
+                  out->attributes[x].L_numberTable = (lineNumber_table *) malloc(sizeof(lineNumber_table) * (out->attributes[x].line_number_table_length));
+                  //printf("LINE NUMBER TABLE %d\n", out->attributes[x].line_number_table_length);
+                  //printf("%d\n", out->attributes[x].line_number_table_length);
+                  //int16_t aux = t;
+                  for(int s = 0; s < out->attributes[x].line_number_table_length; s++){
+                     //t = ler_u2(fp);
+                     //s += 2;
+                     out->attributes[x].L_numberTable[s].start_pc = ler_u2(fp);
+                     //printf("START PC: %d\n", out->attributes[x].L_numberTable[s].start_pc);
+                     i += 2;
+                     //printf("START PC: %d\n", t);
+                     //t = ler_u2(fp);
+                     out->attributes[x].L_numberTable[s].line_number = ler_u2(fp);
+                     //printf("LINE NUMBER: %d\n", out->attributes[x].L_numberTable[s].line_number);
+                     i += 2;
+                       //s += 2;
+                     //printf("LINE NUMBER: %d\n", t);
+                   }
+                   //printf("ii = %d\n", i);
+               }else /*if(strcmp((char *) classFile.constant_pool[t].info[1].array, "StackMapTable") == 0)*/{
+                   //out->StackMap = (StackMapTable_Attributes *) malloc(sizeof(StackMapTable_Attributes));
+                   
+                   //printf("Number of entrie stakMap: %d\n", ler_u2(fp));
+                   uint32_t b = ler_u4(fp);
+                   //out->attributes[x].attribute_name_index = t;
+                  // printf("\nx = %d", x);
+                   //dereference_index_UTF8(out->attributes[x].attribute_name_index, classFile.constant_pool);
+                   //printf("%d\n", out->StackMap[x].attribute_name_index);
+                   //out->attributes[x].attribute_length = ler_u4(fp);                    
+                   i += 4;
+                   //printf("ATTRIBUTE LENGTH: %d, x = %d\n", out->StackMap[x].attribute_length, x);
+                   for(int j = 0; j < /*out->attributes[x].attribute_length*/b; j++){
+                      ler_u1(fp);
+                      i++;
+                   }
+               }
+            }
+        }
+    }
+    //dereference_index_UTF8(out->attributes[0].attribute_name_index, classFile.constant_pool);printf("\n");
+    //if(out->attributes_count > 1){
+      //  dereference_index_UTF8(out->attributes[1].attribute_name_index, classFile.constant_pool);
+        //printf("\n");
+    //}
 	return *out;
 }
 
@@ -513,21 +588,22 @@ attribute_info ler_attribute(FILE *fp, cp_info *constPool, cFile cf){
 	out.attribute_name_index = ler_u2(fp);		//pega o index de referencia para tabela de constPool que referencia o nome do atributo
 	out.attribute_length = ler_u4(fp);			//pega o tamanho em byte do restante do atributo (não inclui os 6 bytes que contem o indice do nome e o comprimento do atributo)
 
-
 	// for (int i = 0; i < out.code_length; i++){
 		
-	// 	if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "ConstantValue") == 0){
-	// 		//ler Attributes constantValue
+	 	//if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "ConstantValue") == 0){
+	 		//ler Attributes constantValue
 				
 	// 		// ler_att_ctv();
-	// 	}else if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "SourceFile") == 0){
+	 	//}else if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "SourceFile") == 0){
 	// 		//ler SourceFile
-	// 	}else if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "InnerClasses") == 0){
+	 	//}else if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "InnerClasses") == 0){
 	// 		//ler InnerClasses
-	// 	}else if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "Synthetic") == 0){
+	 	//}else if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "Synthetic") == 0){
 	// 		//ler Sysnthetic
-	// 	}
-	// }
+	 	//}else if(strcmp((char *) constPool[out.attribute_name_index].info[1].array, "LineNumberTable") == 0){
+      	      //printf("FACA LEITURA DO LINENUMBERTABLE\n");
+                 
+        //}
 
 
 	out.info = (uint8_t *) malloc(sizeof(uint8_t) * out.attribute_length);
@@ -539,8 +615,6 @@ attribute_info ler_attribute(FILE *fp, cp_info *constPool, cFile cf){
 	return out;
 }
 
-
-
 /* Funcoes de methods */
 method_info ler_methods(FILE *fp, cp_info *constPool){
 	method_info ret;
@@ -548,23 +622,43 @@ method_info ler_methods(FILE *fp, cp_info *constPool){
 	uint16_t name_ind;					//name_index auxiliar para atributo
 
 	ret.access_flags = ler_u2(fp);			//pega o flag
+   // printf("access_flags: %x\n", ret.access_flags);
 	ret.name_index = ler_u2(fp);			//pega index de referencia para tabeal constPool que referencia o nome do metodo
+    //dereference_index_UTF8(ret.name_index, constPool);
+    //printf("\n");
 	ret.descriptor_index = ler_u2(fp);		//pega index de referencia para tabeal constPool que referencia um descritor do metodo
-	ret.attributes_count = ler_u2(fp);		//pega o número de atributos do metodo
+	//dereference_index_UTF8(ret.descriptor_index, constPool);
+	//printf("\n");
+    ret.attributes_count = ler_u2(fp);		//pega o número de atributos do metodo
+
 	
-	
+	if(ret.access_flags == 0x010a || ret.access_flags == 0x0101 || ret.access_flags == 0x0111){
+		for(int i = 0; i < ret.attributes_count; i++){
+			ler_u2(fp);
+			int64_t temp;
+			temp = ler_u4(fp);
+			for(int k = 0; k < temp; k++)
+				ler_u1(fp);
+		}
+		return ret;
+	}
+
 	for (int i = 0; i < ret.attributes_count; i++){
 
 		name_ind = ler_u2(fp);
 
+		// printf("FLAGS CONHECIDOS. %x\n", name_ind);
+	 	//printf("Atribute name2x: %s\n", (char *) constPool[name_ind].info[1].array);
+		 //dereference_index_UTF8(name_ind, constPool);
 		// checa o tipo de attribute do method
 		if(strcmp((char *) constPool[name_ind].info[1].array, "Code") == 0){
+			//printf("Attt Nma%s\n", (char *) constPool[name_ind].info[1].array);
 			ret.att_code = (AT_Code *) malloc(sizeof(AT_Code));	//aloca memoria para o atributo Code
 			ler_Att_code(&(ret.att_code), fp, name_ind);		//le o Code
+			
 
-		}else if(strcmp((char *) constPool[name_ind].info[1].array, "Exception") == 0){
-			//aloca espaço adequado
-			//chama função para tratar exceptions
+		}else if(strcmp((char *) constPool[name_ind].info[1].array, "Exceptions") == 0){
+			//printf("%s\n", (char *) constPool[name_ind].info[1].array);
 			ret.att_excp = (AT_Exceptions *) malloc(sizeof(AT_Exceptions));
 			ler_att_excp(&(ret.att_excp), fp, name_ind);
 		}
@@ -593,24 +687,23 @@ int init_leitor(FILE *fp){
 	// cFile classFile;
 	int checkCP;
 
-	// vetor booleano para controle de flags presentes.
-	// bool splitFlags[5];
-
-
+    //printf("ENTREIIIIIII CARALHOOO\n");
 	/*Verificação da assinatura do arquivo (verifica se esta presente cafe babe)*/
 	if((classFile.magic = ler_u4(fp)) != 0xcafebabe){
 		printf("ERRO: Arquivo invalido.\nAssinatura \"cafe babe\" nao encontrado");
 		return INVALID_FILE;
 	}
+	//printf("%x\n", classFile.magic);
 
 	classFile.minor_version = ler_u2(fp);		/* lê a minor version */
-	classFile.major_version = ler_u2(fp);		/* lê a major version */
+	//printf("minor_version: %d\n", classFile.minor_version);
+    classFile.major_version = ler_u2(fp);		/* lê a major version */
+    //printf("majorVersion: %d\n", classFile.major_version);
 	classFile.constant_pool_count = ler_u2(fp);	/* lê quantidade de constates no pool de constantes */
+	//printf("constant pool: %d\n", classFile.constant_pool_count);
 	/* aloca a memoria (tabela) do tamanho da quantidade de const na entrada no CP */
 	classFile.constant_pool = (cp_info *) malloc(sizeof(cp_info) * classFile.constant_pool_count);
 	checkCP = loadInfConstPool(classFile.constant_pool, classFile.constant_pool_count, fp);
-
-
 
 	/*Verifica se todos os elementos da entrada do CP foram lidos*/
 	if(classFile.constant_pool_count != checkCP){
@@ -635,13 +728,14 @@ int init_leitor(FILE *fp){
 	if(classFile.fields_count != 0){
 		classFile.fields = (field_info *) malloc(sizeof(field_info) * classFile.fields_count);
 		/*Carrega e mostra os fields existentes */
-
+        //printf("fields_count: %d\n", classFile.fields_count);
 		for (int i = 0; i < classFile.fields_count; ++i)
 			classFile.fields[i] = ler_fields(fp, classFile.constant_pool);
 	}
-
-
+	
 	classFile.methods_count = ler_u2(fp);
+	//printf("methods_count = %d\n", classFile.methods_count);
+	//printf("methods_count: %d\n", classFile.methods_count);
 	if(classFile.methods_count != 0){
 		classFile.methods = (method_info*) malloc (sizeof(method_info)*classFile.methods_count);
 
@@ -650,12 +744,16 @@ int init_leitor(FILE *fp){
 	}
 
 	classFile.attributes_count = ler_u2(fp);
+
 	if(classFile.attributes_count != 0){
+       // printf("attributes_count: %d\n", classFile.attributes_count);
 		classFile.attributes = (attribute_info *) malloc (sizeof(attribute_info) * classFile.attributes_count);
 		for (int i = 0; i < classFile.attributes_count; i++){
-			classFile.attributes[i] = ler_attribute(fp, classFile.constant_pool, classFile);
+            //printf("Attributes[i]: %d\n", i);
+            classFile.attributes[i] = ler_attribute(fp, classFile.constant_pool, classFile);
 		}
 	}
+	//printf("ESTOU FORA\n");
 
 	fclose(fp);
 	return 0;

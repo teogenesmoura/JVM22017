@@ -97,10 +97,18 @@ void executeFrame(tipoStackFrame *stackFrame){
 
 	int index=0;
 	
-	while (currentFrame->pc <= currentFrame->code_length){
+	while (currentFrame->pc < currentFrame->code_length){
 		index = currentFrame->pc;
-		printf ("[%d-%s]\n", currentFrame->code[index], decode[currentFrame->code[index]].name);
-		decode[currentFrame->code[index]].ins(currentFrame->operandStack);
+		decode[currentFrame->code[index]].ins();
+		
+		// debug
+		/*
+		printf ("Funcao executada: (%d) %s <%d>\n", currentFrame->code[index], decode[currentFrame->code[index]].name, currentFrame->code[index+1]);
+		mostra_pilha();
+		mostra_locais();
+		getchar();
+		*/
+		
 		currentFrame->pc += 1 + decode[currentFrame->code[currentFrame->pc]].bytes;
 	}
 }
