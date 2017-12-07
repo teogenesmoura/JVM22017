@@ -29,7 +29,8 @@
 	#endif
 
 	#define	INSTRUC_NAME	35
-
+    //#define LLONG_MAX       9223372036854775807LL
+    //#define LLONG_MIN       (-LLONG_MAX - 1LL)
 	typedef struct{ //Nome da struct = ""
 		int32_t hexa;
 		char name[INSTRUC_NAME]; //Definindo com *name cria-se uma posição na memória sendo read-only

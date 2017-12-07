@@ -20,3 +20,4 @@
 	EXT_INTERFACE bool callFunc(FILE *fp);
 	EXT_INTERFACE int menu_interface();
 #endif
+
