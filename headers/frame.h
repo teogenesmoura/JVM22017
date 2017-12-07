@@ -39,6 +39,26 @@
 		struct frame *next;
 	}tipoStackFrame;
 
+    typedef union{
+        int* iarray;
+        float* farray;
+    }tipoArray;
+ 
+    typedef struct vecArray{
+        int32_t refArray;
+        int32_t tamArray;
+        int8_t typeArray;
+        tipoArray array;
+    }vecArray;
+
+	typedef struct objeto{
+		cFile* classe;
+		//uint32_t* campos;
+		//uint32_t* indiceCampos;
+		struct objeto* superClasse;
+	}objeto;
+
+
 	struct frame *stackFrame;
 	struct frame *currentFrame;
 

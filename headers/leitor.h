@@ -38,6 +38,25 @@
 		uint8_t *info;
 	}attribute_info;
 
+    //typedef struct{
+      //  uint16_t attribute_name_index;
+        //uint32_t attribute_length;
+       // uint16_t number_of_entries;
+        //TODO:  CRIAR PONTEIRO DO TIPO STACK MAP FRAME        
+    //}StackMapTable_Attributes;
+    
+    typedef struct{
+       uint16_t start_pc;
+       uint16_t line_number;
+    }lineNumber_table;
+    
+    typedef struct{
+       uint16_t attribute_name_index;
+       uint32_t attribute_length;
+       uint16_t line_number_table_length;
+       lineNumber_table *L_numberTable;
+    }LineNumberTable_Attribute;
+
 	typedef struct{
 		uint16_t start_pc;
 		uint16_t end_pc;
@@ -55,7 +74,8 @@
 		uint16_t exception_table_length;
 		exception_table *EXC_table;
 		uint16_t attributes_count;			//numero de atributos associados ao atributo "Code" de um metodo
-		attribute_info *attributes;			//possíveis existencias de atributos opcionais associado ao atributo code
+		LineNumberTable_Attribute *attributes;		//possíveis existencias de atributos opcionais associado ao atributo code
+//		StackMapTable_Attributes *StackMap;
 	}AT_Code;
 
 	typedef struct{
@@ -157,6 +177,7 @@
 	/*********************/
 	/* Variaveis globais */
 	cFile classFile;
+	cFile classFileObject;
 	AllIns decode[NUM_INSTRUC];
 	/*********************/
 	/*********************/
@@ -167,7 +188,7 @@
 	EXT_LEITOR uint8_t ler_u1 (FILE *fp);
 	EXT_LEITOR int loadInfConstPool (cp_info *constPool, int const_pool_cont, FILE *fp);
 	EXT_LEITOR float convert_u4_toFloat(classLoadrType ent);
-	EXT_LEITOR long convert_u4_toLong (classLoadrType entHigh, classLoadrType entLow);
+	EXT_LEITOR int64_t convert_u4_toLong (classLoadrType entHigh, classLoadrType entLow);
 	EXT_LEITOR double convert_u4_toDouble(classLoadrType entHigh, classLoadrType entLow);
 	EXT_LEITOR void loadInterfaces(uint16_t *interfaces, int interfaces_count, cp_info *constPool, FILE *fp);
 	EXT_LEITOR uint8_t *ler_UTF8 (int size, FILE *fp);
@@ -186,3 +207,4 @@
 	EXT_LEITOR AT_Exceptions ler_att_excp(AT_Exceptions **att_excp, FILE *fp, uint16_t name_ind);
 
 #endif
+
