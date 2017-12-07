@@ -96,14 +96,15 @@ void executeFrame(tipoStackFrame *stackFrame){
 	currentFrame = stackFrame->next;
 
 	int index=0;
-	
-	while (currentFrame->pc <= currentFrame->code_length){
+	//printf ("code_length: %d\n", currentFrame->code_length);
+	while (currentFrame->pc < currentFrame->code_length){
 		index = currentFrame->pc;
 		decode[currentFrame->code[index]].ins();
-		
+
 		// debug
 		/*
-		printf ("Funcao executada: (%d) %s <%d>\n", currentFrame->code[index], decode[currentFrame->code[index]].name, currentFrame->code[index+1]);
+		printf ("Index: %d\n", index);
+		printf ("Funcao executada: (%d) %s\n", currentFrame->code[index], decode[currentFrame->code[index]].name);
 		mostra_pilha();
 		mostra_locais();
 		getchar();

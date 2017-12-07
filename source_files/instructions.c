@@ -2,6 +2,9 @@
 #include "../headers/instructions.h"
 #include "../headers/frame.h"
 
+vecArray *vecArrays = NULL;
+int32_t quantArray = 0;
+
 void flush_in(){
 	int ch;
 	while((ch = fgetc(stdin)) != EOF && ch != '\n' ){} 
@@ -630,6 +633,7 @@ void mostra_pilha(){
 	}
 	printf ("\n");
 }
+
 void mostra_locais(){
 	printf ("LocalVariables: ");
 	for(int i = 0; i < currentFrame->max_locals; i++)
@@ -803,12 +807,8 @@ void bipush(){
 
 	converte_para_8bits |= bytes;
 	completa_bits |= bytes;
-	printf ("bytes: %d\ncompleta_bits: %d\n", bytes, completa_bits);
+	// printf ("completa_bits: %d\n", completa_bits);
 	empilha(completa_bits);
-	for (int i=0;i<3;i++){
-		printf ("{%d}", currentFrame->operandArray[i]);
-	}
-	printf("\n");
 	return;
 }
 void sipush(){
@@ -1017,13 +1017,19 @@ void aload_3(){
 	return;
 }
 void iaload(){
-	/*
-	int32_t* arrayref;
 	int32_t index = desempilha();
-	arrayref = (int32_t*) desempilha();
-	empilha(arrayref[index]);
+	int32_t arrayref = desempilha();
+
+	int i=0;
+	int32_t para_empilhar;
+	//printf ("[iaload] indice: %d\t arrayref: %d\t vecArrays[0].arrayref: %x", index, arrayref, vecArrays[0].refArray);
+
+	for (i=0;i<quantArray;i++){
+		if (vecArrays[i].refArray == arrayref){
+			empilha(vecArrays[i].array.iarray[index]);
+		}
+	}
 	return;
-	*/
 }
 void laload(){
 	/*
@@ -1036,20 +1042,19 @@ void laload(){
 	*/
 }
 void faload(){
-	/*
-	int32_t* arrayref;
 	int32_t index = desempilha();
-	// int32_t valor1;
-	float valor2;
+	int32_t arrayref = desempilha();
 
-	arrayref = (float*) desempilha();	//tentativa de desempilhar a referencia direto como um vetor de floats
-	valor2 = (float) arrayref[index];
-	// num = arrayref[index];
-	// memcpy(&num)
+	int i=0;
+	int32_t para_empilhar;
+	//printf ("[iaload] indice: %d\t arrayref: %d\t vecArrays[0].arrayref: %x", index, arrayref, vecArrays[0].refArray);
 
-	empilha(valor2);
+	for (i=0;i<quantArray;i++){
+		if (vecArrays[i].refArray == arrayref){
+			empilha(vecArrays[i].array.farray[index]);
+		}
+	}
 	return;
-	*/
 }
 void daload(){
 	/*
@@ -1204,9 +1209,37 @@ void astore_3(){
 	currentFrame->variables[3] = desempilha();
 	return;
 }
-void iastore(){return;}
+void iastore(){
+	int32_t value = desempilha();
+	int32_t index = desempilha();
+	int32_t arrayref = desempilha();
+	int i;
+
+	//printf ("[iastore] arrayref: %d\t vecArrays[0].refArray = %d\n", arrayref, vecArrays[0].refArray);
+	for (i=0;i<quantArray;i++){
+		if (vecArrays[i].refArray == arrayref){
+			//printf ("oi [iastore] ");
+			vecArrays[i].array.iarray[index] = value;
+		}
+	}
+	return;
+}
 void lastore(){return;}
-void fastore(){return;}
+void fastore(){
+	int32_t value = desempilha();
+	int32_t index = desempilha();
+	int32_t arrayref = desempilha();
+	int i;
+
+	//printf ("[iastore] arrayref: %d\t vecArrays[0].refArray = %d\n", arrayref, vecArrays[0].refArray);
+	for (i=0;i<quantArray;i++){
+		if (vecArrays[i].refArray == arrayref){
+			//printf ("oi [iastore] ");
+			vecArrays[i].array.farray[index] = value;
+		}
+	}
+	return;
+}
 void dastore(){return;}
 void aastore(){return;}
 void bastore(){return;}
@@ -1348,7 +1381,7 @@ void fadd(){
 	
 	return;
 }
-void dadd(){	
+void dadd(){
 	int64_t valor1_lo = desempilha();
 	int64_t valor1_hi = desempilha();
    	int64_t valor2_lo = desempilha();
@@ -1533,10 +1566,10 @@ void fsub(){
 }
 void dsub(){
 	
-	int64_t valor1_lo = desempilha();
-	int64_t valor1_hi = desempilha();
    	int64_t valor2_lo = desempilha();
 	int64_t valor2_hi = desempilha();
+	int64_t valor1_lo = desempilha();
+	int64_t valor1_hi = desempilha();
 	int32_t para_empilhar_lo = 0xFFFFFFFF;
 	int32_t para_empilhar_hi = 0xFFFFFFFF;
 	int64_t para_empilhar;
@@ -1571,7 +1604,6 @@ void dsub(){
 			valor_float = valor1_f-valor2_f;
 		}
 	}
-	
 	memcpy(&para_empilhar, &valor_float, sizeof(int64_t));
 	para_empilhar_hi &= para_empilhar >> 32;
 	para_empilhar_lo &= para_empilhar;
@@ -2858,7 +2890,7 @@ void d2l(){
 	int32_t maior_valor, menor_valor;
 
 	int64_t valor1, aux;
-	long vl;	//value long
+	int64_t vl;	//value long
 
 	valor1 = 0x00000000FFFFFFFF & valor1_lo;
 	valor1_hi <<= 32;
@@ -3498,14 +3530,76 @@ void ret(){
 	
 	return;
 }
-void tableswitch(){return;}
+void tableswitch(){
+	uint32_t bytes_preench;
+	int32_t indice;
+	int32_t default_v, low, high, npairs;
+	uint32_t pc_novo, pc_aux;
+	int32_t qtd_offset, offset, posicao;
+	uint32_t temp;
+
+	bool definido = false;
+	pc_aux = currentFrame->pc;
+	/* pega valor da pilha de operandos */
+	indice = desempilha();
+
+	bytes_preench = (4 - ((pc_aux +1 ) % 4)) % 4;
+	pc_aux += bytes_preench;
+	pc_aux++;
+
+	default_v = 0;
+
+	for(int l = 0; l < 4; l++) {
+		default_v = (default_v << 8) + currentFrame->code[pc_aux];
+		pc_aux++;
+	}
+
+	//pega bytes low
+	low = 0;
+	for(int i = 0; i < 4; i++) {
+		low = (low << 8) + currentFrame->code[pc_aux];
+		pc_aux++;
+	}
+
+	if(indice < low && !definido) {
+		definido = true;
+		pc_novo = currentFrame->pc + default_v;
+	}
+
+	/*passo 3 */
+	qtd_offset = 1 + high - low;
+	posicao = indice - low;
+	for(int32_t z = 0; z < qtd_offset; z++) {
+		if(z == posicao) {
+			offset = 0;
+			for(int i = 0; i < 4; i++) {
+				offset = (offset << 8) + currentFrame->code[pc_aux];
+				pc_aux++;
+			}	
+			// calcula posicao 
+			pc_novo = currentFrame->pc + offset; 
+			definido = true;
+
+			// sai do loop 
+			break;
+		}else{ // senao, passa pelo offset atual incrementando pc
+			for (int i = 0; i < 4; i++){
+				pc_aux++; 
+			}
+		}
+    }
+	// poe valor correto em frameCorrente
+	currentFrame->pc = pc_novo; 
+}
 void lookupswitch(){return;}
 void ireturn(){return;}
 void lreturn(){return;}
 void freturn(){return;}
 void dreturn(){return;}
 void areturn(){return;}
-void return_(){return;}
+void return_(){
+	return;
+}
 
 //REFERÊNCIAS
 void getstatic(){
@@ -3579,7 +3673,7 @@ void invokevirtual(){
 		if (strcmp(type, "(Ljava/lang/String;)V")==0){
 			/*Desempilhar o valor do indice da string referenciada no constant pool e printar isso.*/
 			index = desempilha();
-			printf ("%s", currentFrame->constant_pool[index].info[1].array);
+			printf ("%s\n", currentFrame->constant_pool[index].info[1].array);
 		}else if (strcmp(type, "(D)V")==0){
 			/*
 			Desempilhar e concatenar os dois elementos superiores da pilha, transformar em um double e printar.
@@ -3590,10 +3684,14 @@ void invokevirtual(){
 			laux2 <<= 32;
 			//printf ("Desempilhando high e concatenando...\n");
 			laux |= laux2;
+
+			conversor.valor1 = laux;
+			printf ("[invokevirtual] %g\n", conversor.valor2);
+			getchar();
 			//printf ("Convertendo para double...\n");
 			memcpy(&dout, &laux, sizeof(int64_t));
 			//printf ("Exibindo double...\n");
-			printf ("%g.\n",  dout);
+			printf ("%g\n",  dout);
 			// printf ("\nCheckpoint\n");
 		}else if (strcmp(type, "(I)V")==0){
 			iaux = desempilha();
@@ -3605,7 +3703,7 @@ void invokevirtual(){
 			printf ("%f\n", conversor.valor5);;
 		}else if(strcmp(type, "(J)V")==0){
 			laux = desempilha();
-			printf ("%lld", laux);
+			printf ("%lld\n", laux);
 		}else{
 			printf ("Nao implementado printar type \"%s\"\n", type);
 		}
@@ -3621,7 +3719,6 @@ void invokespecial(){
 	uint32_t index = (indexbytes1 << 8) | indexbytes2;
 
 	printf ("%d", index);
-	getchar();
 
 	*/
 	return;
@@ -3645,9 +3742,148 @@ void new_(){
 	return;
 	*/
 }
-void newarray(){return;}
-void anewarray(){return;}
-void arraylength(){return;}
+void newarray(){
+	int32_t tamBytes;
+	int32_t tamArray = desempilha(); 
+	int8_t typeArray = currentFrame->code[(currentFrame->pc)+1];
+	//Long
+	if(typeArray == 11){
+		tamBytes = 8;
+	}
+	//Double
+	if(typeArray == 7){
+		tamBytes = 8;
+	}
+	//Float
+	if(typeArray == 6){
+		tamBytes = 4;
+	}
+	//Referencia
+	if(typeArray == 0){
+		tamBytes = 4;
+	}
+	//Int
+	if(typeArray == 10){
+		tamBytes = 4;
+	}
+	//Char
+	if(typeArray == 5){
+		tamBytes = 2;
+	}
+	//short
+	if(typeArray == 9){
+		tamBytes = 2;
+	}
+
+	//Booleano
+	if(typeArray == 4){
+		tamBytes = 1;
+	}
+	//byte
+	if(typeArray == 8){
+		tamBytes = 1;
+	}
+	
+	quantArray+=1;
+	vecArrays = realloc (vecArrays, sizeof(vecArray)*quantArray);
+	vecArrays[quantArray-1].tamArray = tamArray;
+	vecArrays[quantArray-1].typeArray = typeArray;
+	switch(typeArray){
+		case 10:
+			vecArrays[quantArray-1].array.iarray = calloc(tamBytes,tamArray);
+			vecArrays[quantArray-1].refArray = (int32_t)(vecArrays[quantArray-1].array.iarray);
+			break;
+		case 6:
+			vecArrays[quantArray-1].array.farray = calloc(tamBytes,tamArray);
+			vecArrays[quantArray-1].refArray = (int32_t)(vecArrays[quantArray-1].array.farray);
+			break;
+		default:
+			printf ("So trata array de inteiros e floats.");
+			exit(1);
+		break;
+	}
+	
+	
+	//printf ("[newarray] vecArrays.refArray = %d", vecArrays[quantArray-1].refArray);
+	empilha(vecArrays[quantArray-1].refArray);
+
+	return;
+}
+void anewarray(){
+
+	int32_t tamBytes;
+	int32_t tamArray = desempilha();
+	int8_t typeArray = currentFrame->code[(currentFrame->pc)+1];
+
+	//long
+	if(typeArray == 11){
+		tamBytes = 8;
+	}
+	//double
+	if(typeArray == 7){
+		tamBytes = 8;
+	}
+	//float
+	if(typeArray == 6){
+		tamBytes = 4;
+	}
+	//ref
+	if(typeArray == 0){
+		tamBytes = 4;
+	}
+	//int
+	if(typeArray == 10){
+		tamBytes = 4;
+	}
+	//char
+	if(typeArray == 5){
+		tamBytes = 2;
+	}
+	//short
+	if(typeArray == 9){
+		tamBytes = 2;
+	}
+	//booleano
+	if(typeArray == 4){
+		tamBytes = 1;
+	}
+	//byte
+	if(typeArray == 8){
+		tamBytes = 1;
+	}
+
+	int32_t* vetor = calloc(tamBytes,tamArray);
+
+	quantArray++;
+	vecArrays = realloc (vecArrays, sizeof(vecArray)*quantArray);
+	vecArrays[quantArray-1].tamArray = tamArray;
+	vecArrays[quantArray-1].refArray = (int32_t)vetor;
+	vecArrays[quantArray-1].typeArray = typeArray;
+
+	empilha((int32_t)vetor);
+
+	return;
+}
+void arraylength(){
+
+	int32_t refArray = desempilha();
+	int i = 0;
+
+	while(i  < quantArray){
+		if(vecArrays[i].refArray == refArray){
+			int32_t tam = vecArrays[i].tamArray;
+			empilha(tam);
+			return;
+		}
+		i++;
+	}
+
+	// Não encontrado.
+	empilha(0);
+
+	return;
+}
+
 // void athrow(){return;}
 // void checkcast(){return;}
 // void instanceof(){return;}

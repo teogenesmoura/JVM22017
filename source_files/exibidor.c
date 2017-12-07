@@ -90,7 +90,7 @@ void showConstPool(int const_pool_cont, cp_info *constPool){
 				break;
 
 			case LONG:
-				printf("\t\t%ld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
+				printf("\t\t%lld", convert_u4_toLong(constPool[i].info[0], constPool[i].info[1]));
 				break;
 			
 			case DOUBLE:
@@ -324,13 +324,13 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 	printf("\n");
 	printf(" \tAttribute length: %d\n", att_code.attribute_length);
 
-	/*Completar a função para diferente tipos de atributo*/
+	/*Completar a funcao para diferente tipos de atributo*/
 	if(strcmp((char *) cp[att_code.attribute_name_index].info[1].array, "Code") == 0){
 		printf("\tmax_stack = %d\n", att_code.max_stack);
 		printf("\tmax_locals = %d\n", att_code.max_locals);
 		printf("\tcode_length = %d\n", att_code.code_length);
 		printf("\topcde = %x\n", att_code.code[i]);
-		printf("\tInstrução: %s\n", decode[att_code.code[i]].name);
+		printf("\tBytecode: %s", decode[att_code.code[i]].name);
 		
 		if(decode[att_code.code[i]].bytes != 0){
 			aux = i;
@@ -359,7 +359,7 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 					i++;
 				}
 
-				printf("\tTableswitch %d to %d\n", low, high);
+				printf("\n\tTableswitch %d to %d\n", low, high);
 				
 				match_offset = high - low + 1;
 				for(int x = 0; x < match_offset; x++){
@@ -416,16 +416,19 @@ void show_method_attribute(cp_info *cp, AT_Code att_code){
 					i++;
 				}
 			}else{
-				printf("\tInstrução %s\n", decode[att_code.code[i]].name);
+				printf("\n\tBytecode %s", decode[att_code.code[i]].name);
 				if(decode[att_code.code[i]].bytes != 0){
 					int aux = i;
-					for(int x = 0; x < decode[att_code.code[aux]].bytes; x++)
+					for(int x = 0; x < decode[att_code.code[aux]].bytes; x++){
+						printf("\t%d", att_code.code[i+1]);
 						i++;
+					}
 				}
 				i++;
 			}
 		}
 	}
+	//ler attributos
 }
 
 void show_methods(cFile classFile){
@@ -494,7 +497,7 @@ void show_cFile_attributes(cFile classFile){
 
 void infoBasic(cFile classFile){
 	printf("--------------------\n");
-	printf("|Informações gerais|\n");
+	printf("|Informacoes gerais|\n");
 	printf("--------------------\n\n");
 
 	printf ("Magic number: 0x%x\n", classFile.magic);
@@ -517,7 +520,7 @@ void infoBasic(cFile classFile){
 	printf("Method count: %d\n", classFile.methods_count);
 	/*show_methods(classFile);*/
 	printf("Attributes count: %d\n", classFile.attributes_count);
-	/*show_cFile_attributes(classFile);*/
+	show_cFile_attributes(classFile);
 }
 
 /*
@@ -528,7 +531,7 @@ void show_info(){
 	infoBasic(classFile);
 	
 	/*Exibe informações de Pool de constante*/
-	/*showConstPool(classFile.constant_pool_count, classFile.constant_pool);*/
+	showConstPool(classFile.constant_pool_count, classFile.constant_pool);
 	
 	/*Exibe os metodos*/
 	show_methods(classFile);
